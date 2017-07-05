@@ -1,0 +1,5 @@
+cd ConfigurationDB;scons install -j4;cd -
+cd Dif;scons install -j4;cd -
+cd Sdcc;scons install -j4;cd -
+cd Mdcc;scons install -j4;cd -
+cd Builder;scons install -j4;cd -

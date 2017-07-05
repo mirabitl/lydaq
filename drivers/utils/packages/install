@@ -1,0 +1,8 @@
+#!/bin/bash
+
+tar zxvf CAENHVWrapper-5.77.tar.gz 
+cd Linux/
+sudo apt-get install libncurses5-dev
+sudo make install -f Makefile_64 
+cd ..
+rm -rf Linux

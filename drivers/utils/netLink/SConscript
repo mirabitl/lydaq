@@ -1,0 +1,115 @@
+import sys,os,commands
+import  os
+import re
+import sys
+DHCAL_ROOT=os.path.abspath("..")
+
+fres=os.popen('uname -r')
+kl=fres.readline().split(".")
+
+platform="UBUNTU"
+if (kl[len(kl)-1][0:3] == 'el5'):
+    platform="SLC5"
+
+if (kl[len(kl)-2][0:3] == 'el6'):
+    platform="SLC6"
+print kl[len(kl)-2][0:3]
+fres=os.popen('uname -p')
+kp=fres.readline()
+osv=kp[0:len(kp)-1]
+
+print platform,osv
+
+Bit64=os.uname()[4]=='x86_64'
+
+Arm=os.uname()[4]=='armv7l'
+
+if Arm or platform=="UBUNTU":
+  boostsystem='boost_system'
+  boostthread='boost_thread'
+else:
+  boostsystem='boost_system-mt'
+  boostthread='boost_thread-mt'
+
+
+
+
+LIBRARY_SOURCES=Glob("#src/*.cc")
+INCLUDES=['include']
+if (platform=="SLC5"):
+    INCLUDES.append('/usr/include/boost141')
+CPPFLAGS=["-pthread","-O4","-DLINUX", "-DREENTRANT" ,"-Dlinux"]
+
+#SDHCAL_RPI=os.getenv("SDHCAL_RPI")
+#if (SDHCAL_RPI==None):
+#	print "please specify SDHCAL_RPI"
+#	exit()
+#INCLUDES.append(SDHCAL_RPI+"/include")
+
+
+
+LIBRARIES=["pthread"]
+LIBRARY_PATHS=[""]
+if ( platform=="SLC5" and osv=="x86_64"):
+    LIBRARY_PATHS=["/usr/lib64/boost141","/usr/lib64","/usr/local/lib"]
+else:
+    if ( platform=="SLC5"):
+        LIBRARY_PATHS=["/usr/lib/boost141","/usr/lib","/usr/local/lib"]
+    else:
+        LIBRARY_PATHS=["/usr/lib","/usr/local/lib"]
+
+#link flags
+LDFLAGS=["-fPIC","-dynamiclib"]
+
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+
+netlink=env.SharedLibrary("#lib/netlink",source=LIBRARY_SOURCES)
+
+CSLM_SOURCES=Glob("#cslm/*.cc")
+
+LIBRARY_PATHS.append("./lib")
+LIBRARIES=["pthread","netlink",boostsystem,boostthread]
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+cslm=env.SharedLibrary("#lib/cslm",source=CSLM_SOURCES)
+
+
+
+
+
+LIBRARIES.append("cslm")
+
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+
+smart_buffer=env.Program("smart_buffer",source=Glob("examples/smart_buffer/*.cc"))
+
+clientEcho=env.Program("clientEcho",source=Glob("examples/socket/clientEcho.cc"))
+
+serverEcho=env.Program("serverEcho",source=Glob("examples/socket/serverEcho.cc"))
+
+udpDirectChat=env.Program("udpDirectChat",source=Glob("examples/socket/udpDirectChat.cc"))
+
+chatClient=env.Program("chatClient",source=Glob("examples/socket_group/chatClient.cc"))
+
+chatServer=env.Program("chatServer",source=Glob("examples/socket_group/chatServer.cc"))
+
+
+
+
+#MonServer_src=['cslm/NetMessage.cpp','cslm/MessageHandler.cc','cslm/NMServer.cc','cslm/MonServer.cc']
+#MonClient_src=['cslm/NetMessage.cpp','cslm/MessageHandler.cc','cslm/NMClient.cc','cslm/MonClient.cc']
+
+MonServer=env.Program("MonServer",source=["cslm/MonServer.cpp"])
+MonClient=env.Program("MonClient",source=["cslm/MonClient.cpp"])
+
+#env.Install(DHCAL_ROOT+"/opt/dhcal/lib",[netlink,cslm])
+###env.Install("/opt/dhcal/lib",[netlink,cslm])
+
+env.Install("../../include","./include/netlink")
+env.Install("../../lib",[netlink,cslm])
+
+
+###env.Alias('install', [DHCAL_ROOT+"/opt/dhcal/lib","/opt/dhcal/lib","/opt/dhcal/include/netlink","/opt/dhcal/include/cslm"])
+
+env.Alias('install', ["../../lib","../../bin","../../include"])
+
+#env.Alias('install',[DHCAL_ROOT+"/opt/dhcal/lib"])
