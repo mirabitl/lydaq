@@ -3,3 +3,4 @@ cd Dif;scons -c install;cd -
 cd Sdcc;scons -c install;cd -
 cd Mdcc;scons -c install;cd -
 cd Builder;scons -c install;cd -	
+cd Control;scons -c install;cd -	
