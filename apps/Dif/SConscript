@@ -62,7 +62,7 @@ LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','lydaq_Ftdi
 if (Bit64):
   LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 else:
-  LIBRARY_PATHS=["/usr/lib","/usr/local/lib"]
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 
 if (Use_Mongoose):
   LIBRARY_PATHS.append('/usr/local/lib')
@@ -76,7 +76,9 @@ if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
 
 if (Use_Oracle):
-  LIBRARIES=LIBRARIES+['dl','uuid', 'occi', 'clntsh', 'nnz11', 'ilcconfdb', 'dbi','xerces-c']
+  LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
+  if (not Arm):
+      LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
 
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]

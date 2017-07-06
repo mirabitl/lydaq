@@ -55,6 +55,9 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
+
+if (Arm):
+    CPPFLAGS.append("-DNO_DB")
 LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','zdaq','z','log4cxx']
 
 
@@ -62,7 +65,7 @@ LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','zdaq','z',
 if (Bit64):
   LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 else:
-  LIBRARY_PATHS=["/usr/lib","/usr/local/lib"]
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 
 if (Use_Mongoose):
   LIBRARY_PATHS.append('/usr/local/lib')
@@ -76,7 +79,11 @@ if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
 
 if (Use_Oracle):
-  LIBRARIES=LIBRARIES+['dl','uuid', 'occi', 'clntsh', 'nnz11', 'ilcconfdb', 'dbi','xerces-c']
+    if ( not Arm):
+        LIBRARIES=LIBRARIES+['dl','uuid', 'occi', 'clntsh', 'nnz11', 'ilcconfdb', 'dbi','xerces-c']
+    else:
+        LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
+        
 
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]

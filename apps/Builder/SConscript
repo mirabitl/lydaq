@@ -62,7 +62,7 @@ LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','zdaq','z',
 if (Bit64):
   LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 else:
-  LIBRARY_PATHS=["/usr/lib","/usr/local/lib"]
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 
 if (Use_Mongoose):
   LIBRARY_PATHS.append('/usr/local/lib')
@@ -75,7 +75,7 @@ Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
 if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
 
-if (Use_Oracle):
+if (Use_Oracle and not Arm):
   LIBRARIES=LIBRARIES+['dl','uuid', 'occi', 'clntsh', 'nnz11', 'ilcconfdb', 'dbi','xerces-c']
 
 #link flags
