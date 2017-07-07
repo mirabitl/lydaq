@@ -45,7 +45,7 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
   for (Json::ValueConstIterator it = books.begin(); it != books.end(); ++it)
     {
       const Json::Value& book = *it;
-      std::cout<<"Registering"<<(*it).asString()<<std::endl;
+      std::cout<<"Registering "<<(*it).asString()<<std::endl;
       _merger->registerDataSource((*it).asString());
       std::cout<<"done"<<std::endl;
       array_keys.append((*it).asString());
@@ -56,11 +56,13 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
   for (Json::ValueConstIterator it = pbooks.begin(); it != pbooks.end(); ++it)
     {
       const Json::Value& book = *it;
+      std::cout<<"registering "<<(*it).asString()<<std::endl;
       _merger->registerProcessor((*it).asString());
       parray_keys.append((*it).asString());
-
+      std::cout<<"done"<<std::endl;
     }
 
+  std::cout<<" Setting parameters"<<std::endl;
   _merger->loadParameters(jc);
   // Overwrite msg
     //Prepare complex answer

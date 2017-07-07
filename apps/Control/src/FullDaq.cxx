@@ -355,6 +355,13 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 }
 void FullDaq::prepare(zdaq::fsmmessage* m)
 {
+  if (this->parameters().isMember("s_ctrlreg"))
+    {
+      uint32_t ctrlreg=0;
+      sscanf(this->parameters()["s_ctrlreg"].asString().c_str(),"%x",&ctrlreg);
+      this->parameters()["ctrlreg"]=ctrlreg;
+    }
+  
   //std::cout<<"ON RENTREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"<<std::endl;
   //  for (int i=0;i<100;i++)
    printf("Clients: DB %x ZUP %x MDC %x SDCC %x \n",_dbClient,_zupClient,_mdccClient,_cccClient);
@@ -474,7 +481,8 @@ void FullDaq::singleregisterdb(fsmwebCaller* d)
 }
 void FullDaq::singleconfigure(fsmwebCaller* d)
 {
-  Json::Value jc=this->parameters()["db"];
+  // Essai Json::Value jc=this->parameters()["db"];
+  Json::Value jc;
   jc["difid"]=0;
   jc["ctrlreg"]=this->parameters()["ctrlreg"];
   d->sendTransition("CONFIGURE",jc);
@@ -640,7 +648,7 @@ void FullDaq::start(zdaq::fsmmessage* m)
   // Get the new run number
  
       std::cout<<" calling for new runs from the web interface \n";
-      std::string url="http://ilcconfdb.ipnl.in2p3.fr/runid";
+      std::string url="https://ilcconfdb.ipnl.in2p3.fr/runid";
       std::string jsconf=fsmwebCaller::curlQuery(url,this->login());
       std::cout<<jsconf<<std::endl;
       Json::Reader reader;
