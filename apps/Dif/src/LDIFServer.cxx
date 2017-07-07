@@ -134,7 +134,7 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
   if (this->parameters().isMember("builderAddress"))
     {
       builderAddress=this->parameters()["builderAddress"].asString();
-      std::cout<<" builder address is "<<builderAddress<<" context "<<std::hex<<(int) _context<<std::dec<<" length" <<builderAddress.length()<<std::endl;
+      std::cout<<" builder address is "<<builderAddress<<" length" <<builderAddress.length()<<std::endl;
     }
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
