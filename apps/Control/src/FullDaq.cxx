@@ -723,6 +723,7 @@ void FullDaq::stop(zdaq::fsmmessage* m)
       g.create_thread(boost::bind(&FullDaq::singlestop, this,(*it)));
     }
   g.join_all();
+  std::cout<<"end of STOP of DIF Status \n";
   // Stop TDC
    for (auto tdc:_tdcClients)
 	{
@@ -730,12 +731,13 @@ void FullDaq::stop(zdaq::fsmmessage* m)
 	}
   
   ::sleep(1);
+   std::cout<<"end of STOP of TDC Status \n";
   // Stop the builder
    if (_builderClient)
     {
       _builderClient->sendTransition("STOP");
     }
-
+   std::cout<<"end of STOP waiting for DIF Status \n";
    m->setAnswer(toJson(this->difstatus()));  
 }
 
@@ -934,7 +936,7 @@ void FullDaq::dbStatus(Mongoose::Request &request, Mongoose::JsonResponse &respo
     {
       if (this->parameters().isMember("db"))
 	{
-	   response["state"]= this->parameters()["db"]["dbstate"];
+	   response["state"]= this->parameters()["db"]["state"];
 	}
     }
   
@@ -973,11 +975,10 @@ void  FullDaq::builderStatus(Mongoose::Request &request, Mongoose::JsonResponse 
   if (!_builderClient->answer().empty())
     {
       if (_builderClient->answer().isMember("answer"))
-	if (_builderClient->answer()["answer"].isMember("VALUE"))
-	{
-	  response["run"]=_builderClient->answer()["answer"]["VALUE"]["run"];
-	  response["event"]=_builderClient->answer()["answer"]["VALUE"]["event"];
-	}
+	
+	  response["run"]=_builderClient->answer()["answer"]["answer"]["run"];
+	  response["event"]=_builderClient->answer()["answer"]["answer"]["event"];
+	
     }
   response["STATUS"]="DONE";
 }

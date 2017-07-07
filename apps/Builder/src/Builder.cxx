@@ -87,6 +87,7 @@ void lydaq::dsBuilder::stop(zdaq::fsmmessage* m)
   
   _merger->stop();
   _running=false;
+  printf("Builder is stopped \n");fflush(stdout);
 }
 void lydaq::dsBuilder::halt(zdaq::fsmmessage* m)
 {
