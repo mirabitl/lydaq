@@ -15,7 +15,10 @@ lydaq::LDIF::LDIF(FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NUL
   _readoutCompleted=true;
 }
 void lydaq::LDIF::setTransport(zdaq::zmPusher* p)
-{_dsData=p;}
+{
+_dsData=p;
+printf("DSDATA is %x\n",_dsData);
+}
 lydaq::LDIF::~LDIF()
 {
 
@@ -108,21 +111,22 @@ void lydaq::LDIF::readout()
 		
       try 
 	{
-				
+	  //printf("Trying to read \n");fflush(stdout);
 	  uint32_t nread=_rd->DoHardrocV2ReadoutDigitalData(cbuf);
 	  //printf(" Je lis %d => %d \n",_status->id,nread);
 	  if (nread==0) continue;
-	 
+	  //printf(" Je lis %d bytes => %d %x\n",_status->id,nread,_dsData);fflush(stdout);
+	  if (_dsData==NULL) continue;;
 	  memcpy((unsigned char*) _dsData->payload(),cbuf,nread);
 	  //this->publishData(nread);
 	 
 	  _status->gtc=lydaq::LDIF::getBufferDTC(cbuf);
 	  _status->bcid=lydaq::LDIF::getBufferABCID(cbuf);
 	  _status->bytes+=nread;
-	  _dsData->publish(_status->gtc,_status->bcid,nread);
+	  //printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
+	  _dsData->publish(_status->bcid,_status->gtc,nread);
 
-
-
+	  
 	}
       catch (LocalHardwareException e)
 	{
@@ -350,13 +354,13 @@ void lydaq::LDIF::registration()
   std::stringstream s0;
   char hname[80];
   gethostname(hname,80);
-  if (_dsData!=NULL)
-    {
-      LOG4CXX_INFO(_logLdaq," Deleting dim services ");
-      delete _dsData;
-      _dsData=NULL;
+  // if (_dsData!=NULL)
+  //   {
+  //     LOG4CXX_INFO(_logLdaq," Deleting dim services ");
+  //     delete _dsData;
+  //     _dsData=NULL;
       
-    }
+  //   }
  
 }
 

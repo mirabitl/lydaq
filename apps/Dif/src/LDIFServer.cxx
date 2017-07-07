@@ -130,11 +130,11 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
     
   // Found the builder address
   
-  std::string builderAddress("");
+  std::string builderAddress="";
   if (this->parameters().isMember("builderAddress"))
     {
       builderAddress=this->parameters()["builderAddress"].asString();
-     
+      std::cout<<" builder address is "<<builderAddress<<" context "<<std::hex<<(int) _context<<std::dec<<" length" <<builderAddress.length()<<std::endl;
     }
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
@@ -150,6 +150,7 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
       zdaq::zmPusher* push=NULL;
       if (_context!=NULL && difid>0 && builderAddress.length()>4)
 	{
+	  std::cout<<" Creating pusher to "<<builderAddress<<std::endl;
 	  push=new zdaq::zmPusher(_context,detid,difid);
 	  push->connect(builderAddress);
 	}
@@ -163,9 +164,10 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
 	{
 	  LOG4CXX_INFO(_logLdaq," calling initialise LDIF @ "<<std::hex<<it->second<<std::dec);
 	  zdaq::zmPusher* push=NULL;
-	  if (_context!=NULL && difid>0 && builderAddress.length()>4)
+	  if (_context!=NULL  && builderAddress.length()>4)
 	    {
-	      push=new zdaq::zmPusher(_context,detid,difid);
+	      std::cout<<" Creating pusher to "<<builderAddress<<std::endl;
+	      push=new zdaq::zmPusher(_context,detid,it->first);
 	      push->connect(builderAddress);
 	    }
 
@@ -374,8 +376,10 @@ void lydaq::LDIFServer::status(zdaq::fsmmessage* m)
 {
 
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  uint32_t difid=m->content()["difid"].asInt();
 
+  
+  uint32_t difid=m->content()["difid"].asInt();
+  
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
   Json::Value array_slc;
@@ -533,6 +537,7 @@ void lydaq::LDIFServer::stop(zdaq::fsmmessage* m)
 
       for ( std::map<uint32_t,LDIF*>::iterator it=dm.begin();it!=dm.end();it++)
 	{
+	  printf("Stopping thread of DIF %d \n",it->first);
 	  it->second->stop();
 	}
       
