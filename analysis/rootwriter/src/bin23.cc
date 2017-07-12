@@ -84,16 +84,27 @@ namespace branalysis
 
     
     virtual void start(uint32_t run)
-    {_gEvent.run=run; this->createTree();}
+    {_gEvent.run=run; this->createTree();_gEvent.event=0;}
     virtual void stop()
     {
       this->closeTree();
     }
     virtual  void processEvent(uint32_t key,std::vector<zdaq::buffer*> dss)
     {_gEvent.nframe=0;
+      _gEvent.event++;
+      
       for (auto x:dss)
 	{
+	  x->uncompress();
+	  _gEvent.gtc=x->eventId();
+	  _gEvent.abcid=x->bxId();
 	  DIFPtr d((unsigned char*) x->payload(),x->payloadSize());
+	  printf("--------------------------------------------------> %d %d \n",x->size(),x->payloadSize());
+
+	  // uint8_t* cb=(uint8_t*)x->payload();
+	  // for (uint32_t i=0;i<40;i++)
+	  //   printf("%02x",cb[i]);
+	  // printf("\n");
 	  //printf("%d %d %ld :DIF %d is found \n",_gEvent.run,_gEvent.gtc,_gEvent.abcid,d.getID());
 	  
 	  for (uint32_t ifra=0;ifra<d.getNumberOfFrames();ifra++)
