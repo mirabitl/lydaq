@@ -87,6 +87,7 @@ namespace branalysis
     {_gEvent.run=run; this->createTree();_gEvent.event=0;}
     virtual void stop()
     {
+      printf("bin2writer::stop \n");
       this->closeTree();
     }
     virtual  void processEvent(uint32_t key,std::vector<zdaq::buffer*> dss)
@@ -127,6 +128,7 @@ namespace branalysis
 	  
 	}
       // Now fill the TTree
+      std::sort(_gEvent.frame,_gEvent.frame+_gEvent.nframe);
       _tree->Fill();
       
     }
@@ -286,11 +288,14 @@ namespace branalysis
     }
     void closeTree()
     {
+      printf("bin2writer::closeTree \n");
       if (_fdOut!=NULL)
 	{
+	  printf("bin2writer Tree header is writen \n");
 	   if (_tree)
 	     _tree->Write();
-	   //_fdOut->Close();
+	   printf("bin2writer File is closed \n");
+	   _fdOut->Close();
 	   //delete _fdOut;
 	  _fdOut=NULL;
 	}

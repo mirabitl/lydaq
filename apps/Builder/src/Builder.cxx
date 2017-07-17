@@ -19,6 +19,7 @@ lydaq::dsBuilder::dsBuilder(std::string name) : _running(false),_merger(NULL)
   _fsm->addTransition("HALT","CONFIGURED","CREATED",boost::bind(&lydaq::dsBuilder::halt, this,_1));
 
   _fsm->addCommand("STATUS",boost::bind(&lydaq::dsBuilder::status, this,_1,_2));
+  _fsm->addCommand("REGISTERDS",boost::bind(&lydaq::dsBuilder::registerds, this,_1,_2));
 
 
   //Start server
@@ -39,7 +40,10 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
 
   
   Json::Value jc=m->content();
-  _merger->setNumberOfDataSource(jc["dif"].asInt());
+  if (jc.isMember("dif"))
+    _merger->setNumberOfDataSource(jc["dif"].asInt());
+  
+    
   const Json::Value& books = jc["stream"];
   Json::Value array_keys;
   for (Json::ValueConstIterator it = books.begin(); it != books.end(); ++it)
@@ -107,6 +111,18 @@ void lydaq::dsBuilder::status(Mongoose::Request &request, Mongoose::JsonResponse
       {
 
       response["answer"]=_merger->status();
+
+      }
+    else
+      response["answer"]="NO merger created yet";
+}
+void lydaq::dsBuilder::registerds(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+    std::cout<<"registerds"<<request.getUrl()<<" "<<request.getMethod()<<" "<<request.getData()<<std::endl;
+    if (_merger!=NULL)
+      {
+	_merger->setNumberOfDataSource(atoi(request.get("ndif","0").c_str()));
+	response["answer"]=atoi(request.get("ndif","0").c_str());
 
       }
     else

@@ -636,9 +636,11 @@ void FullDaq::configure(zdaq::fsmmessage* m)
 	    std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
 	}
 //       std::cout<<"SENDING "<<jsou<<std::endl;
-//       Json::Value jl;
-//       jl["sources"]=jsou;
-//       _builderClient->sendTransition("CONFIGURE",jl);
+       Json::Value jl;
+       jl["sources"]=jsou;
+       std::stringstream sp;sp<<"&ndif="<<jsou.size();
+       std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
+       _builderClient->sendCommand("REGISTERDS",sp.str());
     }
   m->setAnswer(jsta);
 }
@@ -904,6 +906,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
   if (_dbClient==NULL){LOG4CXX_ERROR(_logLdaq, "No DB client"); response["STATUS"]="NO DB Client";return;}
   _dbstate=statereq;
   this->parameters()["db"]["dbstate"]=statereq;
+  this->parameters()["db"]["state"]=statereq;
 
   _dbClient->sendTransition("DELETE",this->parameters()["db"]);
   std::cout<<" Downloading"<<this->parameters()["db"]["dbstate"].asString()<<std::endl;
@@ -918,11 +921,16 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
 
 void FullDaq::setControlRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  uint32_t reg=atoi(request.get("value","0").c_str());
-  this->parameters()["ctrlreg"]=reg;
+  uint32_t ctrlreg=0;
+  sscanf(request.get("value","0x0").c_str(),"%x",&ctrlreg);
+  this->parameters()["ctrlreg"]=ctrlreg;
+  
+    
+  // uint32_t reg=atoi();
+  // this->parameters()["ctrlreg"]=reg;
  
   response["STATUS"]="DONE";
-  response["CTRLREG"]=reg;
+  response["CTRLREG"]=ctrlreg;
   std::cout<<" Chamge Ctrlreg to "<<std::hex<<_ctrlreg<<std::dec<<std::endl;
 }
 
@@ -956,7 +964,7 @@ void FullDaq::registerDataSource(Mongoose::Request &request, Mongoose::JsonRespo
   jl["detid"]=detid;
   jl["sourceid"]=sid;
   
-  _builderClient->sendTransition("REGISTERDS",jl);
+  //_builderClient->sendTransition("REGISTERDS",jl);
    response["STATUS"]="DONE";
    response["IDS"]=sid;
 }

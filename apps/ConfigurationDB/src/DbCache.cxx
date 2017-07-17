@@ -194,7 +194,11 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
       LOG4CXX_ERROR(_logDbCache,"Changing DB state");
       this->parameters()["state"]=m->content()["state"];
     }
-
+ if (m->content().isMember("dbstate"))
+    {
+      LOG4CXX_ERROR(_logDbCache,"Changing DB state");
+      this->parameters()["state"]=m->content()["dbstate"];
+    }
   if (!this->parameters().isMember("mode"))
     {
       LOG4CXX_FATAL(_logDbCache,"No access mode specified");
