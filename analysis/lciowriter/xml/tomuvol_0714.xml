@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!-- ?xml-stylesheet type="text/xsl" href="http://ilcsoft.desy.de/marlin/marlin.xsl"? -->
+<!-- ?xml-stylesheet type="text/xsl" href="marlin.xsl"? -->
+
+<!-- Loading shared library : /home/cms/mirabito/MARLIN_DHCALOnline/lib/libDHCALOnline.so -->
+<!--##########################################
+#                                        #
+#     Example steering file for marlin   #
+#                                        #
+##########################################-->
+
+
+<marlin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ilcsoft.desy.de/marlin/marlin.xsd">
+  <execute>
+    <processor name="ChamberAnalysis" library="/home/laurent/libtoto.so"/>
+  </execute>
+  <global>
+    <parameter name="LCIOInputFiles"> 
+    </parameter>
+    <!-- limit the number of processed records (run+evt): -->  
+    <parameter name="MaxRecordNumber" value="8000" />  
+    <parameter name="SkipNEvents" value="0" />  
+    <parameter name="SupressCheck" value="false" />  
+    <!--parameter name="GearXMLFile"> gear_ldc.xml </parameter-->  
+    <parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> DEBUG  </parameter> 
+  </global>
+  <processor name="ChamberAnalysis" type="ChamberAnalysis" library="/home/laurent/libtoto.so">
+    <!--Marlin_DHCALOnline does whatever it does ...-->
+    <!--The name of the output root file name without the .root suffix-->
+    <parameter name="OutputFileName" type="string">/tmp/NewScan</parameter>
+    <parameter name="TreeFileName" type="string">/tmp/ch13101.root</parameter>
+    <parameter name="SkipEvents" value="0" />  
+    <parameter name="dbPath" type="string">/data/</parameter>
+    <parameter name="dbName" type="string">DBMCUBE.sqlite</parameter>
+    <parameter name="MergeRuns" value="true" />
+    <parameter name="MaxHitCount" value="900000" />  
+    <parameter name="DoTimeHistos" value="true" /> 
+    <parameter name="DropFirstSpillEvent" value="false" /> 
+    <parameter name="Interactif" value="false" /> 
+    <parameter name="Alignement" value="false" /> 
+    <parameter name="NbAlignement" value="0" />
+    <parameter name="TkFirstChamber" value="1" />  
+    <parameter name="TkLastChamber" value="50" />  
+    <parameter name="alignPlan1" value="3" />  
+    <parameter name="alignPlan2" value="5" />  
+    <parameter name="TkDistCut" value="8." /> 
+    <parameter name="TkAngularCut" value="0.1" /> 
+    <parameter name="ChamberEdge" value="5.0" /> 
+    <parameter name="Seuil" value="0" /> 
+    <parameter name="TkChi2Cut" value="0.001" /> 
+    <parameter name="TkExtDistCut" value="8." /> 
+    <parameter name="TkExtChi2Cut" value="0.000001" /> 
+    <parameter name="TkMinPoint" value="7" />  
+    <parameter name="TkExtMinPoint" value="6" />
+    <parameter name="TimeDropLast" value="true" /> 
+    <parameter name="ClockSynchCut" value="7" /> 
+    <parameter name="SpillSize" value="20" /> 
+    <parameter name="MonitoringPeriod" value="0" /> 
+    <parameter name="SpyPeriod" value="1000" /> 
+    <parameter name="OffTimePrescale" value="50000" /> 
+    <parameter name="MinChambersInTime" value="4" /> 
+    <parameter name="UseTree" value="false" />
+    <parameter name="UseSynchronised" value="false" />
+
+    <parameter name="UseFROG" value="false" />
+    <parameter name="UseTk4" value="false" />
+    <parameter name="OldAlgo" value="false" />
+    <parameter name="BuildFrogGeom" value="true" />
+    <parameter name="GeomFileName" value="/tmp/Frog.geom"/>
+    <parameter name="VisFileName" value="/tmp/FrogDisplay_"/>
+    <parameter name="FrogNeventFile" value="50"/>
+
+    <parameter name="DifGeom">
+      227,1,0.,0.000000,1.,1. 
+      225,2,0.,0.000000,1.,1. 
+      244,3,0.,0.000000,1.,1. 
+      223,4,0.,0.000000,1.,1. 
+      218,5,0.,0.000000,1.,1. 
+      235,6,0.,0.000000,1.,1. 
+      229,7,0.,0.000000,1.,1. 
+      237,8,0.,0.000000,1.,1. 
+      242,9,0.,0.000000,1.,1. 
+      219,10,0.,0.000000,1.,1. 
+      221,11,0.,0.000000,1.,1. 
+      230,12,0.,0.000000,1.,1. 
+      240,13,0.,0.000000,1.,1. 
+      220,14,0.,0.000000,1.,1. 
+      234,15,0.,0.000000,1.,1. 
+      217,16,0.,0.000000,1.,1. 
+      245,17,0.,0.000000,1.,1. 
+      239,18,0.,0.000000,1.,1. 
+      232,19,0.,0.000000,1.,1. 
+      243,20,0.,0.000000,1.,1. 
+      233,21,0.,0.000000,1.,1. 
+      226,22,0.,0.000000,1.,1. 
+      231,23,0.,0.000000,1.,1. 
+      222,24,0.,0.000000,1.,1. 
+    </parameter>
+  <parameter name="ChamberGeom">
+      1,0,0,0,0,1
+      2,0,0,0,0,1
+      3,0,0,0,0,1
+      4,0,0,0,0,1
+      5,0,0,0,0,1
+      6,0,0,0,0,1
+      7,0,0,0,0,2
+      8,0,0,0,0,2
+      9,0,0,0,0,2
+     10,0,0,0,0,2
+     11,0,0,0,0,2
+     12,0,0,0,0,2
+     13,0,0,0,0,3
+     14,0,0,0,0,3
+     15,0,0,0,0,3
+     16,0,0,0,0,3
+     17,0,0,0,0,3
+     18,0,0,0,0,3
+     19,0,0,0,0,4
+     20,0,0,0,0,4
+     21,0,0,0,0,4
+     22,0,0,0,0,4
+     23,0,0,0,0,4
+     24,0,0,0,0,4
+
+
+    </parameter>
+  <parameter name="ChamberPos">
+1,  0.00,  0.00,  0.00, 50.00, 33.33,  0.00, 1, 1
+  2,102.72, 33.33,  0.00, 52.72,  0.00,  0.00, 1, 1
+  3,  0.00, 36.61,  0.00, 50.00, 69.94,  0.00, 1, 1
+  4,102.72, 69.94,  0.00, 52.72, 36.61,  0.00, 1, 1
+  5,  0.00, 75.30,  0.00, 50.00,106.55,  0.00, 1, 1
+  6,102.72,106.55,  0.00, 52.72, 75.30,  0.00, 1, 1
+  7,  0.00,  0.00, 35.00, 50.00, 33.33, 35.00, 2, 1
+  8,102.72, 33.33, 35.00, 52.72,  0.00, 35.00, 2, 1
+  9,  0.00, 36.61, 35.00, 50.00, 69.94, 35.00, 2, 1
+ 10,102.72, 69.94, 35.00, 52.72, 36.61, 35.00, 2, 1
+ 11,  0.00, 75.30, 35.00, 50.00,106.55, 35.00, 2, 1
+ 12,102.72,106.55, 35.00, 52.72, 73.22, 35.00, 2, 1
+ 13,  0.00,  0.00, 70.00, 50.00, 33.33, 70.00, 3, 1
+ 14,102.72, 33.33, 70.00, 52.72,  0.00, 70.00, 3, 1
+ 15,  0.00, 36.61, 70.00, 50.00, 69.94, 70.00, 3, 1
+ 16,102.72, 69.94, 70.00, 52.72, 36.61, 70.00, 3, 1
+ 17,  0.00, 73.22, 70.00, 50.00,106.55, 70.00, 3, 1
+ 18,102.72,106.55, 70.00, 52.72, 73.22, 70.00, 3, 1
+ 19,  0.00,  0.00,105.00, 50.00, 33.33,105.00, 4, 1
+ 20,102.72, 33.33,105.00, 52.72,  0.00,105.00, 4, 1
+ 21,  0.00, 36.61,105.00, 50.00, 69.94,105.00, 4, 1
+ 22,102.72, 69.94,105.00, 52.72, 36.61,105.00, 4, 1
+ 23,  0.00, 73.22,105.00, 50.00,106.55,105.00, 4, 1
+ 24,102.72,106.55,105.00, 52.72, 73.22,105.00, 4, 1
+    </parameter>
+    <parameter name="PlanShift">
+  1,  0.00,  0.00,  0.00
+  2,  2.80, 0.30,  0.00
+  3, -2.80, 10.59,  0.00
+  4,  0.00, 10.89,  0.00
+    </parameter>
+
+    <parameter name="Verbosity" type="string">MESSAGE </parameter>
+  </processor>
+</marlin>
+
+<!--
+    <parameter name="PlanShift">
+  1,  0.00,  0.00,  0.00
+  2,  2.50, 11.63,  0.00
+  3, -2.50, 33.22,  0.00
+  4,  0.00, 44.88,  0.00
+    </parameter>
+
+ 1,   0.00,   0.00,   0.00,   0.00
+ 2, 100.00,  33.33,   0.00,   0.00
+ 3,   0.00,  33.33,   0.00,   0.00
+ 4, 100.00,  66.66,   0.00,   0.00
+ 5,   0.00,  66.66,   0.00,   0.00
+ 6, 100.00, 100.00,   0.00,   0.00
+ 7,  -2.50, -11.66,  60.00,   0.00
+ 8,  97.50,  21.67,  60.00,   0.00
+ 9,  -2.50,  21.67,  60.00,   0.00
+ 10,  97.50,  55.00,  60.00,   0.00
+ 11,  -2.50,  55.00,  60.00,   0.00
+ 12,  97.50,  88.34,  60.00,   0.00
+ 13,   2.50, -33.22, 120.00,   0.00
+ 14, 102.50,   0.11, 120.00,   0.00
+ 15,   2.50,   0.11, 120.00,   0.00
+ 16, 102.50,  33.44, 120.00,   0.00
+ 17,   2.50,  33.44, 120.00,   0.00
+ 18, 102.50,  66.78, 120.00,   0.00
+ 19,   0.00, -44.98, 180.00,   0.00
+ 20, 100.00, -11.65, 180.00,   0.00
+ 21,   0.00, -11.65, 180.00,   0.00
+ 22, 100.00,  21.68, 180.00,   0.00
+ 23,   0.00,  21.68, 180.00,   0.00
+ 24, 100.00,  55.02, 180.00,   0.00
+-->

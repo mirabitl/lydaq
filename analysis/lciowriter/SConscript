@@ -58,7 +58,14 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 
 # includes
 INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
-  
+INCLUDES.append('../include')
+
+
+#LCIO
+INCLUDES.append(os.path.join(os.getenv("LCIODIR"),"include"))
+INCLUDES.append(os.path.join(os.getenv("LCIODIR"),"include","IMPL"))
+
+
 CPPFLAGS=commands.getoutput("$ROOTSYS/bin/root-config --cflags").split(" ") +["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
 
 #Library ROOT + some of XDAQ + DB 
@@ -82,7 +89,11 @@ if (Use_Mongoose):
   LIBRARIES.append('mongoose')
   INCLUDES.append('/usr/local/include/')
   INCLUDES.append('/usr/local/include/mongoose')
-
+#LCIO
+LIBRARY_PATHS.append(os.path.join(os.getenv("LCIODIR"),"lib"))
+LIBRARIES.append("lcio")
+LIBRARIES.append("sio")
+#Oracle
 Use_Oracle=False
 #os.path.exists("/usr/include/ILCConfDB")
 
@@ -97,6 +108,10 @@ if (Use_Oracle):
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]
 
+# Utilities
+
+LIBRARY_PATHS.append('../lib')
+LIBRARIES.append('lydaq_analysis_sdhcal')
 
 # Create the Environment
 env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
@@ -111,7 +126,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/*.cc")
+LIBRARY_SOURCES=Glob("#src/*.cxx")
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/LMdccServer.cxx']
@@ -120,7 +135,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_analysis_"+package
+lyname="#lib/lydaq_pluggins_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
