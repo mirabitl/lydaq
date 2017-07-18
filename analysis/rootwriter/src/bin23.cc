@@ -100,7 +100,7 @@ namespace branalysis
 	  _gEvent.gtc=x->eventId();
 	  _gEvent.abcid=x->bxId();
 	  DIFPtr d((unsigned char*) x->payload(),x->payloadSize());
-	  printf("--------------------------------------------------> %d %d \n",x->size(),x->payloadSize());
+	  //printf("--------------------------------------------------> %d %d \n",x->size(),x->payloadSize());
 
 	  // uint8_t* cb=(uint8_t*)x->payload();
 	  // for (uint32_t i=0;i<40;i++)
