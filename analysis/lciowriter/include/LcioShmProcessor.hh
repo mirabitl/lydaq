@@ -8,7 +8,8 @@ class DHCalEventReader;
 class LcioShmProcessor : public zdaq::zmprocessor
 {
 public:
-  LcioShmProcessor(std::string dir="/tmp",std::string setup="default");
+  LcioShmProcessor();
+  LcioShmProcessor(std::string dir,std::string setup);
 
   virtual void start(uint32_t run);
   virtual void stop();

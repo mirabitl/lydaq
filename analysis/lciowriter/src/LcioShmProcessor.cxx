@@ -19,7 +19,8 @@
 #include <iostream>
 #include <sstream>
 using namespace zdaq;
-
+LcioShmProcessor::LcioShmProcessor(): theEventNumber_(0),theRunNumber_(0),_filepath("/tmp"),_setup("SDHCAL"),_started(false)
+{_der = new DHCalEventReader();}
 LcioShmProcessor::LcioShmProcessor(std::string dir,std::string setup) : theEventNumber_(0),theRunNumber_(0),_filepath(dir),_setup(setup),_started(false)
 {
   _der = new DHCalEventReader();
@@ -148,7 +149,7 @@ extern "C"
     // The deleteDHCALAnalyzer function deletes the LowPassDHCALAnalyzer that is passed 
     // to it.  This isn't a very safe function, since there's no 
     // way to ensure that the object provided is indeed a LowPassDHCALAnalyzer.
-  void deleteProcessor(LcioShmProcessor* obj)
+  void deleteProcessor(zdaq::zmprocessor* obj)
     {
       delete obj;
     }
