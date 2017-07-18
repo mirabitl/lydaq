@@ -1,0 +1,4 @@
+cd $LYDAQROOT/drivers;. clean
+cd $LYDAQROOT/apps;. clean
+cd $LYDAQROOT/analysis;. clean
+cd $LYDAQROOT

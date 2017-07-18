@@ -1,0 +1,4 @@
+cd $LYDAQROOT/drivers;. compile
+cd $LYDAQROOT/apps;. compile
+cd $LYDAQROOT/analysis;. compile
+cd $LYDAQROOT
