@@ -1,0 +1,9 @@
+{
+    "chambers":[
+	{"slot":0,"plan":1,"left":30,"center":94,"right":181},
+	{"slot":1,"plan":2,"left":176,"center":175,"right":174},
+	{"slot":2,"plan":3,"left":141,"center":142,"right":158},
+	{"slot":3,"plan":4,"left":119,"center":118,"right":129},
+	
+	]
+}
