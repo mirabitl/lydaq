@@ -20,6 +20,22 @@
 	{"slot":17,"plan":18,"left":140,"center":139,"right":47},
 	{"slot":18,"plan":19,"left":76,"center":77,"right":143},
 	{"slot":19,"plan":20,"left":36,"center":91,"right":159},
+	{"slot":20,"plan":21,"left":183,"center":178,"right":179},
+	{"slot":21,"plan":22,"left":67,"center":42,"right":41},
+	{"slot":22,"plan":23,"left":138,"center":46,"right":137},
+	{"slot":23,"plan":24,"left":144,"center":173,"right":131},
+	{"slot":24,"plan":25,"left":160,"center":184,"right":185},
+	{"slot":25,"plan":26,"left":171,"center":167,"right":172},
+	{"slot":26,"plan":27,"left":145,"center":135,"right":146},
+	{"slot":27,"plan":28,"left":180,"center":170,"right":185},
+	{"slot":28,"plan":29,"left":190,"center":188,"right":187},
+	{"slot":29,"plan":30,"left":166,"center":165,"right":169},
+	{"slot":30,"plan":31,"left":50,"center":57,"right":155},
+	{"slot":31,"plan":32,"left":153,"center":108,"right":25},
+	{"slot":32,"plan":33,"left":109,"center":56,"right":51},
+	{"slot":33,"plan":34,"left":107,"center":150,"right":116},
+	{"slot":34,"plan":35,"left":49,"center":124,"right":126},
+	{"slot":35,"plan":36,"left":115,"center":149,"right":117},
 	
 	]
 }
