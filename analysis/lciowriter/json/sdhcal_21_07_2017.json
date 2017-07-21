@@ -36,6 +36,18 @@
 	{"slot":33,"plan":34,"left":107,"center":150,"right":116},
 	{"slot":34,"plan":35,"left":49,"center":124,"right":126},
 	{"slot":35,"plan":36,"left":115,"center":149,"right":117},
+	{"slot":36,"plan":37,"left":114,"center":45,"right":48},
+	{"slot":37,"plan":38,"left":40,"center":93,"right":98},
+	{"slot":38,"plan":39,"left":100,"center":97,"right":92},
+	{"slot":39,"plan":40,"left":132,"center":106,"right":62},
+	{"slot":40,"plan":41,"left":99,"center":35,"right":101},
+	{"slot":41,"plan":42,"left":130,"center":122,"right":123},
+	{"slot":42,"plan":43,"left":162,"center":161,"right":163},
+	{"slot":43,"plan":44,"left":112,"center":29,"right":104},
+	{"slot":44,"plan":45,"left":54,"center":53,"right":59},
+	{"slot":45,"plan":46,"left":27,"center":90,"right":96},
+	{"slot":46,"plan":47,"left":5,"center":8,"right":95},
+	{"slot":47,"plan":48,"left":18,"center":87,"right":63}
 	
 	]
 }
