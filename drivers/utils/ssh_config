@@ -1,0 +1,4 @@
+Host gitlab.in2p3.fr
+	HostName gitlab.in2p3.fr
+	User git
+	IdentityFile ~/.ssh/ilcconfdb
