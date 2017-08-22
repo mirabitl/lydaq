@@ -1,42 +1,31 @@
 
-#include "LCaenServer.hh"
+#include "LWienerServer.hh"
 using namespace zdaq;
 using namespace lydaq;
 
-void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
+void lydaq::LWienerServer::open(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
 
-  std::string account;
-  if (m->content().isMember("account"))
+  std::string address;
+  if (m->content().isMember("address"))
     { 
-      account=m->content()["account"].asString();
-      this->parameters()["account"]=m->content()["account"];
+      address=m->content()["address"].asString();
+      this->parameters()["address"]=m->content()["address"];
     }
   else
-    account=this->parameters()["account"].asString();
+    address=this->parameters()["address"].asString();
 
 
   std::cout<<"calling open "<<std::endl;
   if (_hv!=NULL)
     delete _hv;
   
-  int ipass = account.find("/");
-  int ipath = account.find("@");
-  std::string Name,Pwd,Host;
-  Name.clear();
-  Name=account.substr(0,ipass); 
-  Pwd.clear();
-  Pwd=account.substr(ipass+1,ipath-ipass-1); 
-  Host.clear();
-  Host=account.substr(ipath+1,account.size()-ipath); 
-  std::cout<<Name<<std::endl;
-  std::cout<<Pwd<<std::endl;
-  std::cout<<Host<<std::endl;
   
   
-  _hv= new lydaq::HVCaenInterface(Host,Name,Pwd);
-  _hv->Connect();
+  
+  _hv= new lydaq::WienerSnmp(address);
+  
 
   if (m->content().isMember("first"))
     { 
@@ -47,35 +36,35 @@ void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
       this->parameters()["last"]=m->content()["last"];
     }
 }
-void lydaq::LCaenServer::close(zdaq::fsmmessage* m)
+void lydaq::LWienerServer::close(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_hv==NULL)
     {
-       LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+       LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
        return;
     }
-  _hv->Disconnect();
+  
   delete _hv;
   _hv=NULL;
 }
-void lydaq::LCaenServer::stop(zdaq::fsmmessage* m)
+void lydaq::LWienerServer::stop(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
        return;
     }
     _running=false;
   g_store.join_all();
 }
-void lydaq::LCaenServer::start(zdaq::fsmmessage* m)
+void lydaq::LWienerServer::start(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
        return;
     }
   if (m->content().isMember("period"))
@@ -91,12 +80,12 @@ void lydaq::LCaenServer::start(zdaq::fsmmessage* m)
     _period=this->parameters()["period"].asUInt();
   
   
-  g_store.create_thread(boost::bind(&lydaq::LCaenServer::monitor, this));
+  g_store.create_thread(boost::bind(&lydaq::LWienerServer::monitor, this));
   _running=true;
     
 }
 
-void lydaq::LCaenServer::monitor()
+void lydaq::LWienerServer::monitor()
 {
   Json::FastWriter fastWriter;
   while (_running)
@@ -108,7 +97,7 @@ void lydaq::LCaenServer::monitor()
       continue;
     }
     std::stringstream sheader;
-    sheader<<"CAENHV";
+    sheader<<"WIENERHV";
     zmq::message_t ma1((void*)sheader.str().c_str(), sheader.str().length(), NULL); 
     _publisher->send(ma1, ZMQ_SNDMORE); 
     Json::Value jstatus=this->status();
@@ -119,34 +108,34 @@ void lydaq::LCaenServer::monitor()
     ::sleep(_period);
   }
 }
-Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
+Json::Value lydaq::LWienerServer::channelStatus(uint32_t channel)
 {
   Json::Value r=Json::Value::null;
   r["id"]=channel;
   r["status"]=Json::Value::null;
    if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
        return r;
     }
-   r["vset"]=_hv->GetVoltageSet(channel);
-   r["iset"]=_hv->GetCurrentSet(channel);
-   r["rampup"]=_hv->GetVoltageRampUp(channel);
-   r["iout"]=_hv->GetCurrentRead(channel);
-   r["vout"]=_hv->GetVoltageRead(channel);
-   r["status"]=_hv->GetStatus(channel);
+   r["vset"]=_hv->getOutputVoltage(channel/8,channel%8);
+   r["iset"]=_hv->getOutputCurrentLimit(channel/8,channel%8);
+   r["rampup"]=_hv->getOutputVoltageRiseRate(channel/8,channel%8);
+   r["iout"]=_hv->getOutputVoltageRiseRate(channel/8,channel%8);
+   r["vout"]=_hv->getOutputMeasurementSenseVoltage(channel/8,channel%8);
+   r["status"]=_hv->getOutputStatus(channel/8,channel%8);
    return r;
 }
-Json::Value lydaq::LCaenServer::status()
+Json::Value lydaq::LWienerServer::status()
 {
   Json::Value r;
-  r["name"]="CAEN";
+  r["name"]="WIENER";
   
   r["channels"]=Json::Value::null;
   Json::Value array;
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
     return r;
   }
   if (!this->parameters().isMember("first"))
@@ -166,22 +155,22 @@ Json::Value lydaq::LCaenServer::status()
 
 
 
-void lydaq::LCaenServer::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
        response["STATUS"]=Json::Value::null;
        return;
     }
  
   response["STATUS"]=this->status();
 }
-void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -196,16 +185,16 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
     return;
   }
   for (uint32_t i=first;i<=last;i++)
-    _hv->SetOn(i);
+    _hv->setOutputSwitch(i/8,i%8,1);
   ::sleep(2);
   response["STATUS"]=this->status();
 }
-void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
-    response["STATUS"]="Please open MDC01 first";
+    LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
+    response["STATUS"]=Json::Value::null;
     return;
   }
   uint32_t first=atol(request.get("first","9999").c_str());
@@ -219,11 +208,12 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
     return;
   }
   for (uint32_t i=first;i<=last;i++)
-    _hv->SetOff(i);
+    _hv->setOutputSwitch(i/8,i%8,0);
+  
   ::sleep(2);
   response["STATUS"]=this->status();
 }
-void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_vset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
   {
@@ -243,15 +233,15 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
     return;
   }
   for (uint32_t i=first;i<=last;i++)
-    _hv->SetVoltage(i,vset);
+    _hv->setOutputVoltage(i/8,i%8,vset);
   ::sleep(2);
   response["STATUS"]=this->status();
 }
-void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_iset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -267,15 +257,15 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
     return;
   }
   for (uint32_t i=first;i<=last;i++)
-    _hv->SetCurrent(i,iset);
+    _hv->setOutputCurrentLimit(i/8,i%8,iset);
   ::sleep(2);
   response["STATUS"]=this->status();
 }
-void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::LWienerServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -291,7 +281,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
     return;
   }
   for (uint32_t i=first;i<=last;i++)
-    _hv->SetVoltageRampUp(i,rup);
+    _hv->setOutputVoltageRiseRate(i/8,i%8,rup);
   ::sleep(2);
   response["STATUS"]=this->status();
 }
@@ -299,7 +289,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
 
 
 
-lydaq::LCaenServer::LCaenServer(std::string name) : zdaq::baseApplication(name),_hv(NULL),_running(false),_context(NULL),_publisher(NULL),_period(120)
+lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::baseApplication(name),_hv(NULL),_running(false),_context(NULL),_publisher(NULL),_period(120)
 {
 
   
@@ -313,17 +303,17 @@ lydaq::LCaenServer::LCaenServer(std::string name) : zdaq::baseApplication(name),
   _fsm->addState("STOPPED");
   _fsm->addState("RUNNING");
 
-  _fsm->addTransition("OPEN","CREATED","STOPPED",boost::bind(&lydaq::LCaenServer::open, this,_1));
-  _fsm->addTransition("START","STOPPED","RUNNING",boost::bind(&lydaq::LCaenServer::start, this,_1));
-  _fsm->addTransition("STOP","RUNNING","STOPPED",boost::bind(&lydaq::LCaenServer::stop, this,_1));
-  _fsm->addTransition("CLOSE","STOPPED","CREATED",boost::bind(&lydaq::LCaenServer::close, this,_1));
+  _fsm->addTransition("OPEN","CREATED","STOPPED",boost::bind(&lydaq::LWienerServer::open, this,_1));
+  _fsm->addTransition("START","STOPPED","RUNNING",boost::bind(&lydaq::LWienerServer::start, this,_1));
+  _fsm->addTransition("STOP","RUNNING","STOPPED",boost::bind(&lydaq::LWienerServer::stop, this,_1));
+  _fsm->addTransition("CLOSE","STOPPED","CREATED",boost::bind(&lydaq::LWienerServer::close, this,_1));
   
- _fsm->addCommand("STATUS",boost::bind(&lydaq::LCaenServer::c_status,this,_1,_2));
- _fsm->addCommand("ON",boost::bind(&lydaq::LCaenServer::c_on,this,_1,_2));
- _fsm->addCommand("OFF",boost::bind(&lydaq::LCaenServer::c_off,this,_1,_2));
- _fsm->addCommand("VSET",boost::bind(&lydaq::LCaenServer::c_vset,this,_1,_2));
- _fsm->addCommand("ISET",boost::bind(&lydaq::LCaenServer::c_iset,this,_1,_2));
- _fsm->addCommand("RAMPUP",boost::bind(&lydaq::LCaenServer::c_rampup,this,_1,_2));
+ _fsm->addCommand("STATUS",boost::bind(&lydaq::LWienerServer::c_status,this,_1,_2));
+ _fsm->addCommand("ON",boost::bind(&lydaq::LWienerServer::c_on,this,_1,_2));
+ _fsm->addCommand("OFF",boost::bind(&lydaq::LWienerServer::c_off,this,_1,_2));
+ _fsm->addCommand("VSET",boost::bind(&lydaq::LWienerServer::c_vset,this,_1,_2));
+ _fsm->addCommand("ISET",boost::bind(&lydaq::LWienerServer::c_iset,this,_1,_2));
+ _fsm->addCommand("RAMPUP",boost::bind(&lydaq::LWienerServer::c_rampup,this,_1,_2));
  
 
  
