@@ -5,3 +5,9 @@ cd Sdcc;scons install -j4;cd -
 cd Mdcc;scons install -j4;cd -
 cd Builder;scons install -j4;cd -
 cd Control;scons install -j4;cd -
+cd Caen;scons install -j4;cd -
+cd Wiener;scons install -j4;cd -
+cd Zup;scons install -j4;cd -
+cd Bmp;scons install -j4;cd -
+cd Genesys;scons install -j4;cd -
+
