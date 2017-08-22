@@ -37,6 +37,9 @@ if (kl[len(kl)-2][0:3] == 'el6'):
     platform="SLC6"
 
 Arm=os.uname()[4]=='armv7l'
+if (Arm):
+    print "This package cannot be built on raspberry"
+    exit(0)
 
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'
