@@ -142,8 +142,11 @@ Json::Value lydaq::LCaenServer::status()
   Json::Value r;
   r["name"]="CAEN";
   
-  r["channels"]=Json::Value::null;
-  Json::Value array;
+ 
+  Json::Value jsonArray;
+  jsonArray.append(Json::Value::null);
+  jsonArray.clear();
+  r["channels"]=jsonArray;
   if (_hv==NULL)
   {
     LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
@@ -160,7 +163,7 @@ Json::Value lydaq::LCaenServer::status()
     return r;
   }
   for (uint32_t i=this->parameters()["first"].asUInt();i<=this->parameters()["last"].asUInt();i++)
-    r.append(this->channelStatus(i));
+    r["channels"].append(this->channelStatus(i));
   return r;
 }
 
@@ -174,6 +177,18 @@ void lydaq::LCaenServer::c_status(Mongoose::Request &request, Mongoose::JsonResp
        response["STATUS"]=Json::Value::null;
        return;
     }
+   uint32_t first=atol(request.get("first","9999").c_str());
+  std::cout<<first<<std::endl;
+  if (first!=9999) this->parameters()["first"]=first;
+  uint32_t last=atol(request.get("last","9999").c_str());
+  std::cout<<last<<std::endl;
+  if (last!=9999 ) this->parameters()["last"]=last;
+  if (first==9999 || last==9999)
+  {
+    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    response["STATUS"]=Json::Value::null;
+    return;
+  }
  
   response["STATUS"]=this->status();
 }
@@ -189,7 +204,7 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
   if (first==9999 && this->parameters().isMember("first")) first=this->parameters()["first"].asUInt();
   uint32_t last=atol(request.get("last","9999").c_str());
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
-  if (first=9999 || last==9999)
+  if (first==9999 || last==9999)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
@@ -212,7 +227,7 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
   if (first==9999 && this->parameters().isMember("first")) first=this->parameters()["first"].asUInt();
   uint32_t last=atol(request.get("last","9999").c_str());
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
-  if (first=9999 || last==9999)
+  if (first==9999 || last==9999)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
@@ -236,7 +251,7 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
   uint32_t last=atol(request.get("last","9999").c_str());
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   float vset=atof(request.get("value","-1.0").c_str());
-  if (first=9999 || last==9999 || vset<0)
+  if (first==9999 || last==9999 || vset<0)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
@@ -260,7 +275,7 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
   uint32_t last=atol(request.get("last","9999").c_str());
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   float iset=atof(request.get("value","-1.0").c_str());
-  if (first=9999 || last==9999 || iset<0)
+  if (first==9999 || last==9999 || iset<0)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
@@ -284,7 +299,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
   uint32_t last=atol(request.get("last","9999").c_str());
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   float rup=atof(request.get("value","-1.0").c_str());
-  if (first=9999 || last==9999 || rup<0)
+  if (first==9999 || last==9999 || rup<0)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
