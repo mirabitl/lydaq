@@ -89,8 +89,22 @@ void lydaq::LCaenServer::start(zdaq::fsmmessage* m)
     }
   else
     _period=this->parameters()["period"].asUInt();
+ 
   
-  
+   if (_publisher==NULL && this->parameters().isMember("serverName"))
+    {
+      _context= new zmq::context_t(1);
+      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
+      _publisher->bind(this->parameters()["serverName"].asString());
+      
+    }
+   if (m->content().isMember("deviceName"))
+    { 
+      this->parameters()["deviceName"]=m->content()["deviceName"];
+    }
+   else
+     if (!this->parameters().isMember("deviceName"))
+	this->parameters()["deviceName"]="/TEST";	 	
   g_store.create_thread(boost::bind(&lydaq::LCaenServer::monitor, this));
   _running=true;
     
@@ -99,17 +113,20 @@ void lydaq::LCaenServer::start(zdaq::fsmmessage* m)
 void lydaq::LCaenServer::monitor()
 {
   Json::FastWriter fastWriter;
+  std::stringstream sheader;
+  sheader<<"CAENHV:"<<this->parameters()["deviceName"].asString();
+  std::string head=sheader.str();
   while (_running)
   {
     
     if (_publisher==NULL)
     {
       LOG4CXX_ERROR(_logLdaq,"No publisher defined");
-      continue;
+      break;
     }
-    std::stringstream sheader;
-    sheader<<"CAENHV";
-    zmq::message_t ma1((void*)sheader.str().c_str(), sheader.str().length(), NULL); 
+   
+    
+    zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
     _publisher->send(ma1, ZMQ_SNDMORE); 
     Json::Value jstatus=this->status();
     std::string scont= fastWriter.write(jstatus);
@@ -118,6 +135,7 @@ void lydaq::LCaenServer::monitor()
     if (!_running) break;
     ::sleep(_period);
   }
+  LOG4CXX_INFO(_logLdaq,"End of monitoring task");
 }
 Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
 {
@@ -140,7 +158,7 @@ Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
 Json::Value lydaq::LCaenServer::status()
 {
   Json::Value r;
-  r["name"]="CAEN";
+  r["name"]=this->parameters()["deviceName"].asString();
   
  
   Json::Value jsonArray;
@@ -351,13 +369,7 @@ lydaq::LCaenServer::LCaenServer(std::string name) : zdaq::baseApplication(name),
     _fsm->start(atoi(wp));
     }
 
-    if (this->parameters().isMember("serverName"))
-    {
-      _context= new zmq::context_t(1);
-      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
-      _publisher->bind(this->parameters()["serverName"].asString());
-      
-    }
+   
 }
 
 
