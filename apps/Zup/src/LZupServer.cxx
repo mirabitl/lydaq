@@ -101,6 +101,9 @@ void lydaq::LZupServer::start(zdaq::fsmmessage* m)
 void lydaq::LZupServer::monitor()
 {
   Json::FastWriter fastWriter;
+  std::stringstream sheader;
+  sheader<<"ZUP:"<<this->parameters()["deviceName"].asString();
+  std::string head=sheader.str();
   while (_running)
   {
     
@@ -109,9 +112,8 @@ void lydaq::LZupServer::monitor()
       LOG4CXX_ERROR(_logLdaq,"No publisher defined");
       break;
     }
-    std::stringstream sheader;
-    sheader<<"ZUPLV";
-    zmq::message_t ma1((void*)sheader.str().c_str(), sheader.str().length(), NULL); 
+    
+    zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
     _publisher->send(ma1, ZMQ_SNDMORE); 
     Json::Value jstatus=this->status();
     std::string scont= fastWriter.write(jstatus);
