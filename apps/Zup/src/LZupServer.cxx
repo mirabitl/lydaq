@@ -78,7 +78,20 @@ void lydaq::LZupServer::start(zdaq::fsmmessage* m)
   else
     _period=this->parameters()["period"].asUInt();
   
-  
+   if (this->parameters().isMember("serverName"))
+    {
+      _context= new zmq::context_t(1);
+      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
+      _publisher->bind(this->parameters()["serverName"].asString());
+      
+    }
+    if (m->content().isMember("deviceName"))
+    { 
+      this->parameters()["deviceName"]=m->content()["deviceName"];
+    }
+   else
+     if (!this->parameters().isMember("deviceName"))
+	this->parameters()["deviceName"]="/TEST";	 
   g_store.create_thread(boost::bind(&lydaq::LZupServer::monitor, this));
   _running=true;
     
@@ -93,7 +106,7 @@ void lydaq::LZupServer::monitor()
     if (_publisher==NULL)
     {
       LOG4CXX_ERROR(_logLdaq,"No publisher defined");
-      continue;
+      break;
     }
     std::stringstream sheader;
     sheader<<"ZUPLV";
@@ -111,13 +124,13 @@ Json::Value lydaq::LZupServer::status()
 {
   Json::Value r=Json::Value::null;
   r["name"]="ZUP";
-  r["status"]=Json::Value::null;
+  r["status"]="UNKOWN";
    if (_lv==NULL)
     {
       LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
        return r;
     }
-    float vset=_lv->ReadVoltageSet();
+   float vset=_lv->ReadVoltageSet();
    float vout=_lv->ReadVoltageUsed();
    r["vset"]=vset;
    r["vout"]=vout;
@@ -205,13 +218,7 @@ lydaq::LZupServer::LZupServer(std::string name) : zdaq::baseApplication(name),_l
     _fsm->start(atoi(wp));
     }
 
-    if (this->parameters().isMember("serverName"))
-    {
-      _context= new zmq::context_t(1);
-      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
-      _publisher->bind(this->parameters()["serverName"].asString());
-      
-    }
+   
 }
 
 
