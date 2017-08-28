@@ -32,6 +32,7 @@ void lydaq::LGenesysServer::open(zdaq::fsmmessage* m)
   
   _lv= new lydaq::Genesys(device,port);
  
+  _lv->INFO();
 
   
 }
@@ -40,7 +41,7 @@ void lydaq::LGenesysServer::close(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_lv==NULL)
     {
-       LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+       LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        return;
     }
 
@@ -52,7 +53,7 @@ void lydaq::LGenesysServer::stop(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_lv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        return;
     }
     _running=false;
@@ -63,7 +64,7 @@ void lydaq::LGenesysServer::start(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   if (_lv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        return;
     }
   if (m->content().isMember("period"))
@@ -78,7 +79,20 @@ void lydaq::LGenesysServer::start(zdaq::fsmmessage* m)
   else
     _period=this->parameters()["period"].asUInt();
   
-  
+   if (this->parameters().isMember("serverName"))
+    {
+      _context= new zmq::context_t(1);
+      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
+      _publisher->bind(this->parameters()["serverName"].asString());
+      
+    }
+    if (m->content().isMember("deviceName"))
+    { 
+      this->parameters()["deviceName"]=m->content()["deviceName"];
+    }
+   else
+     if (!this->parameters().isMember("deviceName"))
+	this->parameters()["deviceName"]="/TEST";	 
   g_store.create_thread(boost::bind(&lydaq::LGenesysServer::monitor, this));
   _running=true;
     
@@ -87,17 +101,19 @@ void lydaq::LGenesysServer::start(zdaq::fsmmessage* m)
 void lydaq::LGenesysServer::monitor()
 {
   Json::FastWriter fastWriter;
+  std::stringstream sheader;
+  sheader<<"GENESYS:"<<this->parameters()["deviceName"].asString();
+  std::string head=sheader.str();
   while (_running)
   {
     
     if (_publisher==NULL)
     {
       LOG4CXX_ERROR(_logLdaq,"No publisher defined");
-      continue;
+      break;
     }
-    std::stringstream sheader;
-    sheader<<"ZUPLV";
-    zmq::message_t ma1((void*)sheader.str().c_str(), sheader.str().length(), NULL); 
+    
+    zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
     _publisher->send(ma1, ZMQ_SNDMORE); 
     Json::Value jstatus=this->status();
     std::string scont= fastWriter.write(jstatus);
@@ -110,14 +126,14 @@ void lydaq::LGenesysServer::monitor()
 Json::Value lydaq::LGenesysServer::status()
 {
   Json::Value r=Json::Value::null;
-  r["name"]="ZUP";
-  r["status"]=Json::Value::null;
+  r["name"]="GENESYS";
+  r["status"]="UNKOWN";
    if (_lv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        return r;
     }
-    float vset=_lv->ReadVoltageSet();
+   float vset=_lv->ReadVoltageSet();
    float vout=_lv->ReadVoltageUsed();
    r["vset"]=vset;
    r["vout"]=vout;
@@ -135,7 +151,7 @@ void lydaq::LGenesysServer::c_status(Mongoose::Request &request, Mongoose::JsonR
 {
   if (_lv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        response["STATUS"]=Json::Value::null;
        return;
     }
@@ -146,7 +162,7 @@ void lydaq::LGenesysServer::c_on(Mongoose::Request &request, Mongoose::JsonRespo
 {
   if (_lv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -159,7 +175,7 @@ void lydaq::LGenesysServer::c_off(Mongoose::Request &request, Mongoose::JsonResp
 {
   if (_lv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
+    LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -205,13 +221,7 @@ lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::baseApplication(
     _fsm->start(atoi(wp));
     }
 
-    if (this->parameters().isMember("serverName"))
-    {
-      _context= new zmq::context_t(1);
-      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
-      _publisher->bind(this->parameters()["serverName"].asString());
-      
-    }
+   
 }
 
 
