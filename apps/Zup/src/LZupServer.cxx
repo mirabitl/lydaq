@@ -32,6 +32,7 @@ void lydaq::LZupServer::open(zdaq::fsmmessage* m)
   
   _lv= new lydaq::Zup(device,port);
  
+  _lv->INFO();
 
   
 }
