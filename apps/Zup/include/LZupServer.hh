@@ -5,7 +5,7 @@
 
 #include <string.h>
 #include<stdio.h>
-#include "baseApplication.hh"
+#include "monitorApplication.hh"
 
 #include "Zup.hh"
 
@@ -16,21 +16,20 @@ using namespace std;
 
 namespace lydaq
 {
-  class LZupServer : public zdaq::baseApplication
+  class LZupServer : public zdaq::monitorApplication
   {
   public:
     LZupServer(std::string name);
     // Transition
-    void open(zdaq::fsmmessage* m);
-    void close(zdaq::fsmmessage* m);
-    void start(zdaq::fsmmessage* m);
-    void monitor();
-    void stop(zdaq::fsmmessage* m);
+    virtual void open(zdaq::fsmmessage* m);
+    virtual void close(zdaq::fsmmessage* m);
     // Access to the interface
     lydaq::Zup* getLVZupInterface(){  //std::cout<<" get Ptr "<<_lv<<std::endl;
       return _lv;}
     // Status
-    Json::Value status();
+    virtual Json::Value status();
+    virtual std::string hardware(){return "ZUP";}
+
     // Commande
     void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_on(Mongoose::Request &request, Mongoose::JsonResponse &response);
@@ -40,11 +39,7 @@ namespace lydaq
     zdaq::fsmweb* _fsm;
  
     lydaq::Zup* _lv;
-    boost::thread_group g_store;
-    bool _running;
-    uint32_t _period;
-    zmq::context_t* _context;
-    zmq::socket_t *_publisher;
+    
   };
 };
 #endif
