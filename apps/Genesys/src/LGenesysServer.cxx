@@ -48,85 +48,10 @@ void lydaq::LGenesysServer::close(zdaq::fsmmessage* m)
   delete _lv;
   _lv=NULL;
 }
-void lydaq::LGenesysServer::stop(zdaq::fsmmessage* m)
-{
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  if (_lv==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
-       return;
-    }
-    _running=false;
-  g_store.join_all();
-}
-void lydaq::LGenesysServer::start(zdaq::fsmmessage* m)
-{
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  if (_lv==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
-       return;
-    }
-  if (m->content().isMember("period"))
-    { 
-      this->parameters()["period"]=m->content()["period"];
-    }
-  if (!this->parameters().isMember("period"))
-    {
-      LOG4CXX_ERROR(_logLdaq,"Please define Reading period");
-      return;
-    }
-  else
-    _period=this->parameters()["period"].asUInt();
-  
-   if (this->parameters().isMember("serverName"))
-    {
-      _context= new zmq::context_t(1);
-      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
-      _publisher->bind(this->parameters()["serverName"].asString());
-      
-    }
-    if (m->content().isMember("deviceName"))
-    { 
-      this->parameters()["deviceName"]=m->content()["deviceName"];
-    }
-   else
-     if (!this->parameters().isMember("deviceName"))
-	this->parameters()["deviceName"]="/TEST";	 
-  g_store.create_thread(boost::bind(&lydaq::LGenesysServer::monitor, this));
-  _running=true;
-    
-}
-
-void lydaq::LGenesysServer::monitor()
-{
-  Json::FastWriter fastWriter;
-  std::stringstream sheader;
-  sheader<<"GENESYS:"<<this->parameters()["deviceName"].asString();
-  std::string head=sheader.str();
-  while (_running)
-  {
-    
-    if (_publisher==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No publisher defined");
-      break;
-    }
-    
-    zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
-    _publisher->send(ma1, ZMQ_SNDMORE); 
-    Json::Value jstatus=this->status();
-    std::string scont= fastWriter.write(jstatus);
-    zmq::message_t ma2((void*)scont.c_str(), scont.length(), NULL); 
-    _publisher->send(ma2);
-    if (!_running) break;
-    ::sleep(_period);
-  }
-}
 Json::Value lydaq::LGenesysServer::status()
 {
   Json::Value r=Json::Value::null;
-  r["name"]="GENESYS";
+  r["name"]=this->hardware();
   r["status"]="UNKOWN";
    if (_lv==NULL)
     {
@@ -162,7 +87,7 @@ void lydaq::LGenesysServer::c_on(Mongoose::Request &request, Mongoose::JsonRespo
 {
   if (_lv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
+    LOG4CXX_ERROR(_logLdaq,"No  Genesys Interface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -187,7 +112,7 @@ void lydaq::LGenesysServer::c_off(Mongoose::Request &request, Mongoose::JsonResp
 
 
 
-lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::baseApplication(name),_lv(NULL),_running(false),_context(NULL),_publisher(NULL),_period(120)
+lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::monitorApplication(name),_lv(NULL)
 {
 
   
@@ -197,14 +122,6 @@ lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::baseApplication(
   _fsm=this->fsm();
 
   
-// Register state
-  _fsm->addState("STOPPED");
-  _fsm->addState("RUNNING");
-
-  _fsm->addTransition("OPEN","CREATED","STOPPED",boost::bind(&lydaq::LGenesysServer::open, this,_1));
-  _fsm->addTransition("START","STOPPED","RUNNING",boost::bind(&lydaq::LGenesysServer::start, this,_1));
-  _fsm->addTransition("STOP","RUNNING","STOPPED",boost::bind(&lydaq::LGenesysServer::stop, this,_1));
-  _fsm->addTransition("CLOSE","STOPPED","CREATED",boost::bind(&lydaq::LGenesysServer::close, this,_1));
   
  _fsm->addCommand("STATUS",boost::bind(&lydaq::LGenesysServer::c_status,this,_1,_2));
  _fsm->addCommand("ON",boost::bind(&lydaq::LGenesysServer::c_on,this,_1,_2));
