@@ -5,7 +5,7 @@
 
 #include <string.h>
 #include<stdio.h>
-#include "baseApplication.hh"
+#include "monitorApplication.hh"
 
 #include "BMP183.hh"
 
@@ -16,21 +16,19 @@ using namespace std;
 
 namespace lydaq
 {
-  class LBmpServer : public zdaq::baseApplication
+  class LBmpServer : public zdaq::monitorApplication
   {
   public:
     LBmpServer(std::string name);
     // Transition
-    void open(zdaq::fsmmessage* m);
-    void close(zdaq::fsmmessage* m);
-    void start(zdaq::fsmmessage* m);
-    void monitor();
-    void stop(zdaq::fsmmessage* m);
+    virtual void open(zdaq::fsmmessage* m);
+    virtual void close(zdaq::fsmmessage* m);
     // Access to the interface
     lydaq::BMP183* getBmpInterface(){  //std::cout<<" get Ptr "<<_bmp<<std::endl;
       return _bmp;}
     // Status
-    Json::Value status();
+    virtual Json::Value status();
+    virtual std::string hardware(){return "BMP";}
     // Commande
     void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
   private:
@@ -38,11 +36,6 @@ namespace lydaq
     zdaq::fsmweb* _fsm;
  
     lydaq::BMP183* _bmp;
-    boost::thread_group g_store;
-    bool _running;
-    uint32_t _period;
-    zmq::context_t* _context;
-    zmq::socket_t *_publisher;
   };
 };
 #endif
