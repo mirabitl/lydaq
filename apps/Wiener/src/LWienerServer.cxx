@@ -48,84 +48,6 @@ void lydaq::LWienerServer::close(zdaq::fsmmessage* m)
   delete _hv;
   _hv=NULL;
 }
-void lydaq::LWienerServer::stop(zdaq::fsmmessage* m)
-{
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  if (_hv==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
-       return;
-    }
-    _running=false;
-  g_store.join_all();
-}
-void lydaq::LWienerServer::start(zdaq::fsmmessage* m)
-{
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  if (_hv==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No HVWienerInterface opened");
-       return;
-    }
-  if (m->content().isMember("period"))
-    { 
-      this->parameters()["period"]=m->content()["period"];
-    }
-  if (!this->parameters().isMember("period"))
-    {
-      LOG4CXX_ERROR(_logLdaq,"Please define Reading period");
-      return;
-    }
-  else
-    _period=this->parameters()["period"].asUInt();
-  
-   if (this->parameters().isMember("serverName"))
-    {
-      _context= new zmq::context_t(1);
-      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
-      _publisher->bind(this->parameters()["serverName"].asString());
-      
-    }
-    
-    if (m->content().isMember("deviceName"))
-    { 
-      this->parameters()["deviceName"]=m->content()["deviceName"];
-    }
-   else
-     if (!this->parameters().isMember("deviceName"))
-	this->parameters()["deviceName"]="/TEST";	 
-  g_store.create_thread(boost::bind(&lydaq::LWienerServer::monitor, this));
-  _running=true;
-    
-}
-
-void lydaq::LWienerServer::monitor()
-{
-  Json::FastWriter fastWriter;
-  std::stringstream sheader;
-  sheader<<"WIENERHV:"<<this->parameters()["deviceName"].asString();
-  std::string head=sheader.str();
-  while (_running)
-  {
-    
-    if (_publisher==NULL)
-    {
-      LOG4CXX_ERROR(_logLdaq,"No publisher defined");
-      break;
-    }
-    
-    zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
-    _publisher->send(ma1, ZMQ_SNDMORE); 
-    Json::Value jstatus=this->status();
-    std::string scont= fastWriter.write(jstatus);
-    zmq::message_t ma2((void*)scont.c_str(), scont.length(), NULL); 
-    _publisher->send(ma2);
-    if (!_running) break;
-    ::sleep(_period);
-  }
-    LOG4CXX_INFO(_logLdaq,"End of monitoring task");
-
-}
 Json::Value lydaq::LWienerServer::channelStatus(uint32_t channel)
 {
   Json::Value r=Json::Value::null;
@@ -149,7 +71,7 @@ Json::Value lydaq::LWienerServer::channelStatus(uint32_t channel)
 Json::Value lydaq::LWienerServer::status()
 {
   Json::Value r;
-  r["name"]=this->parameters()["deviceName"].asString();
+  r["name"]=this->hardware();
   Json::Value jsonArray;
   jsonArray.append(Json::Value::null);
   jsonArray.clear();
@@ -327,7 +249,7 @@ void lydaq::LWienerServer::c_rampup(Mongoose::Request &request, Mongoose::JsonRe
 
 
 
-lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::baseApplication(name),_hv(NULL),_running(false),_context(NULL),_publisher(NULL),_period(120)
+lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::monitorApplication(name),_hv(NULL)
 {
 
   
@@ -337,15 +259,7 @@ lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::baseApplication(na
   _fsm=this->fsm();
 
   
-// Register state
-  _fsm->addState("STOPPED");
-  _fsm->addState("RUNNING");
 
-  _fsm->addTransition("OPEN","CREATED","STOPPED",boost::bind(&lydaq::LWienerServer::open, this,_1));
-  _fsm->addTransition("START","STOPPED","RUNNING",boost::bind(&lydaq::LWienerServer::start, this,_1));
-  _fsm->addTransition("STOP","RUNNING","STOPPED",boost::bind(&lydaq::LWienerServer::stop, this,_1));
-  _fsm->addTransition("CLOSE","STOPPED","CREATED",boost::bind(&lydaq::LWienerServer::close, this,_1));
-  
  _fsm->addCommand("STATUS",boost::bind(&lydaq::LWienerServer::c_status,this,_1,_2));
  _fsm->addCommand("ON",boost::bind(&lydaq::LWienerServer::c_on,this,_1,_2));
  _fsm->addCommand("OFF",boost::bind(&lydaq::LWienerServer::c_off,this,_1,_2));
