@@ -5,7 +5,7 @@
 
 #include <string.h>
 #include<stdio.h>
-#include "baseApplication.hh"
+#include "monitorApplication.hh"
 
 #include "HVCaenInterface.hh"
 
@@ -16,21 +16,19 @@ using namespace std;
 
 namespace lydaq
 {
-  class LCaenServer : public zdaq::baseApplication
+  class LCaenServer : public zdaq::monitorApplication
   {
   public:
     LCaenServer(std::string name);
     // Transition
-    void open(zdaq::fsmmessage* m);
-    void close(zdaq::fsmmessage* m);
-    void start(zdaq::fsmmessage* m);
-    void monitor();
-    void stop(zdaq::fsmmessage* m);
+    virtual void open(zdaq::fsmmessage* m);
+    virtual void close(zdaq::fsmmessage* m);
     // Access to the interface
     HVCaenInterface* getHVCaenInterface(){  //std::cout<<" get Ptr "<<_hv<<std::endl;
       return _hv;}
     // Status
-    Json::Value status();
+    virtual Json::Value status();
+    virtual std::string hardware(){return "SY1527";}
     Json::Value channelStatus(uint32_t channel);
     // Commande
     void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
@@ -44,11 +42,6 @@ namespace lydaq
     zdaq::fsmweb* _fsm;
  
     lydaq::HVCaenInterface* _hv;
-    boost::thread_group g_store;
-    bool _running;
-    uint32_t _period;
-    zmq::context_t* _context;
-    zmq::socket_t *_publisher;
   };
 };
 #endif
