@@ -17,11 +17,13 @@
 #include <string.h>
 #include <log4cxx/logger.h>
 #include <log4cxx/xml/domconfigurator.h>
+#include "ReadoutLogger.hh"
 using namespace log4cxx;
 using namespace log4cxx::xml;
 using namespace log4cxx::helpers;
 
-
+using namespace lydaq;
+using namespace zdaq;
 
 FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
 {
@@ -52,16 +54,7 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
   _fsm->addCommand("VSET",boost::bind(&FullSlow::setVoltage,this,_1,_2));
   _fsm->addCommand("ISET",boost::bind(&FullSlow::setCurrentLimit,this,_1,_2));
 
-  cout<<"Building Fullslow"<<endl;
-  std::stringstream s0;
-  char hname[80];
-  gethostname(hname,80);
-  s0.str(std::string());
-  s0<<"FullSlow-"<<hname;
-
-  DimServer::start(s0.str().c_str()); 
-  //  cout<<"Starting DimDaqCtrl"<<endl;
-
+ 
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
@@ -263,8 +256,8 @@ void FullSlow::setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &re
 {
   uint32_t first=atoi(request.get("first","0").c_str());
   uint32_t last=atoi(request.get("last","0").c_str());
-  float v=atof(request.get("value","-1.0").c_str());
-  if (_caenClient==NULL && _isegClient=NULL)
+  float vset=atof(request.get("value","-1.0").c_str());
+  if (_caenClient==NULL && _isegClient==NULL)
     {
       LOG4CXX_ERROR(_logLdaq, "No CAEN client");
       response["STATUS"]=Json::Value::null;
@@ -279,14 +272,14 @@ void FullSlow::setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &re
     }
   if (_caenClient)
     {
-      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<v;
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<vset;
       _caenClient->sendCommand("VSET",sp.str());
       response["STATUS"]=_caenClient->answer()["STATUS"];
       return;
     }
   if (_isegClient)
     {
-      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<v;
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<vset;
       _isegClient->sendCommand("VSET",sp.str());
       response["STATUS"]=_isegClient->answer()["STATUS"];
       return;
@@ -298,14 +291,14 @@ void FullSlow::setCurrentLimit(Mongoose::Request &request, Mongoose::JsonRespons
 
   uint32_t first=atoi(request.get("first","0").c_str());
   uint32_t last=atoi(request.get("last","0").c_str());
-  float v=atof(request.get("value","-1.0").c_str());
-  if (_caenClient==NULL && _isegClient=NULL)
+  float iset=atof(request.get("value","-1.0").c_str());
+  if (_caenClient==NULL && _isegClient==NULL)
     {
       LOG4CXX_ERROR(_logLdaq, "No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
-  if (vset<0)
+  if (iset<0)
     {
             LOG4CXX_ERROR(_logLdaq, "No value set");
 	    response["STATUS"]=Json::Value::null;
@@ -314,14 +307,14 @@ void FullSlow::setCurrentLimit(Mongoose::Request &request, Mongoose::JsonRespons
     }
   if (_caenClient)
     {
-      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<v;
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<iset;
       _caenClient->sendCommand("ISET",sp.str());
       response["STATUS"]=_caenClient->answer()["STATUS"];
       return;
     }
   if (_isegClient)
     {
-      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<v;
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<iset;
       _isegClient->sendCommand("ISET",sp.str());
       response["STATUS"]=_isegClient->answer()["STATUS"];
       return;
@@ -334,7 +327,7 @@ void FullSlow::HVON(Mongoose::Request &request, Mongoose::JsonResponse &response
 {
   uint32_t first=atoi(request.get("first","0").c_str());
   uint32_t last=atoi(request.get("last","0").c_str());
-if (_caenClient==NULL && _isegClient=NULL)
+if (_caenClient==NULL && _isegClient==NULL)
     {
       LOG4CXX_ERROR(_logLdaq, "No CAEN client");
       response["STATUS"]=Json::Value::null;
@@ -361,7 +354,7 @@ void FullSlow::HVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
 {
     uint32_t first=atoi(request.get("first","0").c_str());
   uint32_t last=atoi(request.get("last","0").c_str());
-if (_caenClient==NULL && _isegClient=NULL)
+if (_caenClient==NULL && _isegClient==NULL)
     {
       LOG4CXX_ERROR(_logLdaq, "No CAEN client");
       response["STATUS"]=Json::Value::null;
@@ -399,7 +392,7 @@ void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
-  response["STATUS"]=Jon::Value::null;
+  response["STATUS"]=Json::Value::null;
   return;
 }
 void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -417,7 +410,7 @@ void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
-  response["STATUS"]=Jon::Value::null;
+  response["STATUS"]=Json::Value::null;
   return;
    
 
@@ -437,7 +430,7 @@ void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
-  response["STATUS"]=Jon::Value::null;
+  response["STATUS"]=Json::Value::null;
   return;
 
 
@@ -451,7 +444,7 @@ void  FullSlow::PTStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No PT client");
-  response["STATUS"]=Jon::Value::null;
+  response["STATUS"]=Json::Value::null;
   return;
 
 

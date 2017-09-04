@@ -100,7 +100,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 #LIBRARY_SOURCES=Glob("#src/*.cc")
 
 #print LIBRARY_SOURCES
-LIBRARY_SOURCES=['src/FullDaq.cxx']
+LIBRARY_SOURCES=['src/FullDaq.cxx','src/FullSlow.cxx']
 
 print LIBRARY_SOURCES
 
@@ -122,6 +122,8 @@ plist=[]
 
 mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/FDaqDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(mdccd)
+mdcsd=env.Program("bin/lydaq_daemon_Slow_"+package,source="src/FSlowDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+plist.append(mdcsd)
 myinc=[]
 for x in Glob("#include/*.hh"):
   myinc.append("include/"+x.name)
