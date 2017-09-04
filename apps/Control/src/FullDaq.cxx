@@ -1015,10 +1015,16 @@ void FullDaq::status(Mongoose::Request &request, Mongoose::JsonResponse &respons
   for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
     {
 
-      (*it)->sendTransition("STATUS");
+      (*it)->sendCommand("STATUS");
       const Json::Value& jdevs=(*it)->answer();
-      for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
-	devlist.append(*jt);
+      if (jdevs.isMember("answer"))
+	if (jdevs["answer"].isMember("DIFLIST"))
+	  {
+	    const Json::Value& jdev1=jdevs["answer"]["DIFLIST"];
+	    //std::cout<<"GROS DEBUG "<<jdevs<<std::endl;
+	    for (Json::ValueConstIterator jt = jdev1.begin(); jt != jdev1.end(); ++jt)
+	      devlist.append(*jt);
+	  }
     }
   response["diflist"]=devlist;
   response["STATUS"]="DONE";
