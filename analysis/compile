@@ -1,3 +1,4 @@
 cd sdhcal;scons -j4 install;cd -
 cd rootwriter;scons -j4 install;cd -
 cd lciowriter;scons -j4 install;cd -
+cd monitor;scons -j4 install;cd -

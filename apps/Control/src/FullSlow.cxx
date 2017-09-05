@@ -34,12 +34,15 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
  
   _fsm->addState("DISCOVERED");
   _fsm->addState("CONFIGURED");
+  _fsm->addState("MONITORING");
  
  
   _fsm->addTransition("DISCOVER","CREATED","DISCOVERED",boost::bind(&FullSlow::discover, this,_1));
   
   _fsm->addTransition("DESTROY","DISCOVERED","CREATED",boost::bind(&FullSlow::destroy, this,_1));
   _fsm->addTransition("CONFIGURE","DISCOVERED","CONFIGURED",boost::bind(&FullSlow::configure, this,_1));
+  _fsm->addTransition("START","CONFIGURED","MONITORING",boost::bind(&FullSlow::start, this,_1));
+  _fsm->addTransition("STOP","MONITORING","CONFIGURED",boost::bind(&FullSlow::stop, this,_1));
   _fsm->addTransition("DESTROY","CONFIGURED","CREATED",boost::bind(&FullSlow::destroy, this,_1));
 
   // Commands
@@ -97,6 +100,24 @@ void FullSlow::configure(zdaq::fsmmessage* m)
   if (_genesysClient!=0) _genesysClient->sendTransition("OPEN");
   if (_isegClient!=0) _isegClient->sendTransition("OPEN");
   if (_bmpClient!=0) _bmpClient->sendTransition("OPEN");
+ 
+}
+void FullSlow::start(zdaq::fsmmessage* m)
+{
+  if (_caenClient!=0) _caenClient->sendTransition("START");
+  if (_zupClient!=0) _zupClient->sendTransition("START");
+  if (_genesysClient!=0) _genesysClient->sendTransition("START");
+  if (_isegClient!=0) _isegClient->sendTransition("START");
+  if (_bmpClient!=0) _bmpClient->sendTransition("START");
+ 
+}
+void FullSlow::stop(zdaq::fsmmessage* m)
+{
+  if (_caenClient!=0) _caenClient->sendTransition("STOP");
+  if (_zupClient!=0) _zupClient->sendTransition("STOP");
+  if (_genesysClient!=0) _genesysClient->sendTransition("STOP");
+  if (_isegClient!=0) _isegClient->sendTransition("STOP");
+  if (_bmpClient!=0) _bmpClient->sendTransition("STOP");
  
 }
 void FullSlow::discover(zdaq::fsmmessage* m)

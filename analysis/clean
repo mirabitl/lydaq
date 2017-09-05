@@ -1,3 +1,4 @@
 cd sdhcal;scons -c install;cd -
 cd rootwriter;scons -c install;cd -
 cd lciowriter;scons -c install;cd -
+cd monitor;scons -c install;cd -
