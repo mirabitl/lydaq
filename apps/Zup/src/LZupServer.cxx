@@ -58,6 +58,7 @@ Json::Value lydaq::LZupServer::status()
       LOG4CXX_ERROR(_logLdaq,"No ZUPInterface opened");
        return r;
     }
+   lock();
    float vset=_lv->ReadVoltageSet();
    float vout=_lv->ReadVoltageUsed();
    r["vset"]=vset;
@@ -67,6 +68,7 @@ Json::Value lydaq::LZupServer::status()
      r["status"]="OFF";
    else
      r["status"]="ON";
+   unlock();
    return r;
 }
 

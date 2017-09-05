@@ -41,9 +41,10 @@ Json::Value lydaq::LBmpServer::status()
       LOG4CXX_ERROR(_logLdaq,"No BMPInterface opened");
        return r;
     }
+   lock();
    r["pressure"]=_bmp->BMP183PressionRead();
    r["temperature"]=_bmp->BMP183TemperatureRead();
-
+   unlock();
    r["status"]="READ";
    return r;
 }

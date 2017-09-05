@@ -70,6 +70,7 @@ Json::Value lydaq::LWienerServer::channelStatus(uint32_t channel)
 }
 Json::Value lydaq::LWienerServer::status()
 {
+
   Json::Value r;
   r["name"]=this->hardware();
   Json::Value jsonArray;
@@ -91,13 +92,14 @@ Json::Value lydaq::LWienerServer::status()
     LOG4CXX_ERROR(_logLdaq,"Please define last channel");
     return r;
   }
+  lock();
   for (uint32_t i=this->parameters()["first"].asUInt();i<=this->parameters()["last"].asUInt();i++)
     {
       Json::Value v=this->channelStatus(i);
       //std::cout <<v<<std::endl;
     r["channels"].append(v);
     }
-  
+  unlock();
   return r;
 }
 
