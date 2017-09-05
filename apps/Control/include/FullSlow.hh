@@ -27,6 +27,7 @@ public:
   void HVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setCurrentLimit(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void setRampUp(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void  LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void LVON(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response);

@@ -53,6 +53,7 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
   _fsm->addCommand("HVOFF",boost::bind(&FullSlow::HVOFF,this,_1,_2));
   _fsm->addCommand("VSET",boost::bind(&FullSlow::setVoltage,this,_1,_2));
   _fsm->addCommand("ISET",boost::bind(&FullSlow::setCurrentLimit,this,_1,_2));
+  _fsm->addCommand("RAMPUP",boost::bind(&FullSlow::setRampUp,this,_1,_2));
 
  
   char* wp=getenv("WEBPORT");
@@ -239,15 +240,15 @@ void FullSlow::HVStatus(Mongoose::Request &request, Mongoose::JsonResponse &resp
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _caenClient->sendCommand("STATUS",sp.str());
   
-      response["STATUS"]=_caenClient->answer()["STATUS"];
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
       return;
     }
   if (_isegClient)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _isegClient->sendCommand("STATUS",sp.str());
-  
-      response["STATUS"]=_isegClient->answer()["STATUS"];
+      std::cout<<_isegClient->answer()<<std::endl;
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
 }
@@ -274,14 +275,14 @@ void FullSlow::setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &re
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<vset;
       _caenClient->sendCommand("VSET",sp.str());
-      response["STATUS"]=_caenClient->answer()["STATUS"];
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
       return;
     }
   if (_isegClient)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<vset;
       _isegClient->sendCommand("VSET",sp.str());
-      response["STATUS"]=_isegClient->answer()["STATUS"];
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
  
@@ -309,14 +310,50 @@ void FullSlow::setCurrentLimit(Mongoose::Request &request, Mongoose::JsonRespons
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<iset;
       _caenClient->sendCommand("ISET",sp.str());
-      response["STATUS"]=_caenClient->answer()["STATUS"];
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
       return;
     }
   if (_isegClient)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<iset;
       _isegClient->sendCommand("ISET",sp.str());
-      response["STATUS"]=_isegClient->answer()["STATUS"];
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
+      return;
+    }
+
+ 
+}
+void FullSlow::setRampUp(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+
+  uint32_t first=atoi(request.get("first","0").c_str());
+  uint32_t last=atoi(request.get("last","0").c_str());
+  float rup=atof(request.get("value","-1.0").c_str());
+  if (_caenClient==NULL && _isegClient==NULL)
+    {
+      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      response["STATUS"]=Json::Value::null;
+      return;
+    }
+  if (rup<0)
+    {
+            LOG4CXX_ERROR(_logLdaq, "No value set");
+	    response["STATUS"]=Json::Value::null;
+	    return;
+
+    }
+  if (_caenClient)
+    {
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<rup;
+      _caenClient->sendCommand("RAMPUP",sp.str());
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
+      return;
+    }
+  if (_isegClient)
+    {
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last<<"&value="<<rup;
+      _isegClient->sendCommand("RAMPUP",sp.str());
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
 
@@ -337,14 +374,14 @@ if (_caenClient==NULL && _isegClient==NULL)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _caenClient->sendCommand("ON",sp.str());
-      response["STATUS"]=_caenClient->answer()["STATUS"];
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
       return;
     }
   if (_isegClient)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _isegClient->sendCommand("ON",sp.str());
-      response["STATUS"]=_isegClient->answer()["STATUS"];
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
   
@@ -364,14 +401,14 @@ if (_caenClient==NULL && _isegClient==NULL)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _caenClient->sendCommand("OFF",sp.str());
-      response["STATUS"]=_caenClient->answer()["STATUS"];
+      response["STATUS"]=_caenClient->answer()["answer"]["STATUS"];
       return;
     }
   if (_isegClient)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _isegClient->sendCommand("OFF",sp.str());
-      response["STATUS"]=_isegClient->answer()["STATUS"];
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
  
@@ -382,13 +419,13 @@ void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("ON");
-    response["STATUS"]=_genesysClient->answer()["STATUS"];
+    response["STATUS"]=_genesysClient->answer()["answer"]["STATUS"];
     return;
   }
   if (_zupClient!=NULL){
 
     _zupClient->sendCommand("ON");
-    response["STATUS"]=_zupClient->answer()["STATUS"];
+    response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
@@ -400,13 +437,13 @@ void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("OFF");
-    response["STATUS"]=_genesysClient->answer()["STATUS"];
+    response["STATUS"]=_genesysClient->answer()["answer"]["STATUS"];
     return;
   }
   if (_zupClient!=NULL){
 
     _zupClient->sendCommand("OFF");
-    response["STATUS"]=_zupClient->answer()["STATUS"];
+    response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
@@ -420,13 +457,14 @@ void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("STATUS");
-    response["STATUS"]=_genesysClient->answer()["STATUS"];
+    response["STATUS"]=_genesysClient->answer()["answer"]["STATUS"];
     return;
   }
   if (_zupClient!=NULL){
 
     _zupClient->sendCommand("STATUS");
-    response["STATUS"]=_zupClient->answer()["STATUS"];
+    std::cout<<_zupClient->answer()<<std::endl;
+    response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No LV client");
@@ -440,7 +478,8 @@ void  FullSlow::PTStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
   if (_bmpClient!=NULL){
 
     _bmpClient->sendCommand("STATUS");
-    response["STATUS"]=_bmpClient->answer()["STATUS"];
+    std::cout<<_bmpClient->answer()<<std::endl;
+    response["STATUS"]=_bmpClient->answer()["answer"]["STATUS"];
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No PT client");
