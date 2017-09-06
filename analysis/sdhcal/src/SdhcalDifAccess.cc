@@ -198,7 +198,7 @@ uint32_t DIFUnpacker::getFramePtr(std::vector<unsigned char*> &vFrame,std::vecto
       uint32_t header =DIFUnpacker::getFrameAsicHeader(&cb[fshift]);
       if (header == DU_END_OF_FRAME) return (fshift+2);
       //std::cout<<header<<" "<<fshift<<std::endl;
-      if (header<1 || header>48)
+      if (header<1 || (header>48 && header!=129)) // correction d'antoine pour la BIF
 	{
 	  std::stringstream s("");
 	  s<<header<<" Header problem "<<fshift<<std::endl;
