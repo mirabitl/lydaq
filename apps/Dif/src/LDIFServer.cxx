@@ -69,6 +69,7 @@ void lydaq::LDIFServer::dbcache(std::string server,std::vector<uint32_t> vids)
        memcpy(theDIFMap_[difid]->dbdif(),buf,update.size()-((char*) buf-omsg));
        //printf("Dim info read %d %d \n",theDIFMap_[i]->dbdif()->id,theDIFMap_[i]->dbdif()->nbasic);
        LOG4CXX_INFO(_logLdaq,"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb);
+       std::cout<<"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb<<std::endl;
        
     }
   std::cout << "Exiting updates from DBCACHE server...\n" << std::endl;
