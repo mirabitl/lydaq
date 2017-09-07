@@ -62,13 +62,15 @@ Json::Value lydaq::LWienerServer::channelStatus(uint32_t channel)
    r["vset"]=_hv->getOutputVoltage(channel/8,channel%8);
    r["iset"]=_hv->getOutputCurrentLimit(channel/8,channel%8);
    r["rampup"]=_hv->getOutputVoltageRiseRate(channel/8,channel%8);
-   r["iout"]=_hv->getOutputVoltageRiseRate(channel/8,channel%8);
+   r["iout"]=_hv->getOutputMeasurementCurrent(channel/8,channel%8);
    r["vout"]=_hv->getOutputMeasurementSenseVoltage(channel/8,channel%8);
    r["status"]=_hv->getOutputStatus(channel/8,channel%8);
    
    return r;
 }
 Json::Value lydaq::LWienerServer::status()
+{ return status(-1,-1);}
+Json::Value lydaq::LWienerServer::status(int32_t first,int32_t last)
 {
 
   Json::Value r;
@@ -82,18 +84,27 @@ Json::Value lydaq::LWienerServer::status()
     LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
     return r;
   }
-  if (!this->parameters().isMember("first"))
+  int32_t fi=0,la=0;
+  if (!this->parameters().isMember("first") && first<0)
   {
     LOG4CXX_ERROR(_logLdaq,"Please define first channel");
     return r;
   }
-  if (!this->parameters().isMember("last"))
+  if (first<0)
+    fi=this->parameters()["first"].asUInt();
+  else
+    fi=first;
+  if (!this->parameters().isMember("last") && last<0)
   {
     LOG4CXX_ERROR(_logLdaq,"Please define last channel");
     return r;
   }
+  if (last<0)
+    la=this->parameters()["last"].asUInt();
+  else
+    la=last;
   lock();
-  for (uint32_t i=this->parameters()["first"].asUInt();i<=this->parameters()["last"].asUInt();i++)
+  for (uint32_t i=fi;i<=la;i++)
     {
       Json::Value v=this->channelStatus(i);
       //std::cout <<v<<std::endl;
@@ -113,12 +124,12 @@ void lydaq::LWienerServer::c_status(Mongoose::Request &request, Mongoose::JsonRe
        response["STATUS"]=Json::Value::null;
        return;
     }
-  uint32_t first=atol(request.get("first","9999").c_str());
+  int32_t first=atol(request.get("first","-1").c_str());
   std::cout<<first<<std::endl;
-  if (first!=9999) this->parameters()["first"]=first;
-  uint32_t last=atol(request.get("last","9999").c_str());
+  //if (first!=9999) this->parameters()["first"]=first;
+  int32_t last=atol(request.get("last","-1").c_str());
   std::cout<<last<<std::endl;
-  if (last!=9999 ) this->parameters()["last"]=last;
+  //if (last!=9999 ) this->parameters()["last"]=last;
   if (first==9999 || last==9999)
   {
     LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
@@ -126,7 +137,7 @@ void lydaq::LWienerServer::c_status(Mongoose::Request &request, Mongoose::JsonRe
     return;
   }
  
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
 void lydaq::LWienerServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -149,7 +160,7 @@ void lydaq::LWienerServer::c_on(Mongoose::Request &request, Mongoose::JsonRespon
   for (uint32_t i=first;i<=last;i++)
     _hv->setOutputSwitch(i/8,i%8,1);
   ::sleep(2);
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
 void lydaq::LWienerServer::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -173,8 +184,33 @@ void lydaq::LWienerServer::c_off(Mongoose::Request &request, Mongoose::JsonRespo
     _hv->setOutputSwitch(i/8,i%8,0);
   
   ::sleep(2);
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
+void lydaq::LWienerServer::c_clearalarm(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  if (_hv==NULL)
+  {
+    LOG4CXX_ERROR(_logLdaq,"No WienerSnmp opened");
+    response["STATUS"]=Json::Value::null;
+    return;
+  }
+  uint32_t first=atol(request.get("first","9999").c_str());
+  if (first==9999 && this->parameters().isMember("first")) first=this->parameters()["first"].asUInt();
+  uint32_t last=atol(request.get("last","9999").c_str());
+  if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
+  if (first==9999 || last==9999)
+  {
+    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    response["STATUS"]=Json::Value::null;
+    return;
+  }
+  for (uint32_t i=first;i<=last;i++)
+    _hv->setOutputSwitch(i/8,i%8,10);
+  
+  ::sleep(2);
+  response["STATUS"]=this->status(first,last);
+}
+
 void lydaq::LWienerServer::c_vset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_hv==NULL)
@@ -197,7 +233,7 @@ void lydaq::LWienerServer::c_vset(Mongoose::Request &request, Mongoose::JsonResp
   for (uint32_t i=first;i<=last;i++)
     _hv->setOutputVoltage(i/8,i%8,vset);
   ::sleep(2);
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
 void lydaq::LWienerServer::c_iset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -221,7 +257,7 @@ void lydaq::LWienerServer::c_iset(Mongoose::Request &request, Mongoose::JsonResp
   for (uint32_t i=first;i<=last;i++)
     _hv->setOutputCurrentLimit(i/8,i%8,iset);
   ::sleep(2);
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
 void lydaq::LWienerServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -245,7 +281,7 @@ void lydaq::LWienerServer::c_rampup(Mongoose::Request &request, Mongoose::JsonRe
   for (uint32_t i=first;i<=last;i++)
     _hv->setOutputVoltageRiseRate(i/8,i%8,-1.*rup);
   ::sleep(2);
-  response["STATUS"]=this->status();
+  response["STATUS"]=this->status(first,last);
 }
 
 
@@ -259,7 +295,6 @@ lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::monitorApplication
 
   //_fsm=new zdaq::fsm(name);
   _fsm=this->fsm();
-
   
 
  _fsm->addCommand("STATUS",boost::bind(&lydaq::LWienerServer::c_status,this,_1,_2));
@@ -268,7 +303,8 @@ lydaq::LWienerServer::LWienerServer(std::string name) : zdaq::monitorApplication
  _fsm->addCommand("VSET",boost::bind(&lydaq::LWienerServer::c_vset,this,_1,_2));
  _fsm->addCommand("ISET",boost::bind(&lydaq::LWienerServer::c_iset,this,_1,_2));
  _fsm->addCommand("RAMPUP",boost::bind(&lydaq::LWienerServer::c_rampup,this,_1,_2));
- 
+ _fsm->addCommand("CLEARALARM",boost::bind(&lydaq::LWienerServer::c_clearalarm,this,_1,_2));
+
 
  
   

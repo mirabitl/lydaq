@@ -24,6 +24,7 @@ public:
 
   void HVStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void HVON(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void CLEARALARM(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void HVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setCurrentLimit(Mongoose::Request &request, Mongoose::JsonResponse &response);

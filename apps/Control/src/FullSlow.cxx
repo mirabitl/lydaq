@@ -53,6 +53,7 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
 
   _fsm->addCommand("HVSTATUS",boost::bind(&FullSlow::HVStatus,this,_1,_2));
   _fsm->addCommand("HVON",boost::bind(&FullSlow::HVON,this,_1,_2));
+  _fsm->addCommand("CLEARALARM",boost::bind(&FullSlow::CLEARALARM,this,_1,_2));
   _fsm->addCommand("HVOFF",boost::bind(&FullSlow::HVOFF,this,_1,_2));
   _fsm->addCommand("VSET",boost::bind(&FullSlow::setVoltage,this,_1,_2));
   _fsm->addCommand("ISET",boost::bind(&FullSlow::setCurrentLimit,this,_1,_2));
@@ -402,6 +403,27 @@ if (_caenClient==NULL && _isegClient==NULL)
     {
       std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
       _isegClient->sendCommand("ON",sp.str());
+      response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
+      return;
+    }
+  
+
+}
+void FullSlow::CLEARALARM(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  uint32_t first=atoi(request.get("first","0").c_str());
+  uint32_t last=atoi(request.get("last","0").c_str());
+if (_isegClient==NULL)
+    {
+      LOG4CXX_ERROR(_logLdaq, "No ISEG client");
+      response["STATUS"]=Json::Value::null;
+      return;
+    }
+  
+  if (_isegClient)
+    {
+      std::stringstream sp;sp<<"&first="<<first<<"&last="<<last;
+      _isegClient->sendCommand("CLEARALARM",sp.str());
       response["STATUS"]=_isegClient->answer()["answer"]["STATUS"];
       return;
     }
