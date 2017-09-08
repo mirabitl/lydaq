@@ -26,9 +26,9 @@ def parseReturn(command,sr,res=None):
         sj=json.loads(sr)
         ssj=sj["answer"]["STATUS"]["channels"]
         #print ssj
-        print "\033[1m %5s %10s %10s %10s %10s %10s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP')
+        print "\033[1m %5s %10s %10s %10s %10s %10s %30s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP',"STATUS")
         for x in ssj:
-            print "#%.4d %10.2f %10.2f %10.2f %10.2f %10.2f" % (x['id'],x['vset'],x['iset']*1E6,x['vout'],x['iout']*1E6,x['rampup'])
+            print "#%.4d %10.2f %10.2f %10.2f %10.2f %10.2f %30s " % (x['id'],x['vset'],x['iset']*1E6,x['vout'],x['iout']*1E6,x['rampup'],x['status'][x['status'].find("=")+1:len(x['status'])-1])
     if (command=="LVSTATUS"):
         sj=json.loads(sr)
         
@@ -924,9 +924,9 @@ parser.add_argument('--B0', action='store', type=int,default=None,dest='B0',help
 parser.add_argument('--B1', action='store', type=int,default=None,dest='B1',help='set the B1 for chips')
 parser.add_argument('--B2', action='store', type=int,default=None,dest='B2',help='set the B2 for chips')
 
-parser.add_argument('--v0', action='store', type=int,default=None,dest='v0',help='reference hv')
-parser.add_argument('--p0', action='store', type=int,default=None,dest='p0',help='reference P')
-parser.add_argument('--t0', action='store', type=int,default=None,dest='t0',help='reference T')
+parser.add_argument('--v0', action='store', type=float,default=None,dest='v0',help='reference hv')
+parser.add_argument('--p0', action='store', type=float,default=None,dest='p0',help='reference P')
+parser.add_argument('--t0', action='store', type=float,default=None,dest='t0',help='reference T')
 
 # Slow
 parser.add_argument('--channel', action='store',type=int, default=None,dest='channel',help='set the hvchannel')
