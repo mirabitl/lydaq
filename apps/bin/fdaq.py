@@ -10,7 +10,7 @@ import base64
 import time
 import argparse
 import requests
-def parseReturn(command,sr):
+def parseReturn(command,sr,res=None):
     if (command=="jobStatus"):
         #s=r1.read()
         #print s["answer"]
@@ -24,17 +24,41 @@ def parseReturn(command,sr):
                 print "%6d %15s %25s %20s" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
     if (command=="hvStatus"):
         sj=json.loads(sr)
-        ssj=sj["answer"]["ANSWER"]
+        ssj=sj["answer"]["STATUS"]["channels"]
         #print ssj
-        print "\033[1m %5s %10s %10s %10s %10s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT')
+        print "\033[1m %5s %10s %10s %10s %10s %10s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP')
         for x in ssj:
-            print "#%.4d %10.2f %10.2f %10.2f %10.2f" % (x['channel'],x['vset'],x['iset'],x['vout'],x['iout'])
-    if (command=="LVStatus"):
+            print "#%.4d %10.2f %10.2f %10.2f %10.2f %10.2f" % (x['id'],x['vset'],x['iset']*1E6,x['vout'],x['iout']*1E6,x['rampup'])
+    if (command=="LVSTATUS"):
         sj=json.loads(sr)
         
-        ssj=sj["answer"]["LVSTATUS"]
+        ssj=sj["answer"]["STATUS"]
         print "\033[1m %10s %10s %10s \033[0m" % ('VSET','VOUT','IOUT')
         print " %10.2f %10.2f %10.2f" % (ssj['vset'],ssj['vout'],ssj['iout'])
+    if (command=="PTSTATUS"):
+        sj=json.loads(sr)
+        
+        ssj=sj["answer"]["STATUS"]
+        print "\033[1m %10s %10s  \033[0m" % ('P','T')
+        print " %10.2f %10.2f " % (ssj['pressure'],ssj['temperature']+273.15)
+    if (command=="PTCOR"):
+        sj=json.loads(sr)
+        
+        ssj=sj["answer"]["STATUS"]
+        print "\033[1m %10s %10s  \033[0m" % ('P','T')
+        print " %10.2f %10.2f " % (ssj['pressure'],ssj['temperature']+273.15)
+        p=ssj['pressure']
+        t=ssj['temperature']+273.15
+        if (res.v0==None):
+	  print "V0 must be set"
+	  return
+        if (res.t0==None):
+	  print "T0 must be set"
+	  return
+        if (res.p0==None):
+	  print "P0 must be set"
+	  return
+	print "\033[1m Voltage to be set is\033[0m %10.2f" % (res.v0*p/res.p0*res.t0/t)
     if (command=="status" and not results.verbose):
 
         sj=json.loads(sr)
@@ -193,7 +217,7 @@ class fdaqClient:
               if (p["NAME"]=="WRITER"):
                   if ("PARAMETER" in p):
                       self.daq_par["builder"]=p["PARAMETER"]
-              if (p["NAME"]=="ZUPSERVER"):
+              if (p["NAME"]=="ZUP"):
                   if ("PARAMETER" in p):
                       self.daq_par["zup"]=p["PARAMETER"]
               if (p["NAME"]=="CCCSERVER"):
@@ -327,41 +351,6 @@ class fdaqClient:
                   if (p_rep["STATE"]=="VOID"):
                       sr=executeFSM(x,port,p_rep["PREFIX"],"CREATE",lcgi)
                       #print sr
-  def slow_create(self):
-      lcgi={}
-      if (self.daq_url!=None):
-          lcgi["url"]=self.daq_url
-          if (self.login!="NONE"):
-            lcgi["login"]=self.login
-      else:
-          if (self.daq_file!=None):
-              lcgi["file"]=self.daq_file
-      for x,y in self.p_conf["HOSTS"].iteritems():
-          for p in y:
-              if (p["NAME"] != "FSLOW"):
-                  continue;
-              print x,p["NAME"]," process found"
-              port=0
-              for e in p["ENV"]:
-                  if (e.split("=")[0]=="WEBPORT"):
-                      port=int(e.split("=")[1])
-              if (port==0):
-                  continue
-              p_rep={}
-              surl="http://%s:%d/" % (x,port)
-              req=urllib2.Request(surl)
-              try:
-                  r1=urllib2.urlopen(req)
-                  p_rep=json.loads(r1.read())
-              except URLError, e:
-                  print surl,e
-                  p_rep={}
-              print x,port,p["NAME"],p_rep
-              if ("STATE" in p_rep):
-                  if (p_rep["STATE"]=="VOID"):
-                      sr=executeFSM(x,port,p_rep["PREFIX"],"CREATE",lcgi)
-                      #print sr
-
   def daq_list(self):
       lcgi={}
       if (self.daq_url!=None):
@@ -398,16 +387,7 @@ class fdaqClient:
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","DISCOVER",lcgi)
       print sr
       
-  def slow_discover(self):
-      lcgi={}
-      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","DISCOVER",lcgi)
-      print sr
-      
-  def slow_configure(self):
-      lcgi={}
-      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","CONFIGURE",lcgi)
-      print sr
-      
+     
   def daq_setparameters(self):
       lcgi={}
       lcgi["PARAMETER"]=json.dumps(self.daq_par,sort_keys=True)
@@ -434,21 +414,6 @@ class fdaqClient:
 
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","PREPARE",lcgi)
-      print sr
-      
-  def daq_lvon(self):
-      lcgi={}
-      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","LVON",lcgi)
-      print sr
-      
-  def daq_lvoff(self):
-      lcgi={}
-      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","LVOFF",lcgi)
-      print sr
-      
-  def daq_lvstatus(self):
-      lcgi={}
-      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","LVSTATUS",lcgi)
       print sr
 
   def daq_initialise(self):
@@ -733,6 +698,127 @@ class fdaqClient:
 
 
       self.daq_stop()
+      
+
+  def slow_create(self):
+      lcgi={}
+      if (self.daq_url!=None):
+          lcgi["url"]=self.daq_url
+          if (self.login!="NONE"):
+            lcgi["login"]=self.login
+      else:
+          if (self.daq_file!=None):
+              lcgi["file"]=self.daq_file
+      for x,y in self.p_conf["HOSTS"].iteritems():
+          for p in y:
+              if (p["NAME"] != "FSLOW"):
+                  continue;
+              print x,p["NAME"]," process found"
+              port=0
+              for e in p["ENV"]:
+                  if (e.split("=")[0]=="WEBPORT"):
+                      port=int(e.split("=")[1])
+              if (port==0):
+                  continue
+              p_rep={}
+              surl="http://%s:%d/" % (x,port)
+              req=urllib2.Request(surl)
+              try:
+                  r1=urllib2.urlopen(req)
+                  p_rep=json.loads(r1.read())
+              except URLError, e:
+                  print surl,e
+                  p_rep={}
+              print x,port,p["NAME"],p_rep
+              if ("STATE" in p_rep):
+                  if (p_rep["STATE"]=="VOID"):
+                      sr=executeFSM(x,port,p_rep["PREFIX"],"CREATE",lcgi)
+                      #print sr
+
+
+  def slow_discover(self):
+      lcgi={}
+      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","DISCOVER",lcgi)
+      print sr
+      
+  def slow_configure(self):
+      lcgi={}
+      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","CONFIGURE",lcgi)
+      print sr
+      
+  def slow_lvon(self):
+      lcgi={}
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVON",lcgi)
+      return sr
+      
+  def slow_lvoff(self):
+      lcgi={}
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVOFF",lcgi)
+      return sr
+      
+  def slow_lvstatus(self):
+      lcgi={}
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVSTATUS",lcgi)
+      return sr
+      
+  def slow_ptstatus(self):
+      lcgi={}
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","PTSTATUS",lcgi)
+      return sr
+
+
+  def slow_hvstatus(self,first,last):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","HVSTATUS",lcgi)
+      return sr
+
+  def slow_hvon(self,first,last):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","HVON",lcgi)
+      return sr
+
+  def slow_hvoff(self,first,last):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","HVOFF",lcgi)
+      return sr
+      
+  def slow_clearalarm(self,first,last):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","CLEARALARM",lcgi)
+      return sr
+
+  def slow_vset(self,first,last,value):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      lcgi["value"]=value
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","VSET",lcgi)
+      return sr
+
+  def slow_iset(self,first,last,value):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      lcgi["value"]=value
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","ISET",lcgi)
+      return sr
+
+  def slow_rampup(self,first,last,value):
+      lcgi={}
+      lcgi["first"]=first
+      lcgi["last"]=last
+      lcgi["value"]=value
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","RAMPUP",lcgi)
+      return sr
+
 parser = argparse.ArgumentParser()
 
 # configure all the actions
@@ -754,10 +840,7 @@ grp_action.add_argument('--daq-setparameters',action='store_true',help='send the
 grp_action.add_argument('--daq-getparameters',action='store_true',help='get the parameters described in $DAQCONFIG file to the DAQ')
 grp_action.add_argument('--daq-forceState',action='store_true',help='force the sate name of the Daq with the --state option, ex --forceState --state=DISCOVERED')
 grp_action.add_argument('--daq-services',action='store_true',help='Triggers teh download of the DB state, the initialisation of the Zup and of the CCC according to $DAQCONFIG values (compulsary before first initialise)')
-# LV
-grp_action.add_argument('--daq-lvon',action='store_true',help='put Zup LV ON')
-grp_action.add_argument('--daq-lvoff',action='store_true',help='put Zup LV OFF')
-grp_action.add_argument('--daq-lvstatus',action='store_true',help='Dump LV status')
+
 # Running
 grp_action.add_argument('--daq-initialise',action='store_true',help=' initialise the DAQ')
 grp_action.add_argument('--daq-configure',action='store_true',help=' configure the DAQ')
@@ -798,18 +881,29 @@ grp_action.add_argument('--trig-beam',action='store_true',help=' set beam length
 grp_action.add_argument('--slc-create',action='store_true',help='Create the DimSlowControl object to control WIENER crate and BMP sensor')
 grp_action.add_argument('--slc-initialisesql',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
 grp_action.add_argument('--slc-configure',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
-grp_action.add_argument('--slc-loadreferences',action='store_true',help='load in the wiener crate chambers references voltage download from DB')
+# LV
+grp_action.add_argument('--slc-lvon',action='store_true',help='put Zup LV ON')
+grp_action.add_argument('--slc-lvoff',action='store_true',help='put Zup LV OFF')
+grp_action.add_argument('--slc-lvstatus',action='store_true',help='Dump LV status')
+
+#grp_action.add_argument('--slc-loadreferences',action='store_true',help='load in the wiener crate chambers references voltage download from DB')
 grp_action.add_argument('--slc-hvstatus',action='store_true',help='display hvstatus of all channel of the wiener crate')
 grp_action.add_argument('--slc-ptstatus',action='store_true',help='display the P and T from the BMP183 readout')
-grp_action.add_argument('--slc-setperiod',action='store_true',help='set the readout period of Wiener and BMP with --period=second(s)')
-grp_action.add_argument('--slc-setvoltage',action='store_true',help='set the voltage V of channel i to k with --first=i --last=k --voltage=V')
-grp_action.add_argument('--slc-setcurrent',action='store_true',help='set the current limit I (microA) of channel i to k with --first=i --last=k --current=I')
+grp_action.add_argument('--slc-ptcor',action='store_true',help='display the needed voltage for --v0=v --p0=p (mbar) --t0=t (K)')
+
+#grp_action.add_argument('--slc-setperiod',action='store_true',help='set the readout period of Wiener and BMP with --period=second(s)')
+grp_action.add_argument('--slc-vset',action='store_true',help='set the voltage V of channel i to k with --first=i --last=k --voltage=V')
+grp_action.add_argument('--slc-iset',action='store_true',help='set the current limit I (microA) of channel i to k with --first=i --last=k --current=I')
+grp_action.add_argument('--slc-rampup',action='store_true',help='set the ramp (V/S) of channel i to k with --first=i --last=k --ramp=r')
+
 grp_action.add_argument('--slc-hvon',action='store_true',help='set the voltage ON  of channel i to k with --first=i --last=k ')
 grp_action.add_argument('--slc-hvoff',action='store_true',help='set the voltage OFF  of channel i to k with --first=i --last=k ')
-grp_action.add_argument('--slc-store',action='store_true',help='start the data storage in the mysql DB at period p  with --period=p (s) ')
-grp_action.add_argument('--slc-store-stop',action='store_true',help='stop the data storage in the mysql DB ')
-grp_action.add_argument('--slc-check',action='store_true',help='start the voltage tuning wrt references at period p  with --period=p (s) ')
-grp_action.add_argument('--slc-check-stop',action='store_true',help='stop the voltage tuning ')
+grp_action.add_argument('--slc-clearalarm',action='store_true',help='Clear alarm  of channel i to k with --first=i --last=k ')
+
+#grp_action.add_argument('--slc-store',action='store_true',help='start the data storage in the mysql DB at period p  with --period=p (s) ')
+#grp_action.add_argument('--slc-store-stop',action='store_true',help='stop the data storage in the mysql DB ')
+#grp_action.add_argument('--slc-check',action='store_true',help='start the voltage tuning wrt references at period p  with --period=p (s) ')
+#grp_action.add_argument('--slc-check-stop',action='store_true',help='stop the voltage tuning ')
 
 
 
@@ -830,7 +924,9 @@ parser.add_argument('--B0', action='store', type=int,default=None,dest='B0',help
 parser.add_argument('--B1', action='store', type=int,default=None,dest='B1',help='set the B1 for chips')
 parser.add_argument('--B2', action='store', type=int,default=None,dest='B2',help='set the B2 for chips')
 
-
+parser.add_argument('--v0', action='store', type=int,default=None,dest='v0',help='reference hv')
+parser.add_argument('--p0', action='store', type=int,default=None,dest='p0',help='reference P')
+parser.add_argument('--t0', action='store', type=int,default=None,dest='t0',help='reference T')
 
 # Slow
 parser.add_argument('--channel', action='store',type=int, default=None,dest='channel',help='set the hvchannel')
@@ -838,6 +934,8 @@ parser.add_argument('--first', action='store',type=int, default=None,dest='first
 parser.add_argument('--last', action='store',type=int, default=None,dest='last',help='set the last hvchannel')
 parser.add_argument('--voltage', action='store',type=float, default=None,dest='voltage',help='set the hv voltage')
 parser.add_argument('--current', action='store',type=float, default=None,dest='current',help='set the hv current')
+parser.add_argument('--ramp', action='store',type=float, default=None,dest='ramp',help='set the hv ramp')
+
 parser.add_argument('--account', action='store', default=None,dest='account',help='set the Slow Control mysql account')
 parser.add_argument('--period', action='store',type=int, default=None,dest='period',help='set the temporistaion period (s)')
 
@@ -1006,23 +1104,7 @@ elif(results.daq_services):
     r_cmd='prepareServices'
     fdc.daq_services()
     exit(0)
-elif(results.daq_lvon):
-    r_cmd='LVON'
-    fdc.daq_lvon()
-    exit(0)
 
-elif(results.daq_lvoff):
-    r_cmd='LVOFF'
-    fdc.daq_lvoff()
-    exit(0)
-elif(results.daq_lvstatus):
-    r_cmd='LVStatus'
-    fdc.daq_lvstatus()
-    #if (results.verbose):
-        #print sr
-    #else:
-        #parseReturn(r_cmd,sr)
-    exit(0)
 elif(results.daq_initialise):
     r_cmd='initialise'
     fdc.daq_initialise()
@@ -1201,186 +1283,155 @@ elif(results.slc_configure):
     r_cmd='initialiseDB'
     fdc.slow_configure()
     exit(0)
-elif(results.slc_loadreferences):
-    r_cmd='loadReferences'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","LOADREFERENCES",lcgi)
-    print sr
+elif(results.slc_lvon):
+    r_cmd='LVON'
+    sr=fdc.slow_lvon()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('LVSTATUS',sr)    
     exit(0)
+
+elif(results.slc_lvoff):
+    r_cmd='LVOFF'
+    sr=fdc.slow_lvoff()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('LVSTATUS',sr)    
+    exit(0)
+elif(results.slc_lvstatus):
+    r_cmd='LVStatus'
+    sr=fdc.slow_lvstatus()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('LVSTATUS',sr)    
+    #if (results.verbose):
+        #print sr
+    #else:
+        #parseReturn(r_cmd,sr)
+    exit(0)
+
 elif(results.slc_hvstatus):
     r_cmd='hvStatus'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    lcgi['channel']=99;
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","HVREADCHANNEL",lcgi)
+    if (results.first==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr=fdc.slow_hvstatus(results.first,results.last)
     if (results.verbose):
         print sr
     else:
         parseReturn(r_cmd,sr)
+#    if (fdc.slowhost==None or fdc.slowport==None):
+#      print "No WSLOW application exiting"
+#      exit(0)
+#    lcgi.clear()
+#    lcgi['channel']=99;
+#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","HVREADCHANNEL",lcgi)
+#    if (results.verbose):
+#        print sr
+#    else:
+#        parseReturn(r_cmd,sr)
     exit(0)
 
 elif(results.slc_ptstatus):
     r_cmd='PT'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
+    sr=fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('PTSTATUS',sr)
+#    if (fdc.slowhost==None or fdc.slowport==None):
+#      print "No WSLOW application exiting"
+#      exit(0)
+#    lcgi.clear()
     #lcgi['channel']=99;
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
-    print sr
-    exit(0)
-elif(results.slc_setperiod):
-    r_cmd='setReadoutPeriod'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    if (results.period!=None):
-        lcgi['period']=results.period
-    else:
-        print 'Please specify the period --period=second(s)'
-        exit(0)
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","SETPERIOD",lcgi)
-    print sr
-    exit(0)
-elif(results.slc_setvoltage):
-    r_cmd='setVoltage'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    if (results.first!=None):
-        lcgi['first']=results.first
-    else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    if (results.last!=None):
-        lcgi['last']=results.last
-    else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    if (results.voltage!=None):
-        lcgi['voltage']=results.voltage
-    else:
-        print 'Please specify the voltage --voltage=V'
-        exit(0)
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","SETVOLTAGE",lcgi)
-    print sr
-    exit(0)
-
-elif(results.slc_setcurrent):
-    r_cmd='setCurrentLimit'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    if (results.first!=None):
-        lcgi['first']=results.first
-    else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    if (results.last!=None):
-        lcgi['last']=results.last
-    else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    if (results.current!=None):
-        lcgi['current']=results.current
-    else:
-        print 'Please specify the current limit --current=V'
-        exit(0)
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","SETCURRENTLIMIT",lcgi)
-    print sr
+#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
+#    print sr
     exit(0)
     
-elif(results.slc_hvon):
-    r_cmd='HVON'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    lcgi.clear()
-    if (results.first!=None):
-        lcgi['first']=results.first
+elif(results.slc_ptcor):
+    r_cmd='PT'
+    sr=fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
     else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    if (results.last!=None):
-        lcgi['last']=results.last
-    else:
-        print 'Please specify the channels --first=# --last=#'
-        exit(0)
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","HVON",lcgi)
-    print sr
+        parseReturn('PTCOR',sr,results)
+#    if (fdc.slowhost==None or fdc.slowport==None):
+#      print "No WSLOW application exiting"
+#      exit(0)
+#    lcgi.clear()
+    #lcgi['channel']=99;
+#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
+#    print sr
     exit(0)
 
-elif(results.slc_hvoff):
-    r_cmd='HVOFF'
+elif(results.slc_vset):
+    r_cmd='setVoltage'
     if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
+      print "No FSLOW application exiting"
       exit(0)
-    lcgi.clear()
-    if (results.first!=None):
-        lcgi['first']=results.first
-    else:
+    if (results.first==None):
         print 'Please specify the channels --first=# --last=#'
         exit(0)
-    if (results.last!=None):
-        lcgi['last']=results.last
-    else:
+    if (results.last==None):
         print 'Please specify the channels --first=# --last=#'
         exit(0)
-    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","HVOFF",lcgi)
-    print sr
-    exit(0)
-elif(results.slc_store):
-    r_cmd='startStorage'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    if (results.period!=None):
-        lcgi['period']=results.period
-    else:
-        print 'Please specify the period --period=second(s)'
+    if (results.voltage==None):
+        print 'Please specify the voltage --voltage=V'
         exit(0)
-    sr=executeFSM(fdc.slowhost,fdc.slowport,"WSLOW","STARTMONITOR",lcgi)
-    print sr
-    exit(0)
-elif(results.slc_check):
-    r_cmd='startCheck'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    if (results.period!=None):
-        lcgi['period']=results.period
+    sr=fdc.slow_vset(results.first,results.last,results.voltage)
+    if (results.verbose):
+        print sr
     else:
-        print 'Please specify the period --period=second(s)'
+        parseReturn('hvStatus',sr)
+    exit(0)
+elif(results.slc_iset):
+    r_cmd='setCurrent'
+    if (fdc.slowhost==None or fdc.slowport==None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first==None):
+        print 'Please specify the channels --first=# --last=#'
         exit(0)
-    sr=executeFSM(fdc.slowhost,fdc.slowport,"WSLOW","STARTCHECK",lcgi)
-    print sr
+    if (results.last==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.current==None):
+        print 'Please specify the current --current=V'
+        exit(0)
+    sr=fdc.slow_iset(results.first,results.last,results.current)
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('hvStatus',sr)   
+    exit(0)
+    
+elif(results.slc_rampup):
+    r_cmd='setVoltage'
+    if (fdc.slowhost==None or fdc.slowport==None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.ramp==None):
+        print 'Please specify the ramp --ramp=V'
+        exit(0)
+    fdc.slow_rampup(results.first,results.last,results.ramp)
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('hvStatus',sr)
     exit(0)
 
-elif(results.slc_store_stop):
-    r_cmd='stopStorage'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    sr=executeFSM(fdc.slowhost,fdc.slowport,"WSLOW","STOPMONITOR",lcgi)
-    print sr
-    exit(0)
-
-elif(results.slc_check_stop):
-    r_cmd='stopCheck'
-    if (fdc.slowhost==None or fdc.slowport==None):
-      print "No WSLOW application exiting"
-      exit(0)
-    sr=executeFSM(fdc.slowhost,fdc.slowport,"WSLOW","STOPCHECK",lcgi)
-    print sr
-    exit(0)
 
 #print r_cmd
 #print lcgi
