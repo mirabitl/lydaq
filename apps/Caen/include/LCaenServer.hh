@@ -28,6 +28,8 @@ namespace lydaq
       return _hv;}
     // Status
     virtual Json::Value status();
+    Json::Value status(int32_t f,int32_t l);
+
     virtual std::string hardware(){return "SY1527";}
     Json::Value channelStatus(uint32_t channel);
     // Commande
@@ -37,6 +39,8 @@ namespace lydaq
     void c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_on(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_off(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_clearalarm(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    
   private:
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;

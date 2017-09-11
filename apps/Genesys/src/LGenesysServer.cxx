@@ -58,6 +58,7 @@ Json::Value lydaq::LGenesysServer::status()
       LOG4CXX_ERROR(_logLdaq,"No Genesys Interface opened");
        return r;
     }
+   lock();
    float vset=_lv->ReadVoltageSet();
    float vout=_lv->ReadVoltageUsed();
    r["vset"]=vset;
@@ -67,6 +68,7 @@ Json::Value lydaq::LGenesysServer::status()
      r["status"]="OFF";
    else
      r["status"]="ON";
+   unlock();
    return r;
 }
 
