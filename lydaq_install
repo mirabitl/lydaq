@@ -70,9 +70,8 @@ ssh-agent
 cd /opt/
 git clone git@gitlab.in2p3.fr:gbaulieu/ILCConfDB.git
 cd ILCConfDB/ILCConfDB/src
-make -j8 library
-make -j8 ../lib64/_ilcconfdb.so
-make install
+make 
+sudo make install
 #### ZDAQ
 cd $ZDAQROOT
 scons -j4
