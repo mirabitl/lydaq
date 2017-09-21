@@ -55,6 +55,8 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
+if (Arm):
+    CPPFLAGS.append("-DNO_DB")
 LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','netlink','cslm','zdaq','z','log4cxx']
 
 

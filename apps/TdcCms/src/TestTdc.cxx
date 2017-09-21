@@ -15,8 +15,10 @@ printf("parsing the config file \n");
 //LOG4CXX_INFO (_logLdaq, "this is a info message, after parsing configuration file")
 
  lydaq::TdcConfigAccess a;
- a.parseJsonFile("/home/mirabito/cernbox/PR2_default.json");
- a.prepareSlowControl("192.168.10.14");
+ //a.parseJsonFile("/home/mirabito/cernbox/PR2_default.json");
+ //a.parseJsonUrl("http://lyosdhcal9/daq/petiroc//PR2_default_3DIF.json");
+ a.parseDb("TDC_4","DB");
+ a.prepareSlowControl("192.168.10.13");
  printf("Bytes %d \n",a.slcBytes());
  getchar();
  a.prepareSlowControl("192.168.10.15");
