@@ -17,7 +17,7 @@ printf("parsing the config file \n");
  lydaq::TdcConfigAccess a;
  //a.parseJsonFile("/home/mirabito/cernbox/PR2_default.json");
  //a.parseJsonUrl("http://lyosdhcal9/daq/petiroc//PR2_default_3DIF.json");
- a.parseDb("TDC_4","DB");
+ a.parseDb("TDC_IPNL_1","DB");
  a.prepareSlowControl("192.168.10.13");
  printf("Bytes %d \n",a.slcBytes());
  getchar();

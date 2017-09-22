@@ -2,7 +2,8 @@
 #define _TDCFPGA_HH
 #include "zmPusher.hh"
 #define MAX_EVENT_SIZE 65535
-
+#define MAX_TDC_NB 255
+#define TDC_VERSION 120
 #include <iostream>
 #include <list>
 #include <vector>
@@ -43,6 +44,7 @@ public:
   TdcFpga(uint32_t m,uint32_t adr);
   virtual void processEventTdc();
   inline void setStorage(std::string sdir) {_sdir=sdir;}
+  inline void setTriggerId(uint8_t i) {_triggerId=i;}
   void addChannels(uint8_t* buf,uint32_t sizeb);
   uint32_t detectorId(){return _detid;}
   uint32_t difId(){return _id;}
@@ -60,6 +62,7 @@ private:
   uint32_t _nBuffers;
   zdaq::zmPusher* _dsData;
   std::string _sdir;
+  uint8_t _triggerId;
 
 };
 };

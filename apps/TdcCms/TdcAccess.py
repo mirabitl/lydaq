@@ -28,7 +28,7 @@ class TdcAccess:
         self.ldas=[]
         self.dccs=[]
 
-    def ChangeThreshold(self,B0,B1,B2,idif=0,iasic=0):
+    def ChangeVthTime(self,VthTime,idif=0,iasic=0):
         """
         change thresholds B0,B1,B2 on DIF idif and asic iasic.
         If not specified all Asics of a given DIF is changed
@@ -40,14 +40,12 @@ class TdcAccess:
             if (iasic !=0 and a.getInt("HEADER") != iasic):
                 continue;
             try:
-                a.setInt("B0",B0);
-                a.setInt("B1",B1);
-                a.setInt("B2",B2);
+                a.setInt("VTHTIME",VthTime);
                 a.setModified(1)
             except Exception, e:
                 print e.getMessage()
 
-    def ChangeGain(self,idif,iasic,ipad,scale):
+    def Change6BDac(self,idif,iasic,ich,dac):
         """
         Modify gain of all asics by a factor gain1/gain0 on HR2
         If not specified all Asics of a given DIF is changed
@@ -60,18 +58,35 @@ class TdcAccess:
             if (a.getInt("HEADER") != iasic):
                 continue;
 
-            vg=a.getIntVector("PAGAIN")
-            vnew =int(scale*vg[ipad])
-            if (vnew==0):
-                vnew=1
-            vg[ipad]=vnew
-            print " Rescale factor",idif,iasic,scale,vnew
+            vg=a.getIntVector("DAC6B")
+            vg[ich]=dac
+            print " Dac changed",idif,iasic,ich,dac
             try:
                 a.setIntVector("PAGAIN",vg)
             except Exception, e:
                 print e.getMessage()
             a.setModified(1)
+    def ChangeMask(self,idif,iasic,ich,mask):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
 
+        for a in self.asics:
+            if (a.getInt("DIF_ID") != idif ):
+                continue;
+            if (a.getInt("HEADER") != iasic):
+                continue;
+
+            vg=a.getIntVector("MASKDISCRITIME")
+            vg[ich]=mask
+            print " Dac changed",idif,iasic,ich,mask
+            try:
+                a.setIntVector("MASKDISCRITIME",vg)
+            except Exception, e:
+                print e.getMessage()
+            a.setModified(1)
 
     def SetEnabled(self,idif=0,iasic=0,status=1):
         """
