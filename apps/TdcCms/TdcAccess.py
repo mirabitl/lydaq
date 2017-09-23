@@ -1,5 +1,4 @@
 
-
 from ilcconfdb import *
 import os
 import sqlite3 as sqlite
@@ -62,7 +61,7 @@ class TdcAccess:
             vg[ich]=dac
             print " Dac changed",idif,iasic,ich,dac
             try:
-                a.setIntVector("PAGAIN",vg)
+                a.setIntVector("DAC6B",vg)
             except Exception, e:
                 print e.getMessage()
             a.setModified(1)
