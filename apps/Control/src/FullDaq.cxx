@@ -66,6 +66,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
 
     //Calibration
     _fsm->addCommand("SPILLREGISTER",boost::bind(&FullDaq::triggerSpillRegister,this,_1,_2));
+    _fsm->addCommand("SETHARDRESET",boost::bind(&FullDaq::triggerHardReset,this,_1,_2));
     _fsm->addCommand("CALIBCOUNT",boost::bind(&FullDaq::triggerCalibCount,this,_1,_2));
     _fsm->addCommand("CALIBON",boost::bind(&FullDaq::triggerCalibOn,this,_1,_2));
     _fsm->addCommand("RELOADCALIB",boost::bind(&FullDaq::triggerReloadCalib,this,_1,_2));
@@ -1120,6 +1121,19 @@ void FullDaq::triggerSpillRegister(Mongoose::Request &request, Mongoose::JsonRes
   _mdccClient->sendCommand("SETSPILLREGISTER",sp.str());
   
   response["SPILLREGISTER"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+
+void FullDaq::triggerHardReset(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+  uint32_t nc=atoi(request.get("value","1").c_str());
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+ 
+  std::stringstream sp;sp<<"&value="<<nc;
+  _mdccClient->sendCommand("SETHARDRESET",sp.str());
+  
+  response["SETHARDRESET"]=nc;
   response["STATUS"]="DONE";
   return;
 }

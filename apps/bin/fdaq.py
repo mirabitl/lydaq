@@ -557,6 +557,18 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SPILLREGISTER",lcgi)
       print sr    
 
+  def trig_hardreset(self):
+      lcgi={}
+      lcgi["value"]=0
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETHARDRESET",lcgi)
+      print sr
+      time.sleep(2)
+      lcgi={}
+      lcgi["value"]=1
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETHARDRESET",lcgi)
+      print sr 
   def trig_calibcount(self,value):
       lcgi={}
       lcgi["clock"]=value
@@ -873,7 +885,8 @@ grp_action.add_argument('--ecal-resume',action='store_true',help=' release Ecal 
 grp_action.add_argument('--trig-spillon',action='store_true',help=' set spill nclock on with --clock=nc (20ns)')
 grp_action.add_argument('--trig-spilloff',action='store_true',help=' set spill nclock off with --clock=nc (20ns) ')
 grp_action.add_argument('--trig-beam',action='store_true',help=' set beam length to nclock with --clock=nc (20ns) ')
-
+grp_action.add_argument('--trig-spillregister',action='store_true',help=' set the value of the spill register --value=xx ')
+grp_action.add_argument('--trig-hardreset',action='store_true',help=' send a hard reset to mezzanines ')
 
 
 
@@ -1247,6 +1260,20 @@ elif(results.trig_spilloff):
         print 'Please specify the number of clock --clock=xx'
     exit(0) 
 
+elif(results.trig_spillregister):
+    r_cmd='triggerSpillRegister'
+    if (results.value!=None):
+        fdc.trig_spillregister(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_hardreset):
+    r_cmd='triggerhardReset'
+    
+    fdc.trig_hardreset()
+   
+    exit(0)
+    
 elif(results.ecal_pause):
     r_cmd='pauseEcal'
     fdc.ecal_pause()
