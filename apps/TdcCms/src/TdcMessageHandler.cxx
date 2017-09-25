@@ -107,13 +107,13 @@ void lydaq::TdcMessageHandler::connect(zmq::context_t* c,std::string dest)
 void lydaq::TdcMessageHandler::setMezzanine(std::string host)
 {
   uint32_t ip_address=lydaq::TdcMessageHandler::convertIP(host);
-  uint8_t id=(ip_address>>24)&0xFF;
-  if (_tdc[id]==NULL)
+  uint8_t idx=(ip_address>>24)&0xFF;
+  if (_tdc[idx]==NULL)
     {
       uint32_t ip_address=lydaq::TdcMessageHandler::convertIP(host);
-      std::cout<<" New TDC Mezzanine "<<id<<" "<<ip_address<<std::endl;
-      _tdc[id]=new TdcFpga(id,ip_address);
-      _tdc[id]->setStorage("/tmp");
+      std::cout<<" New TDC Mezzanine "<<idx<<" "<<ip_address<<std::endl;
+      _tdc[idx]=new TdcFpga(idx,ip_address);
+      _tdc[idx]->setStorage("/tmp");
     }
 }
 void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw (std::string)
@@ -123,16 +123,16 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   sd<<_storeDir<<"/"<<socket->hostTo()<<"/"<<socket->portTo();
   //sd<<_storeDir;
   uint32_t ip_address=lydaq::TdcMessageHandler::convertIP(socket->hostTo());
-  uint8_t difid= (ip_address>>24)&0xFF;
+  uint8_t difidx= (ip_address>>24)&0xFF;
   
   // Number of TDC channels, ie, channel of trigger
   uint32_t chtrg=28;
  
-  if (_tdc[difid]==NULL)
+  if (_tdc[difidx]==NULL)
     {
   
-      _tdc[difid]=new TdcFpga(difid,ip_address);
-      _tdc[difid]->setStorage(sd.str());
+      _tdc[difidx]=new TdcFpga(difidx,ip_address);
+      _tdc[difidx]->setStorage(sd.str());
     }
   
   std::stringstream ss;
@@ -220,10 +220,10 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   uint32_t gtc= buf[ll+1]|((uint32_t) buf[ll]<<8);
   if (gtc%500==0)
     // TEST
-  printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difid,p.first,abcid,gtc,nlines);
+  printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
 
   // TEST
-  _tdc[difid]->addChannels(p.second,p.first);
+  _tdc[difidx]->addChannels(p.second,p.first);
   p.first=0;
   return;
   // p.first=0;return;

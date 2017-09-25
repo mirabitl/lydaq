@@ -27,7 +27,7 @@ lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m
 {
   _channels.clear();
   _nBuffers=0;
-  _id=(adr>>24)&0xFF; // Last byte of IP address
+  _id=(adr>>16)&0xFFFF; // Last byte of IP address
   _detid=TDC_VERSION;
 
 }
