@@ -592,55 +592,56 @@ void FullDaq::configure(zdaq::fsmmessage* m)
   // Status
   Json::Value jsta= toJson(this->difstatus());
   // Configure the builder
-  if (_builderClient)
-    {
       // Build complete list of data sources
-      Json::Value jsou;
-      jsou.clear();
-      const Json::Value& jdevs=jsta;
-      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
-	{
-	  Json::Value jd;
-	  jd["detid"]=(*it)["detid"];
-	  jd["sourceid"]=(*it)["id"];
-	  jsou.append(jd);
-	}
+  Json::Value jsou;
+  jsou.clear();
+  const Json::Value& jdevs=jsta;
+  for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+    {
+      Json::Value jd;
+      jd["detid"]=(*it)["detid"];
+      jd["sourceid"]=(*it)["id"];
+      jsou.append(jd);
+    }
+  //
+  // Configure and Checking tdc
+  for (auto tdc:_tdcClients)
+    {
+      tdc->sendTransition("CONFIGURE");
       //
-      // Configure and Checking tdc
-      for (auto tdc:_tdcClients)
+      std::cout<<"sending command DIFLIST \n";
+      tdc->sendCommand("DIFLIST");
+      if (!tdc->answer().empty())
 	{
-	  tdc->sendTransition("CONFIGURE");
-	  //
-	  std::cout<<"sending command DIFLIST \n";
-	  tdc->sendCommand("DIFLIST");
-	  if (!tdc->answer().empty())
-	    {
-	      //std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
-	      Json::Value rep=Json::Value::null;
-	      if ( tdc->answer().isMember("answer"))
-		   rep=tdc->answer()["answer"];
+	  //std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
+	  Json::Value rep=Json::Value::null;
+	  if ( tdc->answer().isMember("answer"))
+	    rep=tdc->answer()["answer"];
 	  if (rep.isMember("DIFLIST"))
 	    {
 	      //std::cout<<rep["DIFLIST"]<<"\n";
-	     const Json::Value& jdevs=rep["DIFLIST"];
-	     for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
-	       {
-		 Json::Value jd;
-		 jd["detid"]=(*it)["detid"];
-		 jd["sourceid"]=(*it)["sourceid"];
-		 jsou.append(jd);
-	       } 
+	      const Json::Value& jdevs=rep["DIFLIST"];
+	      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+		{
+		  Json::Value jd;
+		  jd["detid"]=(*it)["detid"];
+		  jd["sourceid"]=(*it)["sourceid"];
+		  jsou.append(jd);
+		} 
 	    }
-	    }
-	  else
-	    std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
 	}
+      else
+	std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
+    }
 //       std::cout<<"SENDING "<<jsou<<std::endl;
-       Json::Value jl;
-       jl["sources"]=jsou;
-       std::stringstream sp;sp<<"&ndif="<<jsou.size();
-       std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
-       _builderClient->sendCommand("REGISTERDS",sp.str());
+  if (_builderClient)
+    {
+      
+      Json::Value jl;
+      jl["sources"]=jsou;
+      std::stringstream sp;sp<<"&ndif="<<jsou.size();
+      std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
+      _builderClient->sendCommand("REGISTERDS",sp.str());
     }
   m->setAnswer(jsta);
 }
