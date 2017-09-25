@@ -296,6 +296,8 @@ void lydaq::TdcManager::configure(zdaq::fsmmessage* m)
 
   // do it twice
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+     
+      
     }
 
 }
@@ -321,6 +323,8 @@ void lydaq::TdcManager::set6bDac(uint8_t dac)
 
   // do it twice
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+
+      
     }
 
 

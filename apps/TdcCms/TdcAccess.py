@@ -254,6 +254,7 @@ class TdcAccess:
         print "force DIF"
         theDif = self.initDif(ipaddr)
         dif_num=theDif.getInt("ID")
+        print "DIF number %d" % (dif_num) 
         if (lda_channel!=0):
             theDif.setString("LDA_ADDRESS",lda_address)
             theDif.setInt("LDA_CHANNEL",lda_channel)
@@ -277,13 +278,15 @@ class TdcAccess:
         Default DHCAL Dif initialisation
         """
         d=Dif("TDCDIF")
-        d.setString('NAME',"TDC%d" % IP2Int(addr))
+        d.setString('NAME',"TDC%d" % ((IP2Int(addr)>>16)&0xFFFF))
         d.setString('IP_ADDRESS',addr)
         d.setInt('TYPE',2)
         #d.setString('LDA_ADDRESS',lda_address)
         #d.setInt('LDA_CHANNEL',lda_chan)
         #d.setInt('DCC_CHANNEL',dcc_chan)
-        d.setInt('ID',num)
+        d.setInt('ID',(IP2Int(addr)>>16)&0xFFFF)
+        print "creating DIF %d %x" % ((IP2Int(addr)>>16)&0xFFFF,IP2Int(addr))
+        d.thisown=0
         return d
 
 
@@ -516,6 +519,8 @@ class TdcAccess:
         for x in range(32):
             dmdt.append(0)
         asi.setIntVector('MASKDISCRITIME',dmdt)
+        asi.thisown=0
+
         return asi
 	
 ####
