@@ -2,6 +2,10 @@
 from ilcconfdb import *
 import os
 import sqlite3 as sqlite
+def IP2Int(ip):
+    o = map(int, ip.split('.'))
+    res = (16777216 * o[3]) + (65536 * o[2]) + (256 * o[1]) + o[0]
+    return res
 class TdcAccess:
     """
     Modify or/and create an Oracle DB state
@@ -237,7 +241,7 @@ class TdcAccess:
         self.asicConf.add(thePR2) 
 
 
-    def addDIF(self,dif_num,ipaddr,nb_asic,lda_address="ff:ff:ff:ff:ff:ff",lda_channel=0,dcc_channel=0,xmlfile=None):
+    def addDIF(self,ipaddr,nb_asic,lda_address="ff:ff:ff:ff:ff:ff",lda_channel=0,dcc_channel=0,xmlfile=None):
         """
         Add a new DIF and load asics conf from file if any
         dif_num = DIF ID
@@ -248,7 +252,8 @@ class TdcAccess:
         xmlfile = XML list of ASICs (None)
         """
         print "force DIF"
-        theDif = self.initDif(dif_num,ipaddr)
+        theDif = self.initDif(ipaddr)
+        dif_num=theDif.getInt("ID")
         if (lda_channel!=0):
             theDif.setString("LDA_ADDRESS",lda_address)
             theDif.setInt("LDA_CHANNEL",lda_channel)
@@ -267,12 +272,12 @@ class TdcAccess:
                 self.asicConf.add(thePR2) 
 
 
-    def initDif(self,num,addr):
+    def initDif(self,addr):
         """
         Default DHCAL Dif initialisation
         """
         d=Dif("TDCDIF")
-        d.setString('NAME',"TDC%d" % num)
+        d.setString('NAME',"TDC%d" % IP2Int(addr))
         d.setString('IP_ADDRESS',addr)
         d.setInt('TYPE',2)
         #d.setString('LDA_ADDRESS',lda_address)
