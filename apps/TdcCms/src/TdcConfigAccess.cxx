@@ -57,7 +57,7 @@ void lydaq::TdcConfigAccess::parseJson()
   for (Json::ValueConstIterator itd = difs.begin(); itd != difs.end(); ++itd)
 	{
 	  const Json::Value& dif = *itd;
-	  uint8_t difid=dif["NUM"].asUInt();
+	  //uint8_t difid=dif["NUM"].asUInt()>>8;
 	  std::string ipadr=dif["IPADDRESS"].asString();
 	  if (!dif.isMember("ASICS"))
 	    {
