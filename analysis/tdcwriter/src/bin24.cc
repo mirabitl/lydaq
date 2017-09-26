@@ -69,18 +69,11 @@ namespace branalysis
       this->closeTree();
     }
     virtual  void processEvent(uint32_t key,std::vector<zdaq::buffer*> dss)
-    {_gEvent.nframe=0;
+    {
+      _gEvent.nframe=0;
       _gEvent.event++;
-       uint8_t temp[0x100000];
-  uint32_t* itemp=(uint32_t*) temp;
-  uint64_t* ltemp=(uint64_t*) temp;
-  // itemp[0]=_event;
-
-  // itemp[1]=_gtc;
-  // ltemp[1]=_abcid;
-  // itemp[4]=_mezzanine;
-  // itemp[5]=_adr;
-  // itemp[6]=_channels.size();
+      uint8_t temp[0x100000];
+      uint32_t* itemp=(uint32_t*) temp;
       uint32_t idx=28;
       for (auto x:dss)
 	{
@@ -99,7 +92,7 @@ namespace branalysis
 	      _gEvent.nframe++;
 	    }
 
-      _tree->Fill();
+	  _tree->Fill();
 	}
     }
  
@@ -176,22 +169,11 @@ namespace branalysis
 		  b->uncompress();
 		  //memcpy(&_buf[_idx], b.payload(),b.payloadSize());
 		  //printf("\t \t %d %d %d %x %d %d %d\n",b->detectorId(),b->dataSourceId(),b->eventId(),b->bxId(),b->payloadSize(),bsize,idif);
-		  if (b->detectorId()!=100) continue;
+		  if (b->detectorId()!=120) continue;
 		  if (idif==0)
 		    {
 		      _gEvent.abcid=b->bxId();
 		      _gEvent.gtc=b->eventId();
-		      /*
-		      if (_t0>1E50)
-			_t0=b->bxId()*2E-7;
-		      double ct=b.bxId()*2E-7-_t0;
-		      if ((ct-_t)>5.)
-			{
-			  _tspill=ct;
-			  std::cout<<" New Spill====>"<<_tspill<<std::endl;
-			}
-		      _t=ct;
-		      */
 		    }
 		 
 		} // End of loop on DIF
