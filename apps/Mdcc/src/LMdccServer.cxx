@@ -18,7 +18,16 @@ void lydaq::LMdccServer::open(zdaq::fsmmessage* m)
     device=this->parameters()["device"].asString();
 
   doOpen(device);
+  
+  if (m->content().isMember("spillon"))
+    this->parameters()["spillon"]=m->content()["spillon"];
+  
+  if (m->content().isMember("spilloff"))
+    this->parameters()["spilloff"]=m->content()["spilloff"];
 
+  if (m->content().isMember("spillregister"))
+    this->parameters()["spillregister"]=m->content()["spillregister"];
+  
   if (this->parameters().isMember("spillon") && _mdcc!=NULL)
     {
       _mdcc->setSpillOn(this->parameters()["spillon"].asInt()); 
@@ -27,8 +36,13 @@ void lydaq::LMdccServer::open(zdaq::fsmmessage* m)
     {
       _mdcc->setSpillOff(this->parameters()["spilloff"].asInt()); 
     }
-  //_mdcc->maskTrigger();
-  //_mdcc->resetCounter();
+  if (this->parameters().isMember("spillregister") && _mdcc!=NULL)
+    {
+      _mdcc->setSpillRegister(this->parameters()["spillregister"].asInt()); 
+    }
+  
+  _mdcc->maskTrigger();
+  _mdcc->resetCounter();
 }
 void lydaq::LMdccServer::close(zdaq::fsmmessage* m)
 {
