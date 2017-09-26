@@ -102,27 +102,27 @@ void lydaq::TdcFpga::processEventTdc()
 	  //  break;
 	}
     }
-  // if (trbcid>0)
-  //{
-  //printf("Trigger %x %d %d %ld %d \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size());
-  //std::stringstream ss;
-  //       ss<<boost::format("Trigger %x %d %d %ld %d \n ") % _adr % _mezzanine % _gtc % _abcid % _channels.size();
-  //int nch=0;
-  // for (auto x:_channels)
-  //	{
-  //  ss<<boost::format("\t %d %d %f ") % (int) x.channel() % (int) x.bcid() % x.tdcTime();
-  //if (x.channel()!=16 && (x.bcid()>(trbcid-4) && x.bcid()<(trbcid+4)))
-  //  {
-  //  ss<<"---> found\n";
-  //  }
-  //else
-  //  ss<<"\n";
-  //nch++;
-  // if (nch>40) {ss<<" and more.. \n";break;}
-  //}
-  //std::cout<<ss.str()<<std::flush;
+  if (trbcid>0)
+  {
+  printf("Trigger %x %d %d %ld %d \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size());
+  std::stringstream ss;
+        ss<<boost::format("Trigger %x %d %d %ld %d \n ") % _adr % _mezzanine % _gtc % _abcid % _channels.size();
+  int nch=0;
+  for (auto x:_channels)
+  	{
+   ss<<boost::format("\t %d %d %f ") % (int) x.channel() % (int) x.bcid() % x.tdcTime();
+  if (x.channel()!=16 && (x.bcid()>(trbcid-4) && x.bcid()<(trbcid+4)))
+   {
+   ss<<"---> found\n";
+   }
+  else
+   ss<<"\n";
+  nch++;
+  if (nch>40) {ss<<" and more.. \n";break;}
+  }
+  std::cout<<ss.str()<<std::flush;
 
-  //}
+  }
 #endif
   if (_dsData!=NULL)
     {
@@ -134,8 +134,8 @@ void lydaq::TdcFpga::processEventTdc()
 	}
  
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
-      _dsData->publish(_gtc,_abcid,idx);
+      _dsData->publish(_abcid,_gtc,idx);
     }
-  if (_event%500==0)
+  if (_event%100==0)
     std::cout<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
 }
