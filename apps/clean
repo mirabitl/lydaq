@@ -6,8 +6,8 @@ cd Sdcc;scons -c install;cd -
 cd Mdcc;scons -c install;cd -
 cd Builder;scons -c install;cd -	
 cd Control;scons -c install;cd -	
-cd Caen;scons -c;cd -
-cd Wiener;scons -c;cd -
-cd Zup;scons -c;cd -
-cd Bmp;scons -c;cd -
-cd Genesys;scons -c;cd -
+cd Caen;scons -c install;cd -
+cd Wiener;scons -c install;cd -
+cd Zup;scons -c install;cd -
+cd Bmp;scons -c install;cd -
+cd Genesys;scons -c install;cd -

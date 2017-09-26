@@ -103,4 +103,4 @@ env.Install("../lib",lypack)
 
 INCLUDE_FILES=Glob("./include/*.hh")
 env.Install("../include",INCLUDE_FILES)
-env.Alias('install', ["../lib","../bin","../include"])
+env.Alias('install', ["../lib","../include"])

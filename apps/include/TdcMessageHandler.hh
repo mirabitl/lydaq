@@ -21,15 +21,14 @@ class TdcMessageHandler : public lytdc::MessageHandler
     void setReadout(uint64_t idsock,uint32_t e){_readout[idsock]=e;}
     std::map<uint64_t,uint32_t>& readoutMap(){return _readout;}
     TdcFpga* tdc(uint32_t i){return _tdc[i];}
-    void setMezzanine(std::string host);
+    void setMezzanine(uint8_t mezz,std::string host);
     
     void connect(zmq::context_t* c,std::string dest);
-    static std::map<uint32_t,std::string> scanNetwork(std::string base);
   private:
     std::string _storeDir;
     std::map<uint64_t, ptrBuf> _sockMap;
     std::map<uint64_t,uint32_t> _readout;
-    TdcFpga* _tdc[MAX_TDC_NB];
+    TdcFpga* _tdc[2];
   };
 };
 #endif
