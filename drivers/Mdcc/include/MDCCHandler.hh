@@ -37,7 +37,8 @@ namespace lydaq
     void setSpillOff(uint32_t nc);
     uint32_t beam();
     void setBeam(uint32_t nc);
-
+    uint32_t hardReset();
+    void setHardReset(uint32_t nc);
     uint32_t version();
     uint32_t id();
 

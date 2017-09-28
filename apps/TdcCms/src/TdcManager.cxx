@@ -221,6 +221,8 @@ void lydaq::TdcManager::initialise(zdaq::fsmmessage* m)
 	   {
 	     NL::Socket* stdc=new NL::Socket(idif->second.c_str(),10002);
 	     _group->add(stdc);
+	     std::cout<<" TDC socket added "<<idif->second<<":10002"<<std::endl;
+
 	     _msh->setMezzanine(idif->second);
 	   }
 	 catch (NL::Exception e)
@@ -294,6 +296,8 @@ void lydaq::TdcManager::configure(zdaq::fsmmessage* m)
 
   // do it twice
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+     
+      
     }
 
 }
@@ -319,6 +323,8 @@ void lydaq::TdcManager::set6bDac(uint8_t dac)
 
   // do it twice
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+
+      
     }
 
 

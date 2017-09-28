@@ -58,6 +58,7 @@ public:
 
   //Calibration
   void triggerSpillRegister(Mongoose::Request &request, Mongoose::JsonResponse &response);
+   void triggerHardReset(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerCalibCount(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerCalibOn(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerReloadCalib(Mongoose::Request &request, Mongoose::JsonResponse &response);

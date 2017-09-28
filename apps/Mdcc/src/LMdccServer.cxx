@@ -18,7 +18,16 @@ void lydaq::LMdccServer::open(zdaq::fsmmessage* m)
     device=this->parameters()["device"].asString();
 
   doOpen(device);
+  
+  if (m->content().isMember("spillon"))
+    this->parameters()["spillon"]=m->content()["spillon"];
+  
+  if (m->content().isMember("spilloff"))
+    this->parameters()["spilloff"]=m->content()["spilloff"];
 
+  if (m->content().isMember("spillregister"))
+    this->parameters()["spillregister"]=m->content()["spillregister"];
+  
   if (this->parameters().isMember("spillon") && _mdcc!=NULL)
     {
       _mdcc->setSpillOn(this->parameters()["spillon"].asInt()); 
@@ -27,8 +36,13 @@ void lydaq::LMdccServer::open(zdaq::fsmmessage* m)
     {
       _mdcc->setSpillOff(this->parameters()["spilloff"].asInt()); 
     }
-  //_mdcc->maskTrigger();
-  //_mdcc->resetCounter();
+  if (this->parameters().isMember("spillregister") && _mdcc!=NULL)
+    {
+      _mdcc->setSpillRegister(this->parameters()["spillregister"].asInt()); 
+    }
+  
+  _mdcc->maskTrigger();
+  _mdcc->resetCounter();
 }
 void lydaq::LMdccServer::close(zdaq::fsmmessage* m)
 {
@@ -281,6 +295,19 @@ void lydaq::LMdccServer::c_beamon(Mongoose::Request &request, Mongoose::JsonResp
   response["NCLOCK"]=nc;
 
 }
+
+void lydaq::LMdccServer::c_sethardreset(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t nc=atol(request.get("value","0").c_str());
+  _mdcc->setHardReset(nc);
+
+  response["STATUS"]="DONE";
+  response["VALUE"]=nc;
+
+}
+
 void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
 
@@ -291,7 +318,8 @@ void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose
   response["STATUS"]="DONE";
   response["VALUE"]=nc;
 
-} 
+}
+
 void lydaq::LMdccServer::c_settrigext(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
 
@@ -315,6 +343,7 @@ void lydaq::LMdccServer::c_status(Mongoose::Request &request, Mongoose::JsonResp
   rc["version"]=_mdcc->version();
   rc["id"]=_mdcc->id();
   rc["mask"]=_mdcc->mask();
+  rc["hard"]=_mdcc->hardReset();
   rc["spill"]=_mdcc->spillCount();
   rc["busy1"]=_mdcc->busyCount(1);
   rc["busy2"]=_mdcc->busyCount(2);
@@ -473,6 +502,7 @@ lydaq::LMdccServer::LMdccServer(std::string name) : zdaq::baseApplication(name),
  _fsm->addCommand("RELOADCALIB",boost::bind(&lydaq::LMdccServer::c_reloadcalib,this,_1,_2));
  _fsm->addCommand("SETCALIBCOUNT",boost::bind(&lydaq::LMdccServer::c_setcalibcount,this,_1,_2));
  _fsm->addCommand("SETSPILLREGISTER",boost::bind(&lydaq::LMdccServer::c_setspillregister,this,_1,_2));
+ _fsm->addCommand("SETHARDRESET",boost::bind(&lydaq::LMdccServer::c_sethardreset,this,_1,_2));
  _fsm->addCommand("SETTRIGEXT",boost::bind(&lydaq::LMdccServer::c_settrigext,this,_1,_2));
 
 

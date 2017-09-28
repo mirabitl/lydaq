@@ -15,6 +15,7 @@ namespace lydaq{
     void halt(zdaq::fsmmessage* m);
     void status(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void registerds(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setheader(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
   private:
     zdaq::fsmweb* _fsm;

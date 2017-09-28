@@ -66,6 +66,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
 
     //Calibration
     _fsm->addCommand("SPILLREGISTER",boost::bind(&FullDaq::triggerSpillRegister,this,_1,_2));
+    _fsm->addCommand("SETHARDRESET",boost::bind(&FullDaq::triggerHardReset,this,_1,_2));
     _fsm->addCommand("CALIBCOUNT",boost::bind(&FullDaq::triggerCalibCount,this,_1,_2));
     _fsm->addCommand("CALIBON",boost::bind(&FullDaq::triggerCalibOn,this,_1,_2));
     _fsm->addCommand("RELOADCALIB",boost::bind(&FullDaq::triggerReloadCalib,this,_1,_2));
@@ -592,55 +593,56 @@ void FullDaq::configure(zdaq::fsmmessage* m)
   // Status
   Json::Value jsta= toJson(this->difstatus());
   // Configure the builder
-  if (_builderClient)
-    {
       // Build complete list of data sources
-      Json::Value jsou;
-      jsou.clear();
-      const Json::Value& jdevs=jsta;
-      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
-	{
-	  Json::Value jd;
-	  jd["detid"]=(*it)["detid"];
-	  jd["sourceid"]=(*it)["id"];
-	  jsou.append(jd);
-	}
+  Json::Value jsou;
+  jsou.clear();
+  const Json::Value& jdevs=jsta;
+  for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+    {
+      Json::Value jd;
+      jd["detid"]=(*it)["detid"];
+      jd["sourceid"]=(*it)["id"];
+      jsou.append(jd);
+    }
+  //
+  // Configure and Checking tdc
+  for (auto tdc:_tdcClients)
+    {
+      tdc->sendTransition("CONFIGURE");
       //
-      // Configure and Checking tdc
-      for (auto tdc:_tdcClients)
+      std::cout<<"sending command DIFLIST \n";
+      tdc->sendCommand("DIFLIST");
+      if (!tdc->answer().empty())
 	{
-	  tdc->sendTransition("CONFIGURE");
-	  //
-	  std::cout<<"sending command DIFLIST \n";
-	  tdc->sendCommand("DIFLIST");
-	  if (!tdc->answer().empty())
-	    {
-	      //std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
-	      Json::Value rep=Json::Value::null;
-	      if ( tdc->answer().isMember("answer"))
-		   rep=tdc->answer()["answer"];
+	  //std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
+	  Json::Value rep=Json::Value::null;
+	  if ( tdc->answer().isMember("answer"))
+	    rep=tdc->answer()["answer"];
 	  if (rep.isMember("DIFLIST"))
 	    {
 	      //std::cout<<rep["DIFLIST"]<<"\n";
-	     const Json::Value& jdevs=rep["DIFLIST"];
-	     for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
-	       {
-		 Json::Value jd;
-		 jd["detid"]=(*it)["detid"];
-		 jd["sourceid"]=(*it)["sourceid"];
-		 jsou.append(jd);
-	       } 
+	      const Json::Value& jdevs=rep["DIFLIST"];
+	      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+		{
+		  Json::Value jd;
+		  jd["detid"]=(*it)["detid"];
+		  jd["sourceid"]=(*it)["sourceid"];
+		  jsou.append(jd);
+		} 
 	    }
-	    }
-	  else
-	    std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
 	}
+      else
+	std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
+    }
 //       std::cout<<"SENDING "<<jsou<<std::endl;
-       Json::Value jl;
-       jl["sources"]=jsou;
-       std::stringstream sp;sp<<"&ndif="<<jsou.size();
-       std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
-       _builderClient->sendCommand("REGISTERDS",sp.str());
+  if (_builderClient)
+    {
+      
+      Json::Value jl;
+      jl["sources"]=jsou;
+      std::stringstream sp;sp<<"&ndif="<<jsou.size();
+      std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
+      _builderClient->sendCommand("REGISTERDS",sp.str());
     }
   m->setAnswer(jsta);
 }
@@ -1119,6 +1121,19 @@ void FullDaq::triggerSpillRegister(Mongoose::Request &request, Mongoose::JsonRes
   _mdccClient->sendCommand("SETSPILLREGISTER",sp.str());
   
   response["SPILLREGISTER"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+
+void FullDaq::triggerHardReset(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+  uint32_t nc=atoi(request.get("value","1").c_str());
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+ 
+  std::stringstream sp;sp<<"&value="<<nc;
+  _mdccClient->sendCommand("SETHARDRESET",sp.str());
+  
+  response["SETHARDRESET"]=nc;
   response["STATUS"]="DONE";
   return;
 }

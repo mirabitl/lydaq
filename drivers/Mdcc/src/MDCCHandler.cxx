@@ -110,6 +110,9 @@ void lydaq::MDCCHandler::calibOff(){this->writeRegister(0x8,0x0);}
 uint32_t lydaq::MDCCHandler::calibCount(){return this->readRegister(0xa);}
 void lydaq::MDCCHandler::setCalibCount(uint32_t nc){this->writeRegister(0xa,nc);}
 
+uint32_t lydaq::MDCCHandler::hardReset(){return this->readRegister(0xc);}
+void lydaq::MDCCHandler::setHardReset(uint32_t nc){this->writeRegister(0xc,nc);}
+
 void lydaq::MDCCHandler::setSpillRegister(uint32_t nc){this->writeRegister(0xD,nc);}
 uint32_t lydaq::MDCCHandler::spillRegister(){this->readRegister(0xD);}
 void lydaq::MDCCHandler::useSPSSpill(bool t)

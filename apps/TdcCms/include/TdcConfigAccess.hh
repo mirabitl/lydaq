@@ -8,6 +8,7 @@
 #include <zlib.h>
 #include <iostream>
 #include <map>
+#include "ReadoutLogger.hh"
 namespace lydaq
 {
 class TdcConfigAccess 
