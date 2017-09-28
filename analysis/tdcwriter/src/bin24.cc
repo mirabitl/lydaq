@@ -108,7 +108,7 @@ namespace branalysis
 	  uint8_t* chans=&temp[idx];
 	  uint64_t* lchans= (uint64_t*) chans;
 	  //std::cout<<" channels "<<nch<<" for pls "<<x->payloadSize()<<std::endl<<std::flush;
-	  continue;
+	 
 	  if (nch>(x->payloadSize()-idx)/8)
 	    {
 	      std::cout<<"INVALID channels "<<nch<<" for pls "<<x->payloadSize()<<std::endl<<std::flush;
