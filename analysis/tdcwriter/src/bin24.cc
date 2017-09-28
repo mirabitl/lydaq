@@ -126,7 +126,15 @@ namespace branalysis
     }
  
     virtual  void processRunHeader(std::vector<uint32_t> header)
-    {return;}
+    {
+      _gEvent.abcid=-1;
+      _gEvent.gtc=-1;
+      _gEvent.nframe=header.size();
+      for (int i=0;i<_gEvent.nframe;i++)
+	{_gEvent.info[i]=header[i];_gEvent.frame[i]=0;}
+      _tree->Fill();
+
+      return;}
     virtual void loadParameters(Json::Value params)
     {
       _directory=params["directory"].asString();
