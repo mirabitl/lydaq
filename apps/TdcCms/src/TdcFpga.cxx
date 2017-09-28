@@ -98,7 +98,7 @@ void lydaq::TdcFpga::processEventTdc()
       if (x.channel()==_triggerId)
 	{
 	  trbcid=x.bcid();
-	  printf("Trigger %x %d %d %ld %d %x \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size(),trbcid);
+	  printf("Trigger %x %d %d %ld %d %x %f \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size(),trbcid,x.tdcTime());
 	  //  break;
 	}
     }
