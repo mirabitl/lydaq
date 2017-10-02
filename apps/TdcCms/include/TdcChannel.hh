@@ -8,6 +8,7 @@ namespace lydaq {
   class TdcChannel
 {
 public:
+  TdcChannel() :_fr(NULL),_used(false) {;}
   TdcChannel(uint8_t*  b) :_fr(b),_used(false) {;}
   inline uint8_t channel() {return  (_fr[0]&0XFF);}
   inline uint8_t length(){return 8;}
@@ -16,7 +17,7 @@ public:
   #ifdef BCIDFROMCOARSE
   inline uint16_t bcid(){return (uint16_t) (coarse()*TDC_COARSE_TIME/200);}
   #else
-  inline const uint16_t bcid(){return (_fr[2]|(_fr[1]<<8));}
+  inline  uint16_t bcid() const {return (_fr[2]|(_fr[1]<<8));}
   #endif
   inline  double tdcTime() const { return (coarse()*TDC_COARSE_TIME+fine()*TDC_FINE_TIME);}
   inline uint8_t* frame(){ return _fr;}
