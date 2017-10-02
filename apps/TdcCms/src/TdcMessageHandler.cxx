@@ -306,13 +306,23 @@ void lydaq::TdcMessageHandler::parseSlowControl(NL::Socket* socket,ptrBuf& p) th
   p.first+=ier;
 
   std::cout<<boost::format("End of Slowcontrol %d %x %x \n") % p.first % (int) p.second[6] % (int) p.second[7] << std::flush;
-			   
+  std::stringstream sb;
    for (int ib=0;ib<p.first;ib++)
      {
        std::cout<<boost::format("\t %d %x \n") % ib % (int) p.second[ib];
+       if (ib>=8) sb<<std::hex<<(int) p.second[ib];
        //if (ib>0 && ib%2==1) printf("\n");
      }
    std::cout<<boost::format("\n")<<std::flush;
+   
+ 
+  char name[512];
+  memset(name,0,512);
+  sprintf(name,"%s/%s/%d/%s",_storeDir.c_str(),socket->hostTo().c_str(),socket->portTo(),sb.str().c_str());
+  printf(" removing %s \n",name);
+  if (::unlink(name)!=0)
+    printf("slowcontrol error\n");
+  
   p.first=0;
   return;
 
@@ -322,7 +332,7 @@ void lydaq::TdcMessageHandler::processMessage(NL::Socket* socket) throw (std::st
   // build id
 
   uint64_t id=( (uint64_t) lydaq::TdcMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
-  std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
+  //std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
 
   if (itsock==_sockMap.end())

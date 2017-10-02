@@ -20,7 +20,7 @@ lydaq::dsBuilder::dsBuilder(std::string name) : _running(false),_merger(NULL)
 
   _fsm->addCommand("STATUS",boost::bind(&lydaq::dsBuilder::status, this,_1,_2));
   _fsm->addCommand("REGISTERDS",boost::bind(&lydaq::dsBuilder::registerds, this,_1,_2));
-
+  _fsm->addCommand("SETHEADER",boost::bind(&lydaq::dsBuilder::c_setheader,this,_1,_2));
 
   //Start server
     char* wp=getenv("WEBPORT");
@@ -127,6 +127,28 @@ void lydaq::dsBuilder::registerds(Mongoose::Request &request, Mongoose::JsonResp
       }
     else
       response["answer"]="NO merger created yet";
+}
+void lydaq::dsBuilder::c_setheader(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+
+  if (_merger==NULL)    {response["STATUS"]="NO EVB created"; return;}
+  std::string shead=request.get("header","None");
+  if (shead.compare("None")==0)
+    {response["STATUS"]="NO header provided "; return;}
+  Json::Reader reader;
+  Json::Value jsta;
+  bool parsingSuccessful = reader.parse(shead,jsta);
+  if (!parsingSuccessful)
+    {response["STATUS"]="Cannot parse header tag "; return;}
+  const Json::Value& jdevs=jsta;
+  std::vector<uint32_t>& v=_merger->runHeader();
+  v.clear();
+  for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
+    v.push_back((*jt).asInt());
+  _merger->processRunHeader();
+  response["STATUS"]="DONE";
+  response["VALUE"]=jsta;
+
 }
 
 

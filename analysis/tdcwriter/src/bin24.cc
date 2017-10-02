@@ -58,11 +58,17 @@ namespace branalysis
   {
   public:
     bin24writer(std::string dire="/tmp") : _directory(dire),_run(0),_started
-					   (false),_fdOut(NULL),_totalSize(0),_event(0) {}
+					   (false),_fdOut(NULL),_totalSize(0),_event(0) {
+      memset(temp,0,100000);
+      _tree=NULL;
+    }
 
     
     virtual void start(uint32_t run)
-    {_gEvent.run=run; this->createTree();_gEvent.event=0;}
+    {_gEvent.run=run;      memset(temp,0,100000);
+
+      this->createTree();
+      _gEvent.event=0;}
     virtual void stop()
     {
       printf("bin2writer::stop \n");
@@ -70,21 +76,44 @@ namespace branalysis
     }
     virtual  void processEvent(uint32_t key,std::vector<zdaq::buffer*> dss)
     {
+      //return;
       _gEvent.nframe=0;
       _gEvent.event++;
-      uint8_t temp[0x100000];
       uint32_t* itemp=(uint32_t*) temp;
       uint32_t idx=28;
-      for (auto x:dss)
+      for (std::vector<zdaq::buffer*>::iterator it=dss.begin();it!=dss.end();it++)
 	{
+	  zdaq::buffer* x=(*it);
+	  //std::cout<<"Before "<<x->size()<<std::endl<<std::flush;
 	  x->uncompress();
+	  // std::cout<<"After "<<x->size()<<" "<<x->payloadSize()
+	  // 	   <<" Ev "<<x->eventId()
+	  // 	   <<" Bx "<<x->bxId()
+	  // 	   <<std::hex<<" ptr "<<(int64_t) x->payload()<<std::dec
+	  // 	   <<std::endl<<std::flush;
+	  
 	  _gEvent.gtc=x->eventId();
 	  _gEvent.abcid=x->bxId();
-	  memcpy(temp,(unsigned char*) x->payload(),x->payloadSize());
+
+	  if (x->payloadSize()<idx) continue;
+	  if (x->payloadSize()>0x100000)
+	    {
+	      std::cout<<"INVALID payload "<<x->payloadSize()<<std::endl<<std::flush;
+	      continue;
+	    }
+	  memcpy(&temp[0],(unsigned char*) x->payload(),x->payloadSize());
+	  //continue;
 	  uint32_t mezzanine=itemp[4];
 	  uint32_t nch=itemp[6];
 	  uint8_t* chans=&temp[idx];
 	  uint64_t* lchans= (uint64_t*) chans;
+	  //std::cout<<" channels "<<nch<<" for pls "<<x->payloadSize()<<std::endl<<std::flush;
+	 
+	  if (nch>(x->payloadSize()-idx)/8)
+	    {
+	      std::cout<<"INVALID channels "<<nch<<" for pls "<<x->payloadSize()<<std::endl<<std::flush;
+	      continue;
+	    }
 	  for (int i=0;i<nch;i++)
 	    {
 	      _gEvent.frame[_gEvent.nframe]=lchans[i];
@@ -97,7 +126,15 @@ namespace branalysis
     }
  
     virtual  void processRunHeader(std::vector<uint32_t> header)
-    {return;}
+    {
+      _gEvent.abcid=-1;
+      _gEvent.gtc=-1;
+      _gEvent.nframe=header.size();
+      for (int i=0;i<_gEvent.nframe;i++)
+	{_gEvent.info[i]=header[i];_gEvent.frame[i]=0;}
+      _tree->Fill();
+
+      return;}
     virtual void loadParameters(Json::Value params)
     {
       _directory=params["directory"].asString();
@@ -204,6 +241,7 @@ namespace branalysis
     bin24Event_t* event(){return &_gEvent;}
     void createTree()
     {
+      std::cout<<" On rentre dasn createTree \n"<<std::flush;
       if (_fdOut!=NULL)
 	{
 	  if (_tree)
@@ -236,6 +274,8 @@ namespace branalysis
       _tree->Branch("nframe",&_gEvent.nframe,"nframe/I");
       _tree->Branch("frame",_gEvent.frame,"frame[nframe]/L");
       _tree->Branch("info",_gEvent.info,"info[nframe]/L");
+      std::cout<<" On sort de createTree \n"<<std::flush;
+	    
     }
     void closeTree()
     {
@@ -263,6 +303,8 @@ namespace branalysis
     TTree* _tree;
     bin24Event_t _gEvent;
     bool _started;
+    uint8_t temp[0x100000];
+
   };
 };
 #undef USEMAIN

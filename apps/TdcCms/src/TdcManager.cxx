@@ -13,6 +13,11 @@ using namespace lytdc;
 #include <sstream>
 #include <arpa/inet.h>
 #include <boost/format.hpp>
+
+
+
+
+
 #include "fsmwebCaller.hh"
 
 using namespace zdaq;
@@ -295,7 +300,7 @@ void lydaq::TdcManager::configure(zdaq::fsmmessage* m)
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
   // do it twice
-      this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+      //this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
      
       
     }
@@ -477,6 +482,21 @@ void lydaq::TdcManager::writeRamAvm(NL::Socket* sctrl,uint16_t* _slcAddr,uint16_
     sockbuf[idx+1]=htons(_slcBuffer[i]);
     idx+=2;
   }
+  //
+  // Creating file  with name = SLC
+  std::stringstream sb;
+  for (int i=0;i<_slcBytes-1;i++)
+  {
+   
+    sb<<std::hex<<(int)(_slcBuffer[i]&0xFF);
+  }
+  char name[2512];
+  memset(name,0,2512);
+  sprintf(name,"/dev/shm/%s/%d/%s",sctrl->hostTo().c_str(),sctrl->portTo(),sb.str().c_str());
+  int fd= ::open(name,O_CREAT| O_RDWR | O_NONBLOCK,S_IRWXU);
+    printf(" Creating %s \n",name);
+
+  ::close(fd);
   // Send the Buffer
   try
   {
@@ -486,7 +506,7 @@ void lydaq::TdcManager::writeRamAvm(NL::Socket* sctrl,uint16_t* _slcAddr,uint16_
   {
     throw e.msg();
   }
-  
+ 
 }
 void lydaq::TdcManager::queryCRC(NL::Socket* sctrl)
 {
