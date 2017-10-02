@@ -312,11 +312,12 @@ void lydaq::TdcManager::set6bDac(uint8_t dac)
   //this->startAcquisition(false);
   ::sleep(1);
 
-  for (auto x:_tca->asicMap())
+ 
+  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
       for (int i=0;i<32;i++)
 	{
-	  x.second.set6bDac(i,dac);
+	  it->second.set6bDac(i,dac);
 	}      
     }
   // Now loop on slowcontrol socket
@@ -327,7 +328,7 @@ void lydaq::TdcManager::set6bDac(uint8_t dac)
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
   // do it twice
-      this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+  //    this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
       
     }
@@ -341,17 +342,17 @@ void lydaq::TdcManager::setMask(uint32_t mask)
   //this->startAcquisition(false);
   ::sleep(1);
     // Change all Asics VthTime
-  for (auto x:_tca->asicMap())
+  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
       for (int i=0;i<32;i++)
 	{
 	  if ((mask>>i)&1)
 	    {
-	      x.second.setMaskDiscriTime(i,0);
+	      it->second.setMaskDiscriTime(i,0);
 	    }
 	  else
 	    {
-	      x.second.setMaskDiscriTime(i,1);
+	      it->second.setMaskDiscriTime(i,1);
 	    }
 	}
       
@@ -365,7 +366,7 @@ void lydaq::TdcManager::setMask(uint32_t mask)
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
   // do it twice
-      this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+      //  this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
     }
 
   
@@ -376,10 +377,19 @@ void lydaq::TdcManager::setMask(uint32_t mask)
 void lydaq::TdcManager::setVthTime(uint32_t vth)
 {
   // Change all Asics VthTime
-  for (auto x:_tca->asicMap())
-    {
-      x.second.setVthTime(vth);
-    }
+  // for (auto x:_tca->asicMap())
+  //   {
+  //     x.second.setVthTime(vth);
+  //   }
+  //   for (auto x:_tca->asicMap())
+  //   {
+  //     x.second.setVthTime(vth);
+  //   }
+
+    for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+      it->second.setVthTime(vth);
+    for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+      std::cout<<it->first<<" gives" <<it->second.getVthTime()<<std::endl;
   // Now loop on slowcontrol socket
   for (auto x:_vsCtrl)
     {
@@ -388,7 +398,7 @@ void lydaq::TdcManager::setVthTime(uint32_t vth)
       this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
   // do it twice
-      this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+      //  this->writeRamAvm(x,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
     }
   // store an "event"
 

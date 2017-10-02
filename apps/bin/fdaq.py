@@ -437,7 +437,7 @@ class fdaqClient:
       self.trig_reset()
       #self.trig_spillon(1000000)
       #self.trig_spilloff(100000)
-      self.trig_spillregister(0)
+      #####   self.trig_spillregister(0)
       self.trig_calibon(0)
       self.trig_status()
 
@@ -631,7 +631,7 @@ class fdaqClient:
       self.trig_pause()
       self.trig_spillon(30)
       self.trig_spilloff(1000000)
-      self.trig_spillregister(0)
+      self.trig_spillregister(4)
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
       self.trig_status()
@@ -669,7 +669,7 @@ class fdaqClient:
       self.trig_pause()
       self.trig_spillon(ncon)
       self.trig_spilloff(50000)
-      self.trig_spillregister(0)
+      self.trig_spillregister(4)
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
       self.trig_status()
@@ -705,15 +705,15 @@ class fdaqClient:
       return
   def daq_fullscurve(self):
       self.daq_start()
-      #self.tdc_setmask(0XFFFFFFFF)
-      #self.daq_scurve(100,30,300,1020,4294967295)
-      #self.daq_stop()
-      #return
+      self.tdc_setmask(0XFFFFFFFF)
+      self.daq_scurve(100,30,100,1020,4294967295)
+      self.daq_stop()
+      return
       for ist in range(0,8):
           self.tdc_setmask((1<<ist))
-          self.daq_scurve(100,20,200,600,4294967295,5)
+          self.daq_scurve(100,30,200,1020,4294967295,50)
           self.tdc_setmask((1<<(31-ist)))
-          self.daq_scurve(100,300,200,1020,4294967295,10)
+          self.daq_scurve(100,30,200,1020,4294967295,50)
 
 
       self.daq_stop()
