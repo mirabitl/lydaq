@@ -173,8 +173,8 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   ss<<"Header \n ";
   p.first=LINELENGTH;
   linelength=LINELENGTH;
-  //for (int ib=0;ib<linelength-4;ib++)
-    //ss<<boost::format("%.2x ") % static_cast<int>(p.second[4+ib]);
+  for (int ib=0;ib<linelength-4;ib++)
+    ss<<boost::format("%.2x ") % static_cast<int>(p.second[4+ib]);
   ss<<"\n";
   #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
@@ -182,7 +182,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   #endif
   uint32_t length=(ntohs(sptr[1+linelength/2]))&0xFFFF;
   length=p.second[LINELENGTH-1];
-  //ss<<boost::format("Expected length here %d %d %d \n") % length % length % p.first;
+  ss<<boost::format("Expected length here %d %d %d \n") % length % length % p.first;
   // Now read payload
   uint8_t byteslen=LINELENGTH;
   uint32_t elen=length*byteslen;
@@ -210,8 +210,14 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     
   }
   p.first+=elen;
-  //ss<<boost::format("End of data readout %d bytes read \n") % p.first;
-
+  ss<<boost::format("End of data readout %d bytes read \n") % p.first;
+  for (int ib=0;ib<p.first;ib++)
+    {
+    ss<<boost::format("%.2x ") % static_cast<int>(p.second[ib]);
+    if (ib%8==7) ss<<std::endl;
+    }
+  ss<<"\n";
+  std::cout<<ss.str()<<std::endl;
   // Found the GTC
   uint8_t* buf=p.second;
   uint8_t  ll=8;

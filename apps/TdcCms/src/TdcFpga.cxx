@@ -28,7 +28,7 @@ lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m
   _channels.clear();
   _nBuffers=0;
   _id=(adr>>16)&0xFFFF; // Last byte of IP address
-  _detid=TDC_VERSION;
+  _detid=TDC_VERSION&0xFF;
 
 }
 void lydaq::TdcFpga::connect(zmq::context_t* c,std::string dest)
@@ -136,6 +136,6 @@ void lydaq::TdcFpga::processEventTdc()
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_abcid,_gtc,idx);
     }
-  if (_event%100==0)
-    std::cout<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
+  if (_event%100==0 || true)
+    std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
 }

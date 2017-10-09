@@ -676,8 +676,14 @@ class fdaqClient:
       #self.tdc_setmask(mask)
       thrange=(thmax-thmin+1)/step
       for vth in range(0,thrange):
+          #self.tdc_setvthtime(thmax-vth*step)
           self.tdc_setvthtime(thmax-vth*step)
+          #name = input("What's your name? ")
+
+          #time.sleep(1)
+         
           #self.tdc_setmask(mask)
+          #self.daq_setrunheader(2,(thmax-vth*step))
           self.daq_setrunheader(2,(thmax-vth*step))
           # check current evb status
           sr=self.daq_evbstatus()
@@ -698,7 +704,7 @@ class fdaqClient:
               print firstEvent,lastEvent,thmax-vth*step
               time.sleep(1)
               nloop=nloop+1
-              if (nloop>6):
+              if (nloop>4):
                   break
       self.trig_calibon(0)
       self.trig_pause()
@@ -706,14 +712,14 @@ class fdaqClient:
   def daq_fullscurve(self):
       self.daq_start()
       self.tdc_setmask(0XFFFFFFFF)
-      self.daq_scurve(100,30,100,1020,4294967295)
+      self.daq_scurve(100,30,1,1001,4294967295,10)
       self.daq_stop()
       return
-      for ist in range(0,8):
+      for ist in range(0,1):
           self.tdc_setmask((1<<ist))
-          self.daq_scurve(100,30,200,1020,4294967295,50)
-          self.tdc_setmask((1<<(31-ist)))
-          self.daq_scurve(100,30,200,1020,4294967295,50)
+          self.daq_scurve(100,200,10,700,4294967295,20)
+          #self.tdc_setmask((1<<(31-ist)))
+          #self.daq_scurve(300,60,250,350,4294967295,1)
 
 
       self.daq_stop()

@@ -141,11 +141,16 @@ void lydaq::dsBuilder::c_setheader(Mongoose::Request &request, Mongoose::JsonRes
   if (!parsingSuccessful)
     {response["STATUS"]="Cannot parse header tag "; return;}
   const Json::Value& jdevs=jsta;
+  std::cout<<jdevs<<std::endl;
   std::vector<uint32_t>& v=_merger->runHeader();
   v.clear();
   for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
     v.push_back((*jt).asInt());
+
+  std::cout<<jdevs<<std::endl;
+    std::cout<<" LOL "<<std::endl;
   _merger->processRunHeader();
+    std::cout<<" LOL AGAIN "<<std::endl;
   response["STATUS"]="DONE";
   response["VALUE"]=jsta;
 
