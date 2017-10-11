@@ -712,14 +712,15 @@ class fdaqClient:
   def daq_fullscurve(self):
       self.daq_start()
       self.tdc_setmask(0XFFFFFFFF)
-      self.daq_scurve(100,30,1,1001,4294967295,10)
-      self.daq_stop()
-      return
-      for ist in range(0,1):
+      #self.tdc_setmask(0x0)
+      #self.daq_scurve(100,300,1,701,4294967295,10)
+      #self.daq_stop()
+      #return
+      for ist in range(4,5):
           self.tdc_setmask((1<<ist))
-          self.daq_scurve(100,200,10,700,4294967295,20)
+          self.daq_scurve(100,200,312,584,4294967295,4)
           #self.tdc_setmask((1<<(31-ist)))
-          #self.daq_scurve(300,60,250,350,4294967295,1)
+          #self.daq_scurve(100,200,312,984,4294967295,4)
 
 
       self.daq_stop()
@@ -884,6 +885,7 @@ grp_action.add_argument('--daq-ctrlreg',action='store_true',help='set the ctrlre
 # Calibration
 grp_action.add_argument('--daq-setgain',action='store_true',help='change the gain and reconfigure chips with --gain=xxx')
 grp_action.add_argument('--daq-setthreshold',action='store_true',help='change the threholds and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
+grp_action.add_argument('--daq-setvth',action='store_true',help='change the gain and reconfigure chips with -vth=xxx')
 
 
 
@@ -944,7 +946,7 @@ parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.add_argument('--state', action='store', type=str,default=None,dest='fstate',help='set the Daq state')
 parser.add_argument('--clock', action='store',type=int, default=None,dest='clock',help='set the number of 20 ns clock')
 parser.add_argument('--directory', action='store', type=str,dest='directory',default=None,help='shm publisher directory')
-
+parser.add_argument('--vth', action='store', type=int,default=None,dest='vth',help='set the vth for chips')
 parser.add_argument('--gain', action='store', type=int,default=None,dest='gain',help='set the gain for chips')
 parser.add_argument('--B0', action='store', type=int,default=None,dest='B0',help='set the B0 for chips')
 parser.add_argument('--B1', action='store', type=int,default=None,dest='B1',help='set the B1 for chips')
@@ -1171,6 +1173,13 @@ elif(results.daq_setgain):
         print 'Please specify the gain --gain=value'
         exit(0)
     fdc.daq_setgain(results.gain)
+    exit(0)
+elif(results.daq_setvth):
+    r_cmd='SETVTH'
+    if (results.vth==None):
+        print 'Please specify the vth --vth=value'
+        exit(0)
+    fdc.tdc_setvthtime(results.vth)
     exit(0)
 
 elif(results.daq_setthreshold):

@@ -59,7 +59,9 @@ lydaq::TdcManager::TdcManager(std::string name) : zdaq::baseApplication(name), _
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logLdaq," Service "<<name<<" is starting on "<<atoi(wp));
+
+      
     _fsm->start(atoi(wp));
     }
     
@@ -71,6 +73,7 @@ lydaq::TdcManager::TdcManager(std::string name) : zdaq::baseApplication(name), _
 }
 void lydaq::TdcManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq,"Status CMD called ");
   response["STATUS"]="DONE";
    if (_msh==NULL) return;
   Json::Value jl;
@@ -89,6 +92,7 @@ void lydaq::TdcManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
 }
 void lydaq::TdcManager::c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq,"Diflist CMD called ");
   response["STATUS"]="DONE";
   response["DIFLIST"]="EMPTY";
   if (_msh==NULL) return;
@@ -106,6 +110,7 @@ void lydaq::TdcManager::c_diflist(Mongoose::Request &request, Mongoose::JsonResp
 
 void lydaq::TdcManager::c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq,"Set6bdac called ");
   response["STATUS"]="DONE";
 
   if (_msh==NULL) return;
@@ -117,17 +122,19 @@ void lydaq::TdcManager::c_set6bdac(Mongoose::Request &request, Mongoose::JsonRes
 }
 void lydaq::TdcManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq,"set VThTime called ");
   response["STATUS"]="DONE";
 
   if (_msh==NULL) return;
   
   uint32_t nc=atol(request.get("value","380").c_str());
-  
+  LOG4CXX_INFO(_logLdaq,"Value set "<<nc);
   this->setVthTime(nc);
   response["VTHTIME"]=nc;
 }
 void lydaq::TdcManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq,"SetMask called ");
   response["STATUS"]="DONE";
 
   if (_msh==NULL) return;
@@ -139,8 +146,8 @@ void lydaq::TdcManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResp
 }
 void lydaq::TdcManager::initialise(zdaq::fsmmessage* m)
 {
-  ///LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
 
    // Need a TDC tag
    if (m->content().isMember("tdc"))
@@ -288,8 +295,8 @@ void lydaq::TdcManager::listen()
 }
 void lydaq::TdcManager::configure(zdaq::fsmmessage* m)
 {
-  //LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
    // Now loop on slowcontrol socket
   for (auto x:_vsCtrl)
     {
@@ -388,8 +395,7 @@ void lydaq::TdcManager::setVthTime(uint32_t vth)
 
     for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
       it->second.setVthTime(vth);
-    for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
-      std::cout<<it->first<<" gives" <<it->second.getVthTime()<<std::endl;
+    
   // Now loop on slowcontrol socket
   for (auto x:_vsCtrl)
     {
@@ -408,8 +414,8 @@ void lydaq::TdcManager::setVthTime(uint32_t vth)
 
 void lydaq::TdcManager::start(zdaq::fsmmessage* m)
 {
-  //LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
   // Create run file
   Json::Value jc=m->content();
   _run=jc["run"].asInt();
@@ -434,8 +440,8 @@ void lydaq::TdcManager::start(zdaq::fsmmessage* m)
 }
 void lydaq::TdcManager::stop(zdaq::fsmmessage* m)
 {
-  //LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
   for (auto x:_vsCtrl)
     this->startAcquisition(x,false);
 
@@ -447,17 +453,21 @@ void lydaq::TdcManager::destroy(zdaq::fsmmessage* m)
 {
   _running=false;
   g_run.join_all();
-  //LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  
   delete _group;
+  LOG4CXX_INFO(_logLdaq," socket Group deleted");
   for (auto x:_vsCtrl)
     delete x;
+  LOG4CXX_INFO(_logLdaq," Control sockets deleted");
   for (auto x:_vsTdc)
     delete x;
+  LOG4CXX_INFO(_logLdaq," Data sockets deleted");
   _vsCtrl.clear();
   _vsTdc.clear();
+
   delete _msh;
-  
+  LOG4CXX_INFO(_logLdaq," Message Handler deleted");  
 }
 // void lydaq::TdcManager::parseConfig(std::string name)
 // {

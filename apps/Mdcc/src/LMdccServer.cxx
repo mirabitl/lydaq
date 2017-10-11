@@ -125,6 +125,7 @@ void lydaq::LMdccServer::c_joblog(Mongoose::Request &request, Mongoose::JsonResp
 
 void lydaq::LMdccServer::c_pause(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq," Pause called ");
 
   if (_mdcc==NULL)
     {
@@ -137,6 +138,7 @@ void lydaq::LMdccServer::c_pause(Mongoose::Request &request, Mongoose::JsonRespo
 }
 void lydaq::LMdccServer::c_resume(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+    LOG4CXX_INFO(_logLdaq," Resume called ");
 
   if (_mdcc==NULL)
     {
@@ -149,7 +151,7 @@ void lydaq::LMdccServer::c_resume(Mongoose::Request &request, Mongoose::JsonResp
 }
 void lydaq::LMdccServer::c_ecalpause(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Ecal Pause called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -161,6 +163,7 @@ void lydaq::LMdccServer::c_ecalpause(Mongoose::Request &request, Mongoose::JsonR
 }
 void lydaq::LMdccServer::c_ecalresume(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq," Ecal Resume called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -172,6 +175,7 @@ void lydaq::LMdccServer::c_ecalresume(Mongoose::Request &request, Mongoose::Json
 }
 void lydaq::LMdccServer::c_calibon(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq," Calib On called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -183,6 +187,7 @@ void lydaq::LMdccServer::c_calibon(Mongoose::Request &request, Mongoose::JsonRes
 }
 void lydaq::LMdccServer::c_caliboff(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq," Calib Off called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -194,6 +199,7 @@ void lydaq::LMdccServer::c_caliboff(Mongoose::Request &request, Mongoose::JsonRe
 }
 void lydaq::LMdccServer::c_reloadcalib(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  LOG4CXX_INFO(_logLdaq," Calib reload called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -206,7 +212,7 @@ void lydaq::LMdccServer::c_reloadcalib(Mongoose::Request &request, Mongoose::Jso
 
 void lydaq::LMdccServer::c_setcalibcount(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Calib count called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("nclock","5000000").c_str());
   _mdcc->setCalibCount(nc);
@@ -218,6 +224,7 @@ void lydaq::LMdccServer::c_setcalibcount(Mongoose::Request &request, Mongoose::J
 
 void lydaq::LMdccServer::c_reset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+   LOG4CXX_INFO(_logLdaq," RESET called ");
   if (_mdcc==NULL)
     {
        LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
@@ -230,6 +237,7 @@ void lydaq::LMdccServer::c_reset(Mongoose::Request &request, Mongoose::JsonRespo
 
 void lydaq::LMdccServer::c_readreg(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+   LOG4CXX_INFO(_logLdaq,"Read Register called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t adr=atol(request.get("address","2").c_str());
   uint32_t val =_mdcc->readRegister(adr);
@@ -240,7 +248,7 @@ void lydaq::LMdccServer::c_readreg(Mongoose::Request &request, Mongoose::JsonRes
 } 
 void lydaq::LMdccServer::c_writereg(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Write Register called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t adr=atol(request.get("address","2").c_str());
   uint32_t value=atol(request.get("value","1234").c_str());
@@ -253,6 +261,7 @@ void lydaq::LMdccServer::c_writereg(Mongoose::Request &request, Mongoose::JsonRe
 void lydaq::LMdccServer::c_spillon(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
 
+  LOG4CXX_INFO(_logLdaq," Spill ON called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("nclock","50").c_str());
   _mdcc->setSpillOn(nc);
@@ -263,7 +272,7 @@ void lydaq::LMdccServer::c_spillon(Mongoose::Request &request, Mongoose::JsonRes
 } 
 void lydaq::LMdccServer::c_spilloff(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Spill Off called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("nclock","5000").c_str());
   _mdcc->setSpillOff(nc);
@@ -274,7 +283,7 @@ void lydaq::LMdccServer::c_spilloff(Mongoose::Request &request, Mongoose::JsonRe
 } 
 void lydaq::LMdccServer::c_resettdc(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Reset TDC called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("value","0").c_str());
   _mdcc->resetTDC(nc&0xF);
@@ -286,7 +295,7 @@ void lydaq::LMdccServer::c_resettdc(Mongoose::Request &request, Mongoose::JsonRe
 
 void lydaq::LMdccServer::c_beamon(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," beam on time called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("nclock","5000000").c_str());
   _mdcc->setBeam(nc);
@@ -298,7 +307,7 @@ void lydaq::LMdccServer::c_beamon(Mongoose::Request &request, Mongoose::JsonResp
 
 void lydaq::LMdccServer::c_sethardreset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Hard reset called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("value","0").c_str());
   _mdcc->setHardReset(nc);
@@ -310,7 +319,7 @@ void lydaq::LMdccServer::c_sethardreset(Mongoose::Request &request, Mongoose::Js
 
 void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq,"Spill register called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t nc=atol(request.get("value","0").c_str());
   _mdcc->setSpillRegister(nc);
@@ -322,7 +331,7 @@ void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose
 
 void lydaq::LMdccServer::c_settrigext(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Trig ext setting called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t delay=atol(request.get("delay","20").c_str());
   uint32_t busy=atol(request.get("busy","20").c_str());
@@ -337,7 +346,7 @@ void lydaq::LMdccServer::c_settrigext(Mongoose::Request &request, Mongoose::Json
 
 void lydaq::LMdccServer::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-
+  LOG4CXX_INFO(_logLdaq," Status called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   Json::Value rc;
   rc["version"]=_mdcc->version();
@@ -512,7 +521,8 @@ lydaq::LMdccServer::LMdccServer(std::string name) : zdaq::baseApplication(name),
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logLdaq," Service "<<name<<" is starting on "<<atoi(wp));
+      //      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
     _fsm->start(atoi(wp));
     }
 
@@ -522,7 +532,8 @@ lydaq::LMdccServer::LMdccServer(std::string name) : zdaq::baseApplication(name),
 
 void lydaq::LMdccServer::doOpen(std::string s)
 {
-  std::cout<<"calling open "<<std::endl;
+  //  std::cout<<"calling open "<<std::endl;
+  LOG4CXX_INFO(_logLdaq," Opening "<<s);
   if (_mdcc!=NULL)
     delete _mdcc;
   _mdcc= new lydaq::MDCCHandler(s);

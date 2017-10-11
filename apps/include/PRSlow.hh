@@ -9,6 +9,7 @@
 #include <json/json.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 namespace lydaq {
@@ -566,13 +567,17 @@ namespace lydaq {
     }
     void prepare4Tdc(uint16_t* adr,uint16_t* val,uint16_t offset=0)
     {
+      std::stringstream sbits;
       uint8_t* b=(uint8_t*) _l;
       for (int i=0;i<80;i++)
 	{
 	  adr[i+offset]=i+offset;
 	  val[i+offset]=b[79-i];
 	  printf("%d %x \n",adr[i+offset],val[i+offset]);
+	  std::bitset<8> sb(b[79-i]);
+	  sbits<<sb<<" ";
 	}
+      std::cout<<sbits.str()<<std::endl;
     }
     Json::Value& getJson(){return _jasic;}
     void setJson(Json::Value v){_jasic=v; setFromJson();}
