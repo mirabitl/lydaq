@@ -106,7 +106,8 @@ void lydaq::TdcFpga::processEventTdc()
   {
   printf("Trigger %x %d %d %ld %d \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size());
   std::stringstream ss;
-        ss<<boost::format("Trigger %x %d %d %ld %d \n ") % _adr % _mezzanine % _gtc % _abcid % _channels.size();
+  ss<<boost::format("Trigger %x %d %d %ld %d \n ") % _adr % _mezzanine % _gtc % _abcid % _channels.size();
+  
   int nch=0;
   for (auto x:_channels)
   	{
@@ -136,6 +137,6 @@ void lydaq::TdcFpga::processEventTdc()
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_abcid,_gtc,idx);
     }
-  if (_event%100==0 || true)
+  if (_event%100==0 )
     std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
 }

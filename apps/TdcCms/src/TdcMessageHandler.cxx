@@ -170,19 +170,25 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     
   }
   p.first+=linelength;
+  #ifdef DUMPCHANNELS
   ss<<"Header \n ";
+  #endif
   p.first=LINELENGTH;
   linelength=LINELENGTH;
+#ifdef DUMPCHANNELS
   for (int ib=0;ib<linelength-4;ib++)
     ss<<boost::format("%.2x ") % static_cast<int>(p.second[4+ib]);
   ss<<"\n";
+#endif
   #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
   getchar();
   #endif
   uint32_t length=(ntohs(sptr[1+linelength/2]))&0xFFFF;
   length=p.second[LINELENGTH-1];
+#ifdef DUMPCHANNELS
   ss<<boost::format("Expected length here %d %d %d \n") % length % length % p.first;
+#endif
   // Now read payload
   uint8_t byteslen=LINELENGTH;
   uint32_t elen=length*byteslen;
@@ -210,6 +216,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     
   }
   p.first+=elen;
+#ifdef DUMPCHANNELS
   ss<<boost::format("End of data readout %d bytes read \n") % p.first;
   for (int ib=0;ib<p.first;ib++)
     {
@@ -218,13 +225,14 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     }
   ss<<"\n";
   std::cout<<ss.str()<<std::endl;
+#endif
   // Found the GTC
   uint8_t* buf=p.second;
   uint8_t  ll=8;
   uint32_t nlines=buf[7];
   uint64_t abcid=buf[ll+ll-1]|((uint64_t) buf[ll+ll-2]<<8)|((uint64_t) buf[ll+ll-3]<<16)|((uint64_t) buf[ll+ll-4]<<24)|((uint64_t) buf[ll+ll-5]<<32)|((uint64_t)buf[ll+ll-6]<<40);
   uint32_t gtc= buf[ll+1]|((uint32_t) buf[ll]<<8);
-  if (gtc%500==0)
+  //if (gtc%500==0)
     // TEST
   printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
 

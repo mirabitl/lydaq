@@ -677,20 +677,23 @@ class fdaqClient:
       thrange=(thmax-thmin+1)/step
       for vth in range(0,thrange):
           #self.tdc_setvthtime(thmax-vth*step)
-          self.tdc_setvthtime(thmax-vth*step)
+          xi=thmin+vth*step
+          xa=thmax+vth*step
+          self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
 
           #time.sleep(1)
          
           #self.tdc_setmask(mask)
           #self.daq_setrunheader(2,(thmax-vth*step))
-          self.daq_setrunheader(2,(thmax-vth*step))
+          self.daq_setrunheader(2,xi)
           # check current evb status
           sr=self.daq_evbstatus()
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          #time.sleep(1)
+          time.sleep(1)
+          
           self.trig_reloadcalib()
           self.trig_resume()
           self.trig_status()
@@ -701,7 +704,7 @@ class fdaqClient:
               sj=json.loads(sr)
               ssj=sj["answer"]
               lastEvent=int(ssj["event"])
-              print firstEvent,lastEvent,thmax-vth*step
+              print firstEvent,lastEvent,xi
               time.sleep(1)
               nloop=nloop+1
               if (nloop>4):
@@ -711,17 +714,36 @@ class fdaqClient:
       return
   def daq_fullscurve(self):
       self.daq_start()
-      self.tdc_setmask(0XFFFFFFFF)
-      #self.tdc_setmask(0x0)
-      #self.daq_scurve(100,300,1,701,4294967295,10)
+      #### commenter en dessous
+      #self.tdc_setmask(0XFFFFFFFF)
+      
+      #self.daq_scurve(100,200,200,500,4294967295,4)
       #self.daq_stop()
       #return
-      for ist in range(4,5):
-          self.tdc_setmask((1<<ist))
-          self.daq_scurve(100,200,312,584,4294967295,4)
-          #self.tdc_setmask((1<<(31-ist)))
-          #self.daq_scurve(100,200,312,984,4294967295,4)
-
+      #for ist in range(0,8):
+      #    self.tdc_setmask((1<<ist))
+      #    self.daq_scurve(100,200,300,400,4294967295,4)
+      #    self.tdc_setmask((1<<(31-ist)))
+      #    self.daq_scurve(100,200,300,400,4294967295,4)
+      # channel 1
+      #self.tdc_setmask((1<<0))
+      #self.daq_scurve(100,200,280,420,4294967295,4)
+      # channel 3
+      self.tdc_setmask((1<<1))
+      self.daq_scurve(100,200,270,430,4294967295,4)
+      # channel 5
+      #self.tdc_setmask((1<<2))
+      #self.daq_scurve(100,200,280,420,4294967295,4)
+      # channel 7
+      #self.tdc_setmask((1<<3))
+      #self.daq_scurve(100,200,320,430,4294967295,2)
+      # channel 9
+      #self.tdc_setmask((1<<4))
+      #self.daq_scurve(100,200,280,420,4294967295,4)
+      # channel 13
+      #self.tdc_setmask((1<<6))
+      #self.daq_scurve(100,200,280,420,4294967295,4)
+      
 
       self.daq_stop()
       
@@ -886,6 +908,7 @@ grp_action.add_argument('--daq-ctrlreg',action='store_true',help='set the ctrlre
 grp_action.add_argument('--daq-setgain',action='store_true',help='change the gain and reconfigure chips with --gain=xxx')
 grp_action.add_argument('--daq-setthreshold',action='store_true',help='change the threholds and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
 grp_action.add_argument('--daq-setvth',action='store_true',help='change the gain and reconfigure chips with -vth=xxx')
+grp_action.add_argument('--daq-setmask',action='store_true',help='change the gain and reconfigure chips with -mask=xxx')
 
 
 
@@ -947,6 +970,7 @@ parser.add_argument('--state', action='store', type=str,default=None,dest='fstat
 parser.add_argument('--clock', action='store',type=int, default=None,dest='clock',help='set the number of 20 ns clock')
 parser.add_argument('--directory', action='store', type=str,dest='directory',default=None,help='shm publisher directory')
 parser.add_argument('--vth', action='store', type=int,default=None,dest='vth',help='set the vth for chips')
+parser.add_argument('--mask', action='store', type=int,default=None,dest='mask',help='set the mask for chips')
 parser.add_argument('--gain', action='store', type=int,default=None,dest='gain',help='set the gain for chips')
 parser.add_argument('--B0', action='store', type=int,default=None,dest='B0',help='set the B0 for chips')
 parser.add_argument('--B1', action='store', type=int,default=None,dest='B1',help='set the B1 for chips')
@@ -1180,6 +1204,13 @@ elif(results.daq_setvth):
         print 'Please specify the vth --vth=value'
         exit(0)
     fdc.tdc_setvthtime(results.vth)
+    exit(0)
+elif(results.daq_setmask):
+    r_cmd='SETMASK'
+    if (results.mask==None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    fdc.tdc_setmask(results.mask)
     exit(0)
 
 elif(results.daq_setthreshold):
