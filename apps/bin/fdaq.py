@@ -678,7 +678,8 @@ class fdaqClient:
       for vth in range(0,thrange):
           #self.tdc_setvthtime(thmax-vth*step)
           xi=thmin+vth*step
-          xa=thmax+vth*step
+          xa=thmax-vth*step
+          xi=xa
           self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
 
@@ -715,22 +716,23 @@ class fdaqClient:
   def daq_fullscurve(self):
       self.daq_start()
       #### commenter en dessous
-      #self.tdc_setmask(0XFFFFFFFF)
+      self.tdc_setmask(0XFFFFFFFF)
+      #self.tdc_setmask(1073741832)
       
-      #self.daq_scurve(100,200,200,500,4294967295,4)
-      #self.daq_stop()
-      #return
-      #for ist in range(0,8):
-      #    self.tdc_setmask((1<<ist))
-      #    self.daq_scurve(100,200,300,400,4294967295,4)
-      #    self.tdc_setmask((1<<(31-ist)))
-      #    self.daq_scurve(100,200,300,400,4294967295,4)
+      self.daq_scurve(100,2000,500,750,4294967295,20)
+      self.daq_stop()
+      return
+      for ist in range(0,8):
+          self.tdc_setmask((1<<ist))
+          self.daq_scurve(100,2000,500,550,4294967295,2)
+          self.tdc_setmask((1<<(31-ist)))
+          self.daq_scurve(100,2000,500,550,4294967295,2)
       # channel 1
       #self.tdc_setmask((1<<0))
       #self.daq_scurve(100,200,280,420,4294967295,4)
       # channel 3
-      self.tdc_setmask((1<<1))
-      self.daq_scurve(100,200,270,430,4294967295,4)
+      #self.tdc_setmask((1<<1))
+      #self.daq_scurve(100,200,270,430,4294967295,4)
       # channel 5
       #self.tdc_setmask((1<<2))
       #self.daq_scurve(100,200,280,420,4294967295,4)
