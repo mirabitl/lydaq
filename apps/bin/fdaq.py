@@ -668,7 +668,7 @@ class fdaqClient:
   def daq_scurve(self,ntrg,ncon,thmin,thmax,mask,step=5):
       self.trig_pause()
       self.trig_spillon(ncon)
-      self.trig_spilloff(50000)
+      self.trig_spilloff(20000)
       self.trig_spillregister(4)
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
@@ -713,20 +713,33 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_fullscurve(self):
+  def daq_fullscurve(self,ch,beg,las,step=2):
       self.daq_start()
       #### commenter en dessous
-      self.tdc_setmask(0XFFFFFFFF)
-      #self.tdc_setmask(1073741832)
-      
-      self.daq_scurve(100,2000,500,750,4294967295,20)
+      if (ch==255):
+          self.tdc_setmask(0XFFFFFFFF)
+          #self.tdc_setmask(0Xf7fffffb)
+          #self.tdc_setmask(1073741832)
+          self.daq_scurve(100,200,beg,las,4294967295,step)
+          self.daq_stop()
+          return
+      if (ch==1023):
+          for ist in range(0,8):
+              self.tdc_setmask((1<<ist))
+              self.daq_scurve(100,200,beg,las,(1<<ist),step)
+              self.tdc_setmask((1<<(31-ist)))
+              self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
+          self.daq_stop()
+          return
+      ipr=0
+      if (ch%2==1):
+          ipr=ch/2
+      else:
+          ipr=(31-ch/2)
+      self.tdc_setmask((1<<ipr))
+      self.daq_scurve(100,200,beg,las,(1<<ipr),step)
       self.daq_stop()
       return
-      for ist in range(0,8):
-          self.tdc_setmask((1<<ist))
-          self.daq_scurve(100,2000,500,550,4294967295,2)
-          self.tdc_setmask((1<<(31-ist)))
-          self.daq_scurve(100,2000,500,550,4294967295,2)
       # channel 1
       #self.tdc_setmask((1<<0))
       #self.daq_scurve(100,200,280,420,4294967295,4)
@@ -1257,7 +1270,20 @@ elif(results.daq_calibdac):
     exit(0)
 elif(results.daq_scurve):
     r_cmd='scurve'
-    fdc.daq_fullscurve()
+    first=300
+    last=600
+    chan=255
+    if (results.first!=None):
+        first=results.first
+    if (results.last!=None):
+        last=results.last
+    if (results.channel!=None):
+        chan=results.channel
+
+    print chan,first,last
+    val = raw_input()
+
+    fdc.daq_fullscurve(chan,first,last)
     #fdc.daq_scurve(50,50,250,450,4294967295)
     exit(0)
 elif(results.daq_downloaddb):
