@@ -141,6 +141,8 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   //ss<<boost::format("Parsing Tdc Data ================> from %d %lx %d \n") % mezz % idsock % _readout[idsock] ;
   
   //  return;
+
+#define NODUMPCHANNELS
 #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
 #endif  
@@ -196,7 +198,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   //getchar();
 #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
-  getchar();
+  //getchar();
 #endif
   while (size_remain>0)
   {
@@ -240,6 +242,13 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   _tdc[difidx]->addChannels(p.second,p.first);
   p.first=0;
   return;
+
+  /// FINIFINIFINI
+  /// FINIFINIFINI
+  /// FINIFINIFINI
+
+
+  
   // p.first=0;return;
   bool printed=false;
   uint32_t bcid=0;
