@@ -905,20 +905,44 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
   Json::FastWriter fastWriter;
   Json::Value fromScratch;
   fromScratch.clear();
-  if (_dbClient==NULL){LOG4CXX_ERROR(_logLdaq, "No DB client"); response["STATUS"]="NO DB Client";return;}
-  _dbstate=statereq;
-  this->parameters()["db"]["dbstate"]=statereq;
-  this->parameters()["db"]["state"]=statereq;
+  if (_dbClient!=NULL)
+    {
+      _dbstate=statereq;
+      this->parameters()["db"]["dbstate"]=statereq;
+      this->parameters()["db"]["state"]=statereq;
 
-  _dbClient->sendTransition("DELETE",this->parameters()["db"]);
-  std::cout<<" Downloading"<<this->parameters()["db"]["dbstate"].asString()<<std::endl;
+      _dbClient->sendTransition("DELETE",this->parameters()["db"]);
+      std::cout<<" Downloading"<<this->parameters()["db"]["dbstate"].asString()<<std::endl;
   
-  _dbClient->sendTransition("CONFIGURE",this->parameters()["db"]);
+      _dbClient->sendTransition("CONFIGURE",this->parameters()["db"]);
   
-  _dbClient->sendCommand("PUBLISH");
+      _dbClient->sendCommand("PUBLISH");
   
-   response["STATUS"]="DONE";
-   response["DOWNLOADBD"]=_dbstate;
+      response["STATUS"]="DONE";
+      response["DOWNLOADBD"]=_dbstate;
+    }
+  else
+   {
+     // Tdc
+     if (_tdcClients.size()>0)
+       {
+	 _dbstate=statereq;
+	 this->parameters()["db"]["dbstate"]=statereq;
+	 this->parameters()["db"]["state"]=statereq;
+	 
+	 for (auto tdc:_tdcClients)
+	   {
+	     std::stringstream sp;sp<<"&state="<<statereq;
+	     tdc->sendCommand("DOWNLOADDB",sp.str());
+	   }
+	 response["STATUS"]="DONE";
+	 response["DOWNLOADBD"]=_dbstate;
+       }
+     else
+       {
+	 LOG4CXX_ERROR(_logLdaq, "No DB client"); response["STATUS"]="NO DB Client";return;
+       }
+   }
 }
 
 void FullDaq::setControlRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)

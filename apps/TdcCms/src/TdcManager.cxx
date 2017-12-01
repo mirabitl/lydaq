@@ -49,6 +49,7 @@ lydaq::TdcManager::TdcManager(std::string name) : zdaq::baseApplication(name), _
   _fsm->addCommand("SET6BDAC",boost::bind(&lydaq::TdcManager::c_set6bdac,this,_1,_2));
   _fsm->addCommand("SETVTHTIME",boost::bind(&lydaq::TdcManager::c_setvthtime,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::TdcManager::c_setMask,this,_1,_2));
+  _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::TdcManager::c_downloadDB,this,_1,_2));
   
   
   
@@ -143,6 +144,24 @@ void lydaq::TdcManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResp
   this->setMask(nc);
   response["MASK"]=nc;
 }
+void lydaq::TdcManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"downloadDB called ");
+  response["STATUS"]="DONE";
+
+  if (_msh==NULL) return;
+  
+  std::string dbstate=request.get("state","NONE");
+  Json::Value jTDC=this->parameters()["tdc"];
+   if (jTDC.isMember("db"))
+     {
+       Json::Value jTDCdb=jTDC["db"];
+       _tca->clear();
+       _tca->parseDb(dbstate,jTDCdb["mode"].asString());
+     }
+  response["DBSTATE"]=dbstate;
+}
+
 void lydaq::TdcManager::initialise(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
@@ -182,6 +201,11 @@ void lydaq::TdcManager::initialise(zdaq::fsmmessage* m)
 	   {
 	     _tca->parseJsonUrl(jTDCjson["url"].asString());
 	   }
+     }
+    if (jTDC.isMember("db"))
+     {
+       Json::Value jTDCdb=jTDC["db"];
+       _tca->parseDb(jTDCdb["state"].asString(),jTDCdb["mode"].asString());
      }
    if (_tca->asicMap().size()==0)
      {

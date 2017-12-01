@@ -1,6 +1,7 @@
 #ifndef _TDC_MANAGER_HH
 #define _TDC_MANAGER_HH
 #include "TdcMessageHandler.hh"
+#include "TdcConfigAccess.hh"
 #include "baseApplication.hh"
 #include "PRSlow.hh"
 #include <stdint.h>
@@ -9,6 +10,8 @@
 #include <string.h>
 #include <zlib.h>
 #include <iostream>
+#include "ReadoutLogger.hh"
+
 namespace lydaq
 {
 struct evs {
@@ -34,11 +37,12 @@ public:
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   
-  void parseConfig(std::string name);
-  void writeRamAvm();
-  void queryCRC();
-  void startAcquisition( bool start);
+  //void parseConfig(std::string name);
+  void writeRamAvm(NL::Socket* sctrl,uint16_t* sa,uint16_t* sb,uint32_t sby);
+  void queryCRC(NL::Socket* sctrl);
+  void startAcquisition( NL::Socket* sctrl,bool start);
   void listen();
   void dolisten();
   void set6bDac(uint8_t dac);
@@ -46,9 +50,10 @@ public:
   void sendTrigger(uint32_t nt);
   void setVthTime(uint32_t dac);
 private:
-  NL::Socket* _sCtrl;
-  NL::Socket* _sTDC1;
-  NL::Socket* _sTDC2;
+  lydaq::TdcConfigAccess* _tca;
+  std::vector<NL::Socket*> _vsCtrl;
+  std::vector<NL::Socket*> _vsTdc;
+
   NL::SocketGroup* _group;
  
   lydaq::TdcMessageHandler* _msh;
@@ -62,12 +67,6 @@ private:
 
   uint32_t disconnected_;
   zdaq::fsmweb* _fsm;
-  uint16_t _slcBuffer[0x1000];
-  uint16_t _slcAddr[0x1000];    
-  uint32_t _slcBytes;
-  uint16_t _slcAck[0x1000];
-  uint32_t _slcAckLength;
-  PRSlow _s1,_s2;
   uint32_t _run,_type;
   std::string _directory;
   int32_t _fdOut;
@@ -75,8 +74,7 @@ private:
   uint32_t _t0;
   bool _running;
 
-  uint32_t _firstEvent[2],_currentGTC[2];
-  uint64_t _currentABCID[2];
+
   bool _loop;
   zmq::context_t* _context;
 };

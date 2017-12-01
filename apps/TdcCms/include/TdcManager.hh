@@ -37,6 +37,7 @@ public:
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   
   //void parseConfig(std::string name);
   void writeRamAvm(NL::Socket* sctrl,uint16_t* sa,uint16_t* sb,uint32_t sby);

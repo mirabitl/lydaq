@@ -409,7 +409,7 @@ class fdaqClient:
   def daq_downloaddb(self,state):
       if ("db" in self.daq_par):
         self.daq_par["db"]["dbstate"]=state
-      lcgi["state"]=dbstate
+      lcgi["state"]=state
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","DOWNLOADDB",lcgi) 
   def daq_forceState(self,name):
       lcgi={}
@@ -675,7 +675,7 @@ class fdaqClient:
       self.trig_status()
       #self.tdc_setmask(mask)
       thrange=(thmax-thmin+1)/step
-      for vth in range(0,thrange):
+      for vth in range(0,thrange+1):
           #self.tdc_setvthtime(thmax-vth*step)
           xi=thmin+vth*step
           xa=thmax-vth*step
@@ -724,7 +724,7 @@ class fdaqClient:
           self.daq_stop()
           return
       if (ch==1023):
-          for ist in range(0,8):
+          for ist in range(0,12):
               self.tdc_setmask((1<<ist))
               self.daq_scurve(100,200,beg,las,(1<<ist),step)
               self.tdc_setmask((1<<(31-ist)))
@@ -737,7 +737,7 @@ class fdaqClient:
       else:
           ipr=(31-ch/2)
       self.tdc_setmask((1<<ipr))
-      self.daq_scurve(100,200,beg,las,(1<<ipr),step)
+      self.daq_scurve(100,50,beg,las,(1<<ipr),step)
       self.daq_stop()
       return
       # channel 1
