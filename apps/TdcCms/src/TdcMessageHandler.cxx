@@ -179,7 +179,10 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   linelength=LINELENGTH;
 #ifdef DUMPCHANNELS
   for (int ib=0;ib<linelength-4;ib++)
+    {
     ss<<boost::format("%.2x ") % static_cast<int>(p.second[4+ib]);
+    }
+    
   ss<<"\n";
 #endif
   #ifdef DEBUGBUF
@@ -223,7 +226,13 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   for (int ib=0;ib<p.first;ib++)
     {
     ss<<boost::format("%.2x ") % static_cast<int>(p.second[ib]);
-    if (ib%8==7) ss<<std::endl;
+    if (ib%8==7)
+      {
+	uint8_t f=p.second[ib];
+	uint8_t c=p.second[ib-1];
+	ss<<boost::format("-> %7.2f  ") % (c*2.5+f*2.5/256);
+	ss<<std::endl;
+      }
     }
   ss<<"\n";
   std::cout<<ss.str()<<std::endl;
