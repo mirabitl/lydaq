@@ -73,11 +73,13 @@ void lydaq::MDCCReadout::unmaskEcal(){this->writeRegister(0x10,0x0);}
 void lydaq::MDCCReadout::calibOn(){this->writeRegister(0xB,0x2);}
 void lydaq::MDCCReadout::calibOff(){this->writeRegister(0xB,0x0);}
 void lydaq::MDCCReadout::reloadCalibCount(){
-  
+
+  this->maskTrigger();
   this->writeRegister(0xB,0x4);
-  usleep(2);
-  this->writeRegister(0xB,0x0);
+ 
   this->calibOn();
+  this->unmaskTrigger();
+ 
 }
 uint32_t lydaq::MDCCReadout::calibCount(){return this->readRegister(0xD);}
 void lydaq::MDCCReadout::setCalibCount(uint32_t nc){this->writeRegister(0xD,nc);}

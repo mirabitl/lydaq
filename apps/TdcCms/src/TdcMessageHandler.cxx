@@ -142,7 +142,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   
   //  return;
 
-#define NODUMPCHANNELS
+#define DUMPCHANNELS
 #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
 #endif  

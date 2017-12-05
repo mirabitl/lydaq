@@ -139,11 +139,17 @@ uint32_t lydaq::MDCCHandler::triggerBusy(){this->readRegister(0xF);}
 
 
 void lydaq::MDCCHandler::reloadCalibCount(){
-  
+
+  this->maskTrigger();
+  this->writeRegister(0xD,0x8);
   this->writeRegister(0x8,0x4);
-  usleep(2);
-  this->writeRegister(0x8,0x0);
+  // sleep(1);
+  // this->writeRegister(0x8,0x0);
+  // sleep(1);
+  this->unmaskTrigger();
   this->calibOn();
+
+
 }
 
 

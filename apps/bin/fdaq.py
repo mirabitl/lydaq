@@ -939,6 +939,9 @@ grp_action.add_argument('--trig-spillon',action='store_true',help=' set spill nc
 grp_action.add_argument('--trig-spilloff',action='store_true',help=' set spill nclock off with --clock=nc (20ns) ')
 grp_action.add_argument('--trig-beam',action='store_true',help=' set beam length to nclock with --clock=nc (20ns) ')
 grp_action.add_argument('--trig-spillregister',action='store_true',help=' set the value of the spill register --value=xx ')
+grp_action.add_argument('--trig-calibon',action='store_true',help=' set the value of the calibon register --value=xx ')
+grp_action.add_argument('--trig-calibcount',action='store_true',help=' set the value of the calibcount register --value=xx ')
+grp_action.add_argument('--trig-rearm',action='store_true',help=' reload calib  ')
 grp_action.add_argument('--trig-hardreset',action='store_true',help=' send a hard reset to mezzanines ')
 
 
@@ -1347,6 +1350,25 @@ elif(results.trig_spillregister):
         fdc.trig_spillregister(results.value)
     else:
         print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibon):
+    r_cmd='triggerSpillRegister'
+    if (results.value!=None):
+        fdc.trig_calibon(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibcount):
+    r_cmd='triggerSpillRegister'
+    if (results.value!=None):
+        fdc.trig_calibcount(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_rearm):
+    r_cmd='triggerSpillRegister'
+
+    fdc.trig_reloadcalib()
     exit(0)
 elif(results.trig_hardreset):
     r_cmd='triggerhardReset'
