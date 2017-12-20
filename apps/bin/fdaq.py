@@ -1002,6 +1002,7 @@ parser.add_argument('--t0', action='store', type=float,default=None,dest='t0',he
 parser.add_argument('--channel', action='store',type=int, default=None,dest='channel',help='set the hvchannel')
 parser.add_argument('--first', action='store',type=int, default=None,dest='first',help='set the first hvchannel')
 parser.add_argument('--last', action='store',type=int, default=None,dest='last',help='set the last hvchannel')
+parser.add_argument('--step', action='store',type=int, default=None,dest='step',help='set the step of the calibration')
 parser.add_argument('--voltage', action='store',type=float, default=None,dest='voltage',help='set the hv voltage')
 parser.add_argument('--current', action='store',type=float, default=None,dest='current',help='set the hv current')
 parser.add_argument('--ramp', action='store',type=float, default=None,dest='ramp',help='set the hv ramp')
@@ -1276,17 +1277,20 @@ elif(results.daq_scurve):
     first=300
     last=600
     chan=255
+    step=2
     if (results.first!=None):
         first=results.first
     if (results.last!=None):
         last=results.last
     if (results.channel!=None):
         chan=results.channel
+    if (results.step!=None):
+        step=results.step
 
-    print chan,first,last
+    print chan,first,last,step
     val = raw_input()
 
-    fdc.daq_fullscurve(chan,first,last)
+    fdc.daq_fullscurve(chan,first,last,step)
     #fdc.daq_scurve(50,50,250,450,4294967295)
     exit(0)
 elif(results.daq_downloaddb):
