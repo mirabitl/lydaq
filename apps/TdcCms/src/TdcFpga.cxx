@@ -23,7 +23,7 @@
 using namespace lydaq;
 using namespace zdaq;
 
-lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m),_lastGtc(0),_startIdx(0),_event(0),_adr(adr),_dsData(NULL),_triggerId(16)
+lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m),_lastGtc(0),_startIdx(0),_event(0),_adr(adr),_dsData(NULL),_triggerId(24)
 {
   _channels.clear();
   _nBuffers=0;

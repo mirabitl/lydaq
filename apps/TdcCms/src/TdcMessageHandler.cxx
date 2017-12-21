@@ -142,7 +142,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   
   //  return;
 
-#define DUMPCHANNELS
+#define NODUMPCHANNELS
 #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
 #endif  
@@ -243,9 +243,8 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   uint32_t nlines=buf[7];
   uint64_t abcid=buf[ll+ll-1]|((uint64_t) buf[ll+ll-2]<<8)|((uint64_t) buf[ll+ll-3]<<16)|((uint64_t) buf[ll+ll-4]<<24)|((uint64_t) buf[ll+ll-5]<<32)|((uint64_t)buf[ll+ll-6]<<40);
   uint32_t gtc= buf[ll+1]|((uint32_t) buf[ll]<<8);
-  //if (gtc%500==0)
-    // TEST
-  printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
+  if (gtc%500==0)
+    printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
 
   // TEST
   _tdc[difidx]->addChannels(p.second,p.first);
