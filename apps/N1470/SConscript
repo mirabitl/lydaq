@@ -58,7 +58,7 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
-LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','lydaq_Caen','caenhvwrapper','zdaq','z','log4cxx']
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','lydaq_N1470','zdaq','z','log4cxx']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python
@@ -103,7 +103,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 #LIBRARY_SOURCES=Glob("#src/*.cc")
 
 #print LIBRARY_SOURCES
-LIBRARY_SOURCES=['src/LCaenServer.cxx']
+LIBRARY_SOURCES=['src/LN1470Server.cxx']
 
 print LIBRARY_SOURCES
 
@@ -123,7 +123,7 @@ EXE_LIBS=LIBRARIES
 EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
 
-mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/LCaenDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/LN1470Daemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(mdccd)
 myinc=[]
 for x in Glob("#include/*.hh"):

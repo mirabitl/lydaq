@@ -18,7 +18,7 @@ void lydaq::LN1470Server::open(zdaq::fsmmessage* m)
     device=this->parameters()["device"].asString();
   if (m->content().isMember("board"))
     { 
-      board=m->content()["board"].asString();
+      board=m->content()["board"].asUInt();
       this->parameters()["board"]=m->content()["board"];
     }
   else

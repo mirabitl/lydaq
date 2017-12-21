@@ -7,7 +7,7 @@
 #include<stdio.h>
 #include "monitorApplication.hh"
 
-#include "HVN1470Interface.hh"
+#include "N1470.hh"
 
 using namespace std;
 #include <sstream>
