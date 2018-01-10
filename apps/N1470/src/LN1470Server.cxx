@@ -64,16 +64,18 @@ Json::Value lydaq::LN1470Server::channelStatus(uint32_t channel)
       LOG4CXX_ERROR(_logLdaq,"No HVN1470Interface opened");
        return r;
     }
+   _hv->status(channel);
    r["vset"]=_hv->voltageSet(channel);
    r["iset"]=_hv->currentSet(channel);
    r["rampup"]=_hv->rampUp(channel);
    r["iout"]=_hv->currentUsed(channel);
    r["vout"]=_hv->voltageUsed(channel);
    r["status"]=_hv->statusBits(channel);
+   std::cout<<"channel "<<channel<<"=>"<<r<<std::endl;
    return r;
 }
 Json::Value lydaq::LN1470Server::status()
-{ return status(-1,-1);}
+{ return status(0,3);}
 Json::Value lydaq::LN1470Server::status(int32_t first,int32_t last)
 {
   Json::Value r;
@@ -111,8 +113,9 @@ Json::Value lydaq::LN1470Server::status(int32_t first,int32_t last)
   lock();
    for (uint32_t i=fi;i<=la;i++)
     {
+      std::cout<<" Checking channel "<<i<<std::endl;
       Json::Value v=this->channelStatus(i);
-      //std::cout <<v<<std::endl;
+      std::cout <<v<<std::endl;
     r["channels"].append(v);
     }
   // for (uint32_t i=this->parameters()["first"].asUInt();i<=this->parameters()["last"].asUInt();i++)
