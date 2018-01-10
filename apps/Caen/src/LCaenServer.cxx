@@ -36,7 +36,7 @@ void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
   
   
   _hv= new lydaq::HVCaenInterface(Host,Name,Pwd);
-  _hv->Connect();
+  //  _hv->Connect();
 
   if (m->content().isMember("first"))
     { 
@@ -55,12 +55,13 @@ void lydaq::LCaenServer::close(zdaq::fsmmessage* m)
        LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
        return;
     }
-  _hv->Disconnect();
+  // _hv->Disconnect();
   delete _hv;
   _hv=NULL;
 }
 Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
 {
+  _hv->Connect();
   Json::Value r=Json::Value::null;
   r["id"]=channel;
   r["status"]=Json::Value::null;
@@ -75,6 +76,7 @@ Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
    r["iout"]=_hv->GetCurrentRead(channel);
    r["vout"]=_hv->GetVoltageRead(channel);
    r["status"]=_hv->GetStatus(channel);
+   _hv->Disconnect();
    return r;
 }
 Json::Value lydaq::LCaenServer::status()
@@ -169,8 +171,10 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
     response["STATUS"]=Json::Value::null;
     return;
   }
+  _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOn(i);
+  _hv->Disconnect();
   ::sleep(2);
   response["STATUS"]=this->status();
 }
@@ -192,8 +196,10 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
     response["STATUS"]=Json::Value::null;
     return;
   }
+  _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOff(i);
+  _hv->Disconnect();
   ::sleep(2);
   response["STATUS"]=this->status();
 }
@@ -241,8 +247,10 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
     response["STATUS"]=Json::Value::null;
     return;
   }
+  _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltage(i,vset);
+  _hv->Disconnect();
   ::sleep(2);
   response["STATUS"]=this->status();
 }
@@ -265,8 +273,10 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
     response["STATUS"]=Json::Value::null;
     return;
   }
+  _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetCurrent(i,iset);
+  _hv->Disconnect();
   ::sleep(2);
   response["STATUS"]=this->status();
 }
@@ -289,8 +299,10 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
     response["STATUS"]=Json::Value::null;
     return;
   }
+  _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltageRampUp(i,rup);
+  _hv->Disconnect();
   ::sleep(2);
   response["STATUS"]=this->status();
 }
