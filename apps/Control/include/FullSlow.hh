@@ -33,11 +33,12 @@ public:
   void LVON(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void  PTStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void  HumidityStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
   std::string state(){return _fsm->state();}
   void forceState(std::string s){_fsm->setState(s);}
 private:
   zdaq::fsmweb* _fsm;
-  fsmwebCaller* _caenClient,*_zupClient,*_genesysClient,*_bmpClient,*_isegClient,*_gpioClient;
+  fsmwebCaller* _caenClient,*_zupClient,*_genesysClient,*_bmpClient,*_isegClient,*_gpioClient,*_hihClient;
   Json::Value _jConfigContent;
 };
 };

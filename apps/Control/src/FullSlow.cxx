@@ -27,7 +27,7 @@ using namespace zdaq;
 
 FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
 {
-  _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;
+  _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;_hihClient=0;
   _isegClient=0;
  
   _fsm=this->fsm();
@@ -48,6 +48,7 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
   // Commands
   _fsm->addCommand("LVSTATUS",boost::bind(&FullSlow::LVStatus,this,_1,_2));
   _fsm->addCommand("PTSTATUS",boost::bind(&FullSlow::PTStatus,this,_1,_2));
+  _fsm->addCommand("HUMSTATUS",boost::bind(&FullSlow::HumidityStatus,this,_1,_2));
   _fsm->addCommand("LVON",boost::bind(&FullSlow::LVON,this,_1,_2));
   _fsm->addCommand("LVOFF",boost::bind(&FullSlow::LVOFF,this,_1,_2));
 
@@ -91,7 +92,7 @@ void  FullSlow::userCreate(zdaq::fsmmessage* m)
 
 void FullSlow::destroy(zdaq::fsmmessage* m)
 {
-   _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;
+  _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;_hihClient=0;
  
 }
 void FullSlow::configure(zdaq::fsmmessage* m)
@@ -101,6 +102,7 @@ void FullSlow::configure(zdaq::fsmmessage* m)
   if (_genesysClient!=0) _genesysClient->sendTransition("OPEN");
   if (_isegClient!=0) _isegClient->sendTransition("OPEN");
   if (_bmpClient!=0) _bmpClient->sendTransition("OPEN");
+  if (_hihClient!=0) _hihClient->sendTransition("OPEN");
  
 }
 void FullSlow::start(zdaq::fsmmessage* m)
@@ -110,6 +112,7 @@ void FullSlow::start(zdaq::fsmmessage* m)
   if (_genesysClient!=0) _genesysClient->sendTransition("START");
   if (_isegClient!=0) _isegClient->sendTransition("START");
   if (_bmpClient!=0) _bmpClient->sendTransition("START");
+  if (_hihClient!=0) _hihClient->sendTransition("START");
  
 }
 void FullSlow::stop(zdaq::fsmmessage* m)
@@ -119,6 +122,7 @@ void FullSlow::stop(zdaq::fsmmessage* m)
   if (_genesysClient!=0) _genesysClient->sendTransition("STOP");
   if (_isegClient!=0) _isegClient->sendTransition("STOP");
   if (_bmpClient!=0) _bmpClient->sendTransition("STOP");
+  if (_hihClient!=0) _hihClient->sendTransition("STOP");
  
 }
 void FullSlow::discover(zdaq::fsmmessage* m)
@@ -202,6 +206,18 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      if (!p_param.empty()) this->parameters()["bmp"]=p_param;
 	      //printf("CCC client %x \n",_cccClient);
 	    }
+	  if (p_name.compare("HIH")==0)
+	    {
+	      _hihClient= new fsmwebCaller(host,port);
+	      std::string state=_hihClient->queryState();
+	      printf("HIH8000 client %x  %s \n",_hihClient,state.c_str());
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  _hihClient->sendTransition("CREATE",_jConfigContent);
+		}
+	      if (!p_param.empty()) this->parameters()["hih"]=p_param;
+	      //printf("CCC client %x \n",_cccClient);
+	    }
 	  if (p_name.compare("ZUP")==0)
 	    {
 	      _zupClient= new fsmwebCaller(host,port);
@@ -236,7 +252,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 
     }
   
-  printf("Clients: CAEN %x GENESYS %x ZUP %x BMP %x GPIO %x \n",_caenClient,_genesysClient,_zupClient,_bmpClient,_gpioClient);
+  printf("Clients: CAEN %x GENESYS %x ZUP %x BMP %x HIH %x GPIO %x \n",_caenClient,_genesysClient,_zupClient,_bmpClient,_hihClient,_gpioClient);
 }
 
 FullSlow::~FullSlow()
@@ -526,6 +542,21 @@ void  FullSlow::PTStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     return;
   }
   LOG4CXX_ERROR(_logLdaq, "No PT client");
+  response["STATUS"]=Json::Value::null;
+  return;
+
+
+}
+void  FullSlow::HumidityStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  if (_hihClient!=NULL){
+
+    _hihClient->sendCommand("STATUS");
+    std::cout<<_hihClient->answer()<<std::endl;
+    response["STATUS"]=_hihClient->answer()["answer"]["STATUS"];
+    return;
+  }
+  LOG4CXX_ERROR(_logLdaq, "No HIH client");
   response["STATUS"]=Json::Value::null;
   return;
 
