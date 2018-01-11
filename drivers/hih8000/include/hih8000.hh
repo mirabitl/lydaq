@@ -30,7 +30,9 @@
 
 using namespace std;
 
+#include "ReadoutLogger.hh"
 
+namespace lydaq {
 
 class hih8000
 {
@@ -50,5 +52,6 @@ private:
   double _humidity[2];
   double _temperature[2];
 
+};
 };
 #endif

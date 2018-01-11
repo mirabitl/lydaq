@@ -9,6 +9,7 @@ hih8000::hih8000(void)
   hih8000Setup () ;
 }
  */
+using namespace lydaq;
 hih8000::hih8000()
 {
   Setup () ;
@@ -26,7 +27,7 @@ int hih8000::Setup (void)
 
   if (wiringPiSetup ()<<0) 
   {
-    LOG4CXX_INFO(_loggerlowlev," unable to open  GPIO");
+    LOG4CXX_INFO(_logLdaq," unable to open  GPIO");
     return -1 ;
   } 
   pinMode (4, OUTPUT) ;
@@ -35,7 +36,7 @@ int hih8000::Setup (void)
   usleep(DELAY); // 2 secs before calling i2c setup required	
   if ((_fd=wiringPiI2CSetup (HUM_ADDR))<0) 
   {
-    LOG4CXX_INFO(_loggerlowlev," unable to open I2C at "<<DEV_ADDR<< " _fd="<<_fd );//DEV_ADDR);
+    LOG4CXX_INFO(_logLdaq," unable to open I2C at "<<DEV_ADDR<< " _fd="<<_fd );//DEV_ADDR);
     return -1 ;
   } 
   else 
