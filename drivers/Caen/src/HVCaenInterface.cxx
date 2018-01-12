@@ -50,7 +50,10 @@ void lydaq::HVCaenInterface::Disconnect()
   //if( ret == CAENHV_OK )
   //  printf("CAENHV_DeinitSystem: Connection closed (num. %d)\n\n", ret);
   if( ret != CAENHV_OK )
-    printf("CAENHV_DeinitSystem: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+    {
+      printf("CAENHV_DeinitSystem: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+      return;
+    }
   connected_=false;
   theHandle_=-1;
 }
@@ -74,8 +77,11 @@ void lydaq::HVCaenInterface::Connect()
       connected_=true;
     }
   else
+    {
     printf("\nCAENHV_InitSystem: %s (num. %d) handle %d \n\n", CAENHV_GetError(sysHndl), ret,sysHndl);    
-
+  connected_=false;
+  theHandle_=-1;
+    }
   
 }
 
