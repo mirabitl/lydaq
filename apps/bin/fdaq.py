@@ -808,7 +808,16 @@ class fdaqClient:
       lcgi={}
       sr=executeFSM(self.slowhost,self.slowport,"FSLOW","CONFIGURE",lcgi)
       print sr
-      
+  def slow_start(self):
+      lcgi={}
+      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","START",lcgi)
+      print sr
+          
+  def slow_stop(self):
+      lcgi={}
+      sr=executeFSM(self.slowhost,self.slowport,"FSLOW","STOP",lcgi)
+      print sr
+          
   def slow_lvon(self):
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVON",lcgi)
@@ -950,6 +959,8 @@ grp_action.add_argument('--trig-hardreset',action='store_true',help=' send a har
 grp_action.add_argument('--slc-create',action='store_true',help='Create the DimSlowControl object to control WIENER crate and BMP sensor')
 grp_action.add_argument('--slc-initialisesql',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
 grp_action.add_argument('--slc-configure',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
+grp_action.add_argument('--slc-start',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
+grp_action.add_argument('--slc-stop',action='store_true',help='initiliase the mysql access specified with --account=login/pwd@host:base')
 # LV
 grp_action.add_argument('--slc-lvon',action='store_true',help='put Zup LV ON')
 grp_action.add_argument('--slc-lvoff',action='store_true',help='put Zup LV OFF')
@@ -1417,6 +1428,14 @@ elif(results.slc_configure):
     r_cmd='initialiseDB'
     fdc.slow_configure()
     exit(0)
+elif(results.slc_start):
+    r_cmd='initialiseDB'
+    fdc.slow_start()
+    exit(0)
+elif(results.slc_stop):
+    r_cmd='initialiseDB'
+    fdc.slow_stop()
+    exit(0)
 elif(results.slc_lvon):
     r_cmd='LVON'
     sr=fdc.slow_lvon()
@@ -1456,6 +1475,34 @@ elif(results.slc_hvstatus):
         print 'Please specify the channels --first=# --last=#'
         exit(0)
     sr=fdc.slow_hvstatus(results.first,results.last)
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn(r_cmd,sr)
+    exit(0)
+elif(results.slc_hvon):
+    r_cmd='hvStatus'
+    if (results.first==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr=fdc.slow_hvon(results.first,results.last)
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn(r_cmd,sr)
+    exit(0)
+elif(results.slc_hvoff):
+    r_cmd='hvStatus'
+    if (results.first==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last==None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr=fdc.slow_hvoff(results.first,results.last)
     if (results.verbose):
         print sr
     else:
