@@ -49,7 +49,7 @@ std::map<uint32_t,std::string> lydaq::TdcMessageHandler::scanNetwork(std::string
   std::stringstream ss;
   ss<<"echo $(seq 254) | xargs -P255 -I% -d\" \" ping -W 1 -c 1 "<<base<<"% | grep -E \"[0-1].*?:\" | awk '{print $4}' | awk 'BEGIN{FS=\":\"}{print $1}'";
   std::string res=lmexec(ss.str().c_str());
-  //std::cout<<"On obtinet \n"<<res;
+  std::cout<<"On obtinet \n"<<res;
   //getchar();
   std::stringstream ss1(res.c_str());
   std::string to;
@@ -77,7 +77,7 @@ std::map<uint32_t,std::string> lydaq::TdcMessageHandler::scanNetwork(std::string
       printf("\t  %s is not known on the DNS \n", x.c_str());
     else
     {
-      //printf("%s is %x  %s\n", x.c_str(),ip.s_addr, hp->h_name);
+      printf("%s is %x  %s\n", x.c_str(),ip.s_addr, hp->h_name);
       //m.insert(std::pair<uint32_t,std::string>(ip.s_addr,std::string(hp->h_name)));
       m.insert(std::pair<uint32_t,std::string>(ip.s_addr,x));
     }

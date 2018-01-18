@@ -49,48 +49,74 @@ class mod1470:
         print self.ser.readline()
 
     def status(self,ch):
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:POL\r\n" % (self.board,ch))
+        vset=0;iset=0;vmon=0;imon=0;rup=0;rdw=0;polarity=0;cstatus=0;
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:POL\r" % (self.board,ch))
         
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Polarity: ",rc[2].split(":")[1]
+            #print "Polarity: ",rc[2].split(":")
+            if (rc[2].split(":")[1][0] == "-"):
+                polarity=-1
+            else:
+                polarity=1
         else:
             print rc
             
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:STAT\r\n" % (self.board,ch))
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:STAT\r" % (self.board,ch))
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Status: ",rc[2].split(":")[1]
+            #print "Status: ",rc[2].split(":")[1]
+            cstatus=int(rc[2].split(":")[1])
         else:
             print rc
 
 
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:VSET\r\n" % (self.board,ch))
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:VSET\r" % (self.board,ch))
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Vset: ",rc[2].split(":")[1]
+            #print "Vset: ",rc[2].split(":")[1]
+            vset=float(rc[2].split(":")[1])
         else:
             print rc
 
 
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:ISET\r\n" % (self.board,ch))
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:ISET\r" % (self.board,ch))
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Iset: ",rc[2].split(":")[1]
+            #print "Iset: ",rc[2].split(":")[1]
+            iset=float(rc[2].split(":")[1])
         else:
             print rc
 
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:VMON\r\n" % (self.board,ch))
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:VMON\r" % (self.board,ch))
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Vmon: ",rc[2].split(":")[1]
+            #print "Vmon: ",rc[2].split(":")[1]
+            vmon=float(rc[2].split(":")[1])
         else:
             print rc
 
-        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:IMON\r\n" % (self.board,ch))
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:IMON\r" % (self.board,ch))
         rc=self.ser.readline().split(",")
         if (len(rc)==3):
-            print "Imon: ",rc[2].split(":")[1]
+            #print "Imon: ",rc[2].split(":")[1]
+            imon=float(rc[2].split(":")[1])
         else:
             print rc
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:RUP\r" % (self.board,ch))
+        rc=self.ser.readline().split(",")
+        if (len(rc)==3):
+            #print "RampUp: ",rc[2].split(":")[1]
+            rup=float(rc[2].split(":")[1])
+        else:
+            print rc
+        self.ser.write("$BD:%d,CMD:MON,CH:%d,PAR:RDW\r" % (self.board,ch))
+        rc=self.ser.readline().split(",")
+        if (len(rc)==3):
+            #print "RampDown: ",rc[2].split(":")[1]
+            rdw=float(rc[2].split(":")[1])
+        else:
+            print rc
+        print "|%f|%d|%d|%d|%f|%f|%f|%f|%f|%f|" % (time.time(),ch,polarity,cstatus,vset,iset,vmon,imon,rup,rdw)
+
 
