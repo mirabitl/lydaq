@@ -69,6 +69,29 @@ class TdcAccess:
             except Exception, e:
                 print e.getMessage()
             a.setModified(1)
+    def Correct6BDac(self,idif,iasic,cor):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+
+        for a in self.asics:
+            if (a.getInt("DIF_ID") != idif ):
+                continue;
+            if (a.getInt("HEADER") != iasic):
+                continue;
+
+            vg=a.getIntVector("DAC6B")
+            for ich in range(32):
+                print " Dac changed",idif,iasic,ich,vg[ich],cor[ich]
+                vg[ich]=vg[ich]+cor[ich]
+
+            try:
+                a.setIntVector("DAC6B",vg)
+            except Exception, e:
+                print e.getMessage()
+            a.setModified(1)
     def ChangeMask(self,idif,iasic,ich,mask):
         """
         Modify gain of all asics by a factor gain1/gain0 on HR2
