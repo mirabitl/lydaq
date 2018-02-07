@@ -13,6 +13,10 @@ using namespace lydaq;
 hih8000::hih8000()
 {
   Setup () ;
+  _temperature[0]=0;
+  _temperature[1]=0;
+  _humidity[0]=0;
+  _humidity[1]=0;
 }
  
 hih8000::~hih8000()
@@ -70,7 +74,7 @@ int hih8000::Read()
 
     int reading_temp = (buf[2] << 6) + (buf[3] >> 2);
     double temperature = reading_temp / 16382.0 * 165.0 - 40;
-    //printf("Temperature: %f\n", temperature);
+    printf("Temperature 1: %f %f\n", temperature,humidity);
     _humidity[1] =  (humidity);
     _temperature[1] = (temperature) + 273.15;
   }
@@ -100,8 +104,9 @@ int hih8000::Read()
     int reading_temp = (buf[2] << 6) + (buf[3] >> 2);
     double temperature = reading_temp / 16382.0 * 165.0 - 40;
     //printf("Temperature: %f\n", temperature);
+    printf("Temperature 0: %f %f\n", temperature,humidity);
     _humidity[0] =  humidity;
-    _temperature[0] =  temperature;
+    _temperature[0] =  temperature + 273.15;
   }
 
   return 0;

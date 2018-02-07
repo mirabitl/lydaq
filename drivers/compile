@@ -1,5 +1,7 @@
 cd Bmp;scons install -j4;cd -
 cd hih8000;scons install -j4;cd -
+cd N1470;scons install -j4;cd -
+cd GPIO;scons install -j4;cd -
 cd Caen;scons install -j4;cd -
 cd Ftdi;scons install -j4;cd -
 cd Dif;scons install -j4;cd -

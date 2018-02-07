@@ -1,5 +1,7 @@
 cd Bmp;scons -c install;cd -
 cd hih8000;scons -c install;cd -
+cd N1470;scons -c install;cd -
+cd GPIO;scons -c install;cd -
 cd Caen;scons -c install;cd -
 cd Ftdi;scons -c install;cd -
 cd Dif;scons -c install;cd -
