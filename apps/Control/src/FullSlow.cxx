@@ -242,9 +242,11 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      if (!p_param.empty()) this->parameters()["gpio"]=p_param;
 
 	      //printf("Gpio client %x \n",_gpioClient);
-	      _gpioClient->sendTransition("CONFIGURE");
+	      _gpioClient->sendTransition("OPEN");
 	      _gpioClient->sendCommand("VMEON");
+	      ::sleep(1);
 	      _gpioClient->sendCommand("VMEOFF");
+	      ::sleep(1);
 	      _gpioClient->sendCommand("VMEON");
 	      
 	    }
