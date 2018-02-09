@@ -49,9 +49,6 @@ Json::Value lydaq::LGPIOServer::status()
        r["vset"]=5;
    r["vout"]=5;
    r["iout"]=1.11;
-   if (abs(1-abs(vset-vout)/vset)<0.8)
-     r["status"]="OFF";
-   else
      r["status"]="ON";
      }
    else
@@ -59,10 +56,7 @@ Json::Value lydaq::LGPIOServer::status()
        r["vset"]=5;
        r["vout"]=0;
        r["iout"]=0;
-       if (abs(1-abs(vset-vout)/vset)<0.8)
 	 r["status"]="OFF";
-       else
-	 r["status"]="ON";
      }
 
    unlock();
