@@ -477,6 +477,12 @@ if (_caenClient==NULL && _isegClient==NULL)
 
 void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  if (_gpioClient!=NULL){
+
+    _gpioClient->sendCommand("DIFON");
+    response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
+    return;
+  }
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("ON");
@@ -495,6 +501,13 @@ void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response
 }
 void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  if (_gpioClient!=NULL){
+
+    _gpioClient->sendCommand("DIFOFF");
+    response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
+    return;
+  }
+
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("OFF");
@@ -515,6 +528,13 @@ void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
 }
 void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+    if (_gpioClient!=NULL){
+
+    _gpioClient->sendCommand("STATUS");
+    response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
+    return;
+  }
+
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("STATUS");
