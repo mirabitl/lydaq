@@ -662,6 +662,7 @@ void lydaq::LDIFServer::prepareDevices()
   for ( std::map<uint32_t,LDIF*>::iterator it=theDIFMap_.begin();it!=theDIFMap_.end();it++)
     if (it->second!=NULL) delete it->second;
   theDIFMap_.clear();
+  system("/bin/rm /var/log/pi/ftdi_devices");
   system("/opt/dhcal/bin/ListDevices.py");
   std::string line;
   std::ifstream myfile ("/var/log/pi/ftdi_devices");
