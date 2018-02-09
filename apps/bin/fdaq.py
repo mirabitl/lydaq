@@ -48,6 +48,12 @@ def parseReturn(command,sr,res=None):
         ssj=sj["answer"]["STATUS"]
         print "\033[1m %10s %10s  \033[0m" % ('P','T')
         print " %10.2f %10.2f " % (ssj['pressure'],ssj['temperature']+273.15)
+    if (command=="HUMSTATUS"):
+        sj=json.loads(sr)
+        
+        ssj=sj["answer"]["STATUS"]
+        print "\033[1m %10s %10s %10s %10s  \033[0m" % ('H0','T0','H1','T1')
+        print " %10.2f %10.2f %10.2f %10.2f " % (ssj['humidity0'],ssj['temperature0'],ssj['humidity11'],ssj['temperature1'])
     if (command=="PTCOR"):
         sj=json.loads(sr)
         
@@ -837,6 +843,11 @@ class fdaqClient:
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","PTSTATUS",lcgi)
       return sr
+  
+  def slow_humstatus(self):
+      lcgi={}
+      sr=executeCMD(self.slowhost,self.slowport,"FSLOW","HUMSTATUS",lcgi)
+      return sr
 
 
   def slow_hvstatus(self,first,last):
@@ -969,6 +980,7 @@ grp_action.add_argument('--slc-lvstatus',action='store_true',help='Dump LV statu
 #grp_action.add_argument('--slc-loadreferences',action='store_true',help='load in the wiener crate chambers references voltage download from DB')
 grp_action.add_argument('--slc-hvstatus',action='store_true',help='display hvstatus of all channel of the wiener crate')
 grp_action.add_argument('--slc-ptstatus',action='store_true',help='display the P and T from the BMP183 readout')
+grp_action.add_argument('--slc-humstatus',action='store_true',help='display the Humidity and T from the HIH8000 readout')
 grp_action.add_argument('--slc-ptcor',action='store_true',help='display the needed voltage for --v0=v --p0=p (mbar) --t0=t (K)')
 
 #grp_action.add_argument('--slc-setperiod',action='store_true',help='set the readout period of Wiener and BMP with --period=second(s)')
@@ -1526,6 +1538,21 @@ elif(results.slc_ptstatus):
         print sr
     else:
         parseReturn('PTSTATUS',sr)
+#    if (fdc.slowhost==None or fdc.slowport==None):
+#      print "No WSLOW application exiting"
+#      exit(0)
+#    lcgi.clear()
+    #lcgi['channel']=99;
+#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
+#    print sr
+    exit(0)
+elif(results.slc_humstatus):
+    r_cmd='PT'
+    sr=fdc.slow_humstatus()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn('HUMSTATUS',sr)
 #    if (fdc.slowhost==None or fdc.slowport==None):
 #      print "No WSLOW application exiting"
 #      exit(0)
