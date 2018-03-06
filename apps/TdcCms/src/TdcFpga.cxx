@@ -50,6 +50,20 @@ void lydaq::TdcFpga::addChannels(uint8_t* buf,uint32_t size_buf)
   uint8_t ll=8;
   uint64_t rabcid=buf[ll+ll-1]|((uint64_t) buf[ll+ll-2]<<8)|((uint64_t) buf[ll+ll-3]<<16)|((uint64_t) buf[ll+ll-4]<<24)|((uint64_t) buf[ll+ll-5]<<32)|((uint64_t)buf[ll+ll-6]<<40);
   uint32_t rgtc= buf[ll+1]|((uint32_t) buf[ll]<<8);
+
+  // Firmware bug at least one line ie 16 bytes should be read
+
+  if (size_buf==8)
+    {
+      _event++;
+      this->processEventTdc();
+      _channels.clear();
+      _startIdx=0;
+      _nBuffers=0;
+      _gtc=rgtc+1;
+      _lastGtc=_gtc;
+      return;
+    }
   if (rgtc==_lastGtc)
     {
       _abcid=rabcid;
@@ -136,7 +150,9 @@ void lydaq::TdcFpga::processEventTdc()
  
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_abcid,_gtc,idx);
+      if (_event%100==0)
+	printf("Publish %d %d GTC %d %ld channels %d \n",_mezzanine,_event,_gtc,_abcid,_channels.size());
     }
-  if (_event%100==0 )
-    std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
+  //if (_event%100==0 )
+  //  std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
 }
