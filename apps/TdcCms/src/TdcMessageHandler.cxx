@@ -172,6 +172,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     
   }
   p.first+=linelength;
+  #define NODUMPCHANNELS
   #ifdef DUMPCHANNELS
   ss<<"Header \n ";
   #endif
@@ -185,9 +186,10 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
     
   ss<<"\n";
 #endif
+  #define NODEBUGBUF
   #ifdef DEBUGBUF
   std::cout<<ss.str()<<std::endl;
-  getchar();
+  //getchar();
   #endif
   uint32_t length=(ntohs(sptr[1+linelength/2]))&0xFFFF;
   length=p.second[LINELENGTH-1];
@@ -235,7 +237,7 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
       }
     }
   ss<<"\n";
-  std::cout<<ss.str()<<std::endl;
+  std::cout<<ss.str()<<std::endl<<std::fflush;
 #endif
   // Found the GTC
   uint8_t* buf=p.second;
@@ -244,8 +246,10 @@ void lydaq::TdcMessageHandler::parseTdcData(NL::Socket* socket,ptrBuf& p) throw 
   uint64_t abcid=buf[ll+ll-1]|((uint64_t) buf[ll+ll-2]<<8)|((uint64_t) buf[ll+ll-3]<<16)|((uint64_t) buf[ll+ll-4]<<24)|((uint64_t) buf[ll+ll-5]<<32)|((uint64_t)buf[ll+ll-6]<<40);
   uint32_t gtc= buf[ll+1]|((uint32_t) buf[ll]<<8);
   if (gtc%100==0)
-    printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %lx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
+    printf("End of data readout Mezzanine %d ,%d bytes read, ABCID %llx , GTC %d lines %d  \n", difidx,p.first,abcid,gtc,nlines);
 
+  //std::cout<<"DEBUG "<<nlines<<" "<<p.first<<" "<<gtc<<std::endl<<std::fflush;
+    fflush(stdout);
   // TEST
   _tdc[difidx]->addChannels(p.second,p.first);
   p.first=0;

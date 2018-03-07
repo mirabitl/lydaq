@@ -151,8 +151,8 @@ void lydaq::TdcFpga::processEventTdc()
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_abcid,_gtc,idx);
       if (_event%100==0)
-	printf("Publish %d %d GTC %d %ld channels %d \n",_mezzanine,_event,_gtc,_abcid,_channels.size());
+	printf("Publish %d %d GTC %d %llx channels %d \n",_mezzanine,_event,_gtc,_abcid,_channels.size());
     }
   //if (_event%100==0 )
-  //  std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::flush;
+  //std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::fflush;
 }
