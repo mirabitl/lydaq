@@ -139,8 +139,11 @@ void lydaq::TdcManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResp
 
   if (_msh==NULL) return;
   
-  uint32_t nc=atol(request.get("value","4294967295").c_str());
+  //uint32_t nc=atol(request.get("value","4294967295").c_str());
+uint32_t nc;
+sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
   
+  LOG4CXX_INFO(_logLdaq,"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
   this->setMask(nc);
   response["MASK"]=nc;
 }
