@@ -13,3 +13,4 @@ cd Zup;scons -c install;cd -
 cd Bmp;scons -c install;cd -
 cd hih8000;scons -c install;cd -
 cd Genesys;scons -c install;cd -
+cd monitoring;scons -c install;cd -
