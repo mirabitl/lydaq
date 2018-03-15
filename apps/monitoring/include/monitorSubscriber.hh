@@ -34,7 +34,8 @@ namespace lydaq
     std::string hardware(){return _hardware;}
     time_t time(){return _time;}
     Json::Value status(){return _status;}
-    zmq::socket_t& socket(){return (*_socket);} 
+    zmq::socket_t& socket(){return (*_socket);}
+    std::string address(){return _address;}
   private:
     zmq::socket_t *_socket;
     std::string _address;

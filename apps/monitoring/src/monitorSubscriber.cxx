@@ -22,13 +22,18 @@ static int sqliteCallback(void *NotUsed, int argc, char **argv, char **azColName
    return 0;
 }
 
-lydaq::monitorItem::monitorItem(std::string add, zmq::context_t &c) : _address(add),_location(""),_hardware(""),_time(0)
+lydaq::monitorItem::monitorItem(std::string add, zmq::context_t &c) : _address(add),_location(""),_hardware(""),_time(0),_socket(0)
 {
 
   _socket =new zmq::socket_t(c, ZMQ_SUB);
+  assert(_socket);
   _socket->connect(_address.c_str());
+  _socket->setsockopt( ZMQ_SUBSCRIBE, "", 0);
+
   _item.socket = (*_socket);
-  _item.events = ZMQ_POLLIN;
+   _item.events = ZMQ_POLLIN;
+   _item.fd=0;
+   _item.revents=0;
   
 }
 lydaq::monitorItem::~monitorItem()
@@ -82,7 +87,7 @@ void lydaq::monitorSubscriber::clear()
 }
 void lydaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
 {
-  //  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
 
   
   if (m->content().isMember("dbname"))
@@ -156,6 +161,7 @@ void lydaq::monitorSubscriber::openSqlite(std::string dbname)
 }
 void lydaq::monitorSubscriber::start(zdaq::fsmmessage* m)
 {
+   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
   _running=true;
   g_d.create_thread(boost::bind(&lydaq::monitorSubscriber::poll,this));
 }
@@ -176,17 +182,31 @@ void lydaq::monitorSubscriber::poll()
   int rc;
   //Initialise pollitems
   _nItems= _items.size();
+ 
   for (int i=0;i<_nItems;i++)
-    _pollitems[i]=_items[i]->item();
+    {
+      //memset(&_pollitems[i],0,sizeof(zmq::pollitem_t));
+      _pollitems[i]=_items[i]->item();
+      /*
+      _pollitems[i].socket=_items[i]->socket();
+      _pollitems[i].fd=0;
+      _pollitems[i].events=ZMQ_POLLIN;
+      _pollitems[i].revents=0;
+      */
+    }
   // Loop
   std::vector<std::string> strs;
-
-  while (_running)
+  LOG4CXX_INFO(_logLdaq," Polling started: "<<_nItems);
+    while (_running)
     {
+      LOG4CXX_DEBUG(_logLdaq," Polling loop: "<<_nItems);
+
       rc=zmq::poll (&_pollitems [0], _nItems, 3000);
+
+      LOG4CXX_DEBUG(_logLdaq," Polling results: "<<rc);
       if (rc==0) continue;
       for (uint16_t i=0;i<_nItems;i++)
-        if (_items[i]->item().revents & ZMQ_POLLIN) {
+        if (_pollitems[i].revents & ZMQ_POLLIN) {
 
 
 	  std::string address = s_recv (_items[i]->socket());
@@ -208,7 +228,7 @@ void lydaq::monitorSubscriber::poll()
 	  
 	  time_t tr;
 	  sscanf(strs[2].c_str(),"%lld",(long long *) &tr);
-	  printf("Message receive :\n \t Hardware: %s \n \t Location %s \n \t Time: %lld \n %s \n",strs[0].c_str(),strs[1].c_str(),(long long) tr,contents.c_str());
+	  //printf("Message receive :\n \t Hardware: %s \n \t Location %s \n \t Time: %lld \n %s \n",strs[0].c_str(),strs[1].c_str(),(long long) tr,contents.c_str());
 	  // Fill DB
 	  if (_dbname.length()>0)
 	    {
@@ -217,9 +237,10 @@ void lydaq::monitorSubscriber::poll()
 	      if( rc ) {
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(_db));
 		return;
-	      } else {
-		fprintf(stdout, "Opened database successfully\n");
 	      }
+	      // else {
+	      // 	fprintf(stdout, "Opened database successfully\n");
+	      // }
 
 	      std::stringstream sql;   
 	      /* Create SQL statement */
@@ -230,9 +251,10 @@ void lydaq::monitorSubscriber::poll()
 	      if( rc != SQLITE_OK ){
 		fprintf(stderr, "SQL error: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);
-	      } else {
-		fprintf(stdout, "Records created successfully\n");
 	      }
+	      // else {
+	      // 	fprintf(stdout, "Records created successfully\n");
+	      // }
 
 	      sqlite3_close(_db);
 	    }
