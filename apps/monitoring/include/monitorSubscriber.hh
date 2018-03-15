@@ -20,9 +20,9 @@
 #include <boost/bind.hpp>
 #include <sqlite3.h> 
 #include <stdlib.h>
+#include "ReadoutLogger.hh"
 
-
-namespace zdaq
+namespace lydaq
 {
   class monitorItem {
   public:

@@ -22,7 +22,7 @@ static int sqliteCallback(void *NotUsed, int argc, char **argv, char **azColName
    return 0;
 }
 
-zdaq::monitorItem::monitorItem(std::string add, zmq::context_t &c) : _address(add),_location(""),_hardware(""),_time(0)
+lydaq::monitorItem::monitorItem(std::string add, zmq::context_t &c) : _address(add),_location(""),_hardware(""),_time(0)
 {
 
   _socket =new zmq::socket_t(c, ZMQ_SUB);
@@ -31,11 +31,11 @@ zdaq::monitorItem::monitorItem(std::string add, zmq::context_t &c) : _address(ad
   _item.events = ZMQ_POLLIN;
   
 }
-zdaq::monitorItem::~monitorItem()
+lydaq::monitorItem::~monitorItem()
 {
   if (_socket!=NULL) delete _socket;
 }
-void zdaq::monitorItem::processData(std::string address,std::string contents)
+void lydaq::monitorItem::processData(std::string address,std::string contents)
 {
   std::vector<std::string> strs;
   strs.clear();
@@ -48,19 +48,19 @@ void zdaq::monitorItem::processData(std::string address,std::string contents)
   
 }
 
-zdaq::monitorSubscriber::monitorSubscriber(std::string name) : zdaq::baseApplication(name), _running(false),_dbname(""),_context(0)
+lydaq::monitorSubscriber::monitorSubscriber(std::string name) : zdaq::baseApplication(name), _running(false),_dbname(""),_context(0)
 {
   //_fsm=this->fsm();
   this->fsm()->addState("PAUSED");
   this->fsm()->addState("RUNNING");
   
-  this->fsm()->addTransition("INITIALISE","CREATED","PAUSED",boost::bind(&zdaq::monitorSubscriber::initialise, this,_1));
-  this->fsm()->addTransition("START","PAUSED","RUNNING",boost::bind(&zdaq::monitorSubscriber::start, this,_1));
-  this->fsm()->addTransition("STOP","RUNNING","PAUSED",boost::bind(&zdaq::monitorSubscriber::stop, this,_1));
-  this->fsm()->addTransition("DESTROY","PAUSED","CREATED",boost::bind(&zdaq::monitorSubscriber::destroy, this,_1));
+  this->fsm()->addTransition("INITIALISE","CREATED","PAUSED",boost::bind(&lydaq::monitorSubscriber::initialise, this,_1));
+  this->fsm()->addTransition("START","PAUSED","RUNNING",boost::bind(&lydaq::monitorSubscriber::start, this,_1));
+  this->fsm()->addTransition("STOP","RUNNING","PAUSED",boost::bind(&lydaq::monitorSubscriber::stop, this,_1));
+  this->fsm()->addTransition("DESTROY","PAUSED","CREATED",boost::bind(&lydaq::monitorSubscriber::destroy, this,_1));
 
   
- this->fsm()->addCommand("STATUS",boost::bind(&zdaq::monitorSubscriber::c_status,this,_1,_2)); 
+ this->fsm()->addCommand("STATUS",boost::bind(&lydaq::monitorSubscriber::c_status,this,_1,_2)); 
   
 
   char* wp=getenv("WEBPORT");
@@ -70,7 +70,7 @@ zdaq::monitorSubscriber::monitorSubscriber(std::string name) : zdaq::baseApplica
     this->fsm()->start(atoi(wp));
     }
 }
-void zdaq::monitorSubscriber::clear()
+void lydaq::monitorSubscriber::clear()
 {
   if (_context==0) return;
   for (auto x:_items)
@@ -80,7 +80,7 @@ void zdaq::monitorSubscriber::clear()
   _context=0;
   
 }
-void zdaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
+void lydaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
 {
   //  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
 
@@ -112,7 +112,7 @@ void zdaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
 	  const Json::Value& book = *it;
 	  std::cout<<"Registering "<<(*it).asString()<<std::endl;
 
-	  zdaq::monitorItem* item=new  zdaq::monitorItem((*it).asString(),(*_context));
+	  lydaq::monitorItem* item=new  lydaq::monitorItem((*it).asString(),(*_context));
 	  _items.push_back(item);
 	  array_keys.append((*it).asString());
 
@@ -120,7 +120,7 @@ void zdaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
     }
   
 }
-void zdaq::monitorSubscriber::openSqlite(std::string dbname)
+void lydaq::monitorSubscriber::openSqlite(std::string dbname)
 {
  char *zErrMsg = 0;
  int rc;
@@ -154,23 +154,23 @@ void zdaq::monitorSubscriber::openSqlite(std::string dbname)
    }
    sqlite3_close(_db);
 }
-void zdaq::monitorSubscriber::start(zdaq::fsmmessage* m)
+void lydaq::monitorSubscriber::start(zdaq::fsmmessage* m)
 {
   _running=true;
-  g_d.create_thread(boost::bind(&zdaq::monitorSubscriber::poll,this));
+  g_d.create_thread(boost::bind(&lydaq::monitorSubscriber::poll,this));
 }
 
-void zdaq::monitorSubscriber::stop(zdaq::fsmmessage* m)
+void lydaq::monitorSubscriber::stop(zdaq::fsmmessage* m)
 {
   _running=false;
   g_d.join_all();
 }
-void zdaq::monitorSubscriber::destroy(zdaq::fsmmessage* m)
+void lydaq::monitorSubscriber::destroy(zdaq::fsmmessage* m)
 {
   _running=false;
   this->clear();
 }
-void zdaq::monitorSubscriber::poll()
+void lydaq::monitorSubscriber::poll()
 {
   char *zErrMsg = 0;
   int rc;
@@ -243,7 +243,7 @@ void zdaq::monitorSubscriber::poll()
     
 }
 
-void zdaq::monitorSubscriber::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::monitorSubscriber::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   //  LOG4CXX_INFO(_logLdaq," Trig ext setting called ");
 

@@ -3,44 +3,11 @@ import  os
 import re
 import sys
 
-def SWIGSharedLibrary(env, library, sources, **args):
-  swigre = re.compile('(.*).i')
-  if env.WhereIs('swig') is None:
-    sourcesbis = []
-    for source in sources:
-      cName = swigre.sub(r'\1_wrap.c', source)
-      cppName = swigre.sub(r'\1_wrap.cc', source)
-      if os.path.exists(cName):
-        sourcesbis.append(cName)
-      elif os.path.exists(cppName):
-        sourcesbis.append(cppName)
-      else:
-        sourcesbis.append(source)
-  else:
-    sourcesbis = sources
- 
-  if 'SWIGFLAGS' in args:
-    args['SWIGFLAGS'] += ['-python']
-  else:
-    args['SWIGFLAGS'] = ['-python'] + env['SWIGFLAGS']
-  args['SHLIBPREFIX']=""
-  if sys.version >= '2.5':
-    args['SHLIBSUFFIX']=".pyd"
- 
-  cat=env.SharedLibrary(library, sourcesbis, **args)
-  return cat
- 
-
-
-# environment
-#import xdaq
-#print xdaq.INCLUDES
-#print xdaq.LIBRARY_PATHS
-#print xdaq.LIBRARIES
 
 #print "----------------------------------------------"
 Decider('MD5-timestamp')
-ZDAQ_ROOT="/opt/zdaq"
+ZDAQROOT=os.getenv("ZDAQROOT")
+LYDAQROOT=os.getenv("LYDAQROOT")
 
 fres=os.popen('uname -r')
 kl=fres.readline().split(".")
@@ -78,101 +45,94 @@ else:
   boostsystem='boost_system-mt'
   boostthread='boost_thread-mt'
 
-#Library ROOT + some of XDAQ + DB 
-ROOT_LIBS=[lib[2:] for lib in filter(lambda x: (x[:2]=="-l"), commands.getoutput("$ROOTSYS/bin/root-config --libs --ldflags --glibs").split(" "))
-]
-ROOT_LIBS.append('XMLIO')
-ROOT_LIBPATH=[lib[2:] for lib in filter(lambda x: (x[:2]=="-L"), commands.getoutput("$ROOTSYS/bin/root-config --libs ").split(" "))]
 
-
+package=os.path.basename(os.getcwd())
   
 
 Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 
 # includes
-INCLUDES=['include',"/usr/include/boost141/","/usr/include/jsoncpp","/opt/zdaq/include"]
-
-INCLUDES.append(commands.getoutput("python -c 'import distutils.sysconfig as conf; print conf.get_python_inc()'"))
-
+INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
-CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86",  "-DXERCES=2", "-DDAQ_VERSION_2","-std=c++11"]
-LIBRARIES=['pthread', 'm', 'z','stdc++',boostsystem,boostthread,'curl','zmq','jsoncpp','zdaq','sqlite3']
+CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','zdaq','z','log4cxx','sqlite3']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python
 if (Bit64):
-  LIBRARY_PATHS=["/usr/lib64","/usr/local/lib","/opt/dhcal/lib"]
+  LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 else:
-  LIBRARY_PATHS=["/usr/lib","/usr/local/lib","/opt/dhcal/levbdim/lib"]
-LIBRARY_PATHS.append(commands.getoutput("python -c 'import distutils.sysconfig as conf; print conf.PREFIX'")+"/lib")
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 
 if (Use_Mongoose):
   LIBRARY_PATHS.append('/usr/local/lib')
   LIBRARIES.append('mongoose')
   INCLUDES.append('/usr/local/include/')
   INCLUDES.append('/usr/local/include/mongoose')
- 
-  
+
+Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
+Use_Oracle=False
+if (Use_Oracle):
+  INCLUDES.append("/usr/include/ILCConfDB")
+
+
+if (Use_Oracle):
+  LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
+  if (not Arm):
+      LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]
 
-# SWIG
-SWIGSF=["-c++","-classic"]
-
-for i in INCLUDES:
-    SWIGSF.append("-I"+i)
-print SWIGSF
 
 # Create the Environment
-env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS,SWIGFLAGS=SWIGSF)
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
 
 #print "CC is:",env.subst('$CPPPATH')
 
-env['BUILDERS']['PythonModule'] = SWIGSharedLibrary
+
+
+
+#print "CC is:",env.subst('$CPPPATH')
+
 
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/*.cxx")
+#LIBRARY_SOURCES=Glob("#src/*.cc")
 
 #print LIBRARY_SOURCES
+LIBRARY_SOURCES=['src/monitorSubscriber.cxx']
+
+print LIBRARY_SOURCES
+
+
 #Shared library
-lzdaq=env.SharedLibrary("#lib/mdaq",LIBRARY_SOURCES)
+lyname="#lib/lydaq_app_"+package
+print "building ",lyname
+lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
+
 
 
 
 #Daemon 
 EXE_LIBPATH=LIBRARY_PATHS
-EXE_LIBPATH.append("#lib")
+EXE_LIBPATH.append("./lib")
 EXE_LIBS=LIBRARIES
-EXE_LIBS.append("zdaq")
-
-#plugbase=env.SharedLibrary("lib/binarywriter",source="src/pluggins/binarywriter.cc",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-
+EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
-#mpub=env.Program("bin/mpubserver",source="src/mpubserver.cpp",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(mpub)
-#mcoll=env.Program("bin/mpubcollector",source="src/mpubcollector.cpp",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(mcoll)
-#mbuil=env.Program("bin/mpubbuilder",source="src/mpubbuilder.cpp",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(mbuil)
-#mtestfsm=env.Program("bin/testfsm",source="src/utils/testfsm.cpp",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(mtestfsm)
-#mtestb=env.Program("bin/testbuilder",source="src/utils/testbuilder.cpp",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(mtestb)
 
-#pljc=env.Program("bin/ljc",source="src/utils/ljc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(pljc)
-
-#myinc=[]
-#for x in Glob("#include/*.hh"):
-#  myinc.append("include/"+x.name)
+mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/monitorDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+plist.append(mdccd)
+myinc=[]
+for x in Glob("#include/*.hh"):
+  myinc.append("include/"+x.name)
 #print plist
-#env.Install(DHCAL_ROOT+"/opt/dhcal/lib",levbdimdaq)
-#env.Install(DHCAL_ROOT+"/opt/dhcal/bin",plist)
+env.Install("../lib",lypack)
+env.Install("../bin",plist)
+env.Install("../include",myinc)
 ###env.Install("/opt/dhcal/lib",levbdimdaq)
-###env.Install("/opt/dhcal/include/readout",myinc)
 
-#env.Alias('install', [DHCAL_ROOT+"/opt/dhcal/lib",DHCAL_ROOT+"/opt/dhcal/bin"])
+
+env.Alias('install', ["../lib","../bin","../include"])
 
 
 
