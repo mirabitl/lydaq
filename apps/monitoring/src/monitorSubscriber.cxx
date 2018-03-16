@@ -48,6 +48,7 @@ void lydaq::monitorItem::processData(std::string address,std::string contents)
   _hardware=strs[0];
   _location=strs[1];
   sscanf(strs[2].c_str(),"%lld",(long long *) &_time);
+  _status.clear();
   Json::Reader reader;
   bool parsingSuccessful = reader.parse(contents,_status);
   
@@ -222,7 +223,8 @@ void lydaq::monitorSubscriber::poll()
 
 
 	  std::string contents ;
-	  contents.assign((char*) message.data());
+	  contents.clear();
+	  contents.assign((char*) message.data(),message.size());
 
 	  _items[i]->processData(address,contents);
 	  
