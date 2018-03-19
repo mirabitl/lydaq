@@ -54,7 +54,7 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',"/usr/include/boost141/","/usr/include/jsoncpp"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
-LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp']
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','sqlite3','mysqlclient']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python

@@ -11,3 +11,4 @@ cd Genesys;scons install -j4;cd -
 cd Zup;scons install -j4;cd -
 cd Wiener;scons install -j4;cd -
 cd utils/netLink;scons install -j4;cd -
+cd TmvDb;scons install -j4;cd -

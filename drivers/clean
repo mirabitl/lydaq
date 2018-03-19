@@ -11,5 +11,6 @@ cd Genesys;scons -c install;cd -
 cd Zup;scons -c install;cd -
 cd Wiener;scons -c install;cd -
 cd utils/netLink;scons -c install;cd -
+cd TmvDb;scons -c install;cd -	     
 rm -rf lib/*
 rm -rf include/*
