@@ -80,6 +80,10 @@ if (Use_Oracle):
   if (not Arm):
       LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
 
+# Tomuvol patch
+
+LIBRARIES+=['lydaq_TmvDb']
+      
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]
 

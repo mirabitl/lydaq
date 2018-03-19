@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <json/json.h>
-
+#include "TmvAccessSql.hh"
 namespace lydaq
 {
 class FullDaq : public zdaq::baseApplication
@@ -82,6 +82,8 @@ private:
   std::string _dbstate;
   uint32_t _ctrlreg,_run;
   Json::Value _jConfigContent;
+  // Add-ons for Tomuvol
+  TmvAccessSql _tmv;
 };
 };
 #endif
