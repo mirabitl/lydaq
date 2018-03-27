@@ -77,6 +77,7 @@ Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
 
 if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
+  INCLUDES.append("/usr/include/ILCConfDB/occi11")
 
 if (Use_Oracle):
     if ( not Arm):

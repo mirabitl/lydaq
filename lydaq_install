@@ -72,6 +72,10 @@ git clone git@gitlab.in2p3.fr:gbaulieu/ILCConfDB.git
 cd ILCConfDB/ILCConfDB/src
 make 
 sudo make install
+sudo ln -s /opt/ILCConfDB/ILCConfDB/include/occi11/ /usr/include/ILCConfDB/
+sudo ln -s /usr/lib/libocci.so.11.1 /usr/lib/libocci.so
+sudo ln -s /usr/lib/libclntsh.so.11.1 /usr/lib/libclntsh.so
+
 #### ZDAQ
 cd $ZDAQROOT
 scons -j4
