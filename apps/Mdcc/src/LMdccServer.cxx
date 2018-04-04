@@ -334,7 +334,7 @@ void lydaq::LMdccServer::c_setregister(Mongoose::Request &request, Mongoose::Jso
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t adr=atol(request.get("address","2").c_str());
   uint32_t val=atol(request.get("value","0").c_str());
-  LOG4CXX_INFO(_logLdaq,"Set register called "<<adr<<" => "<<val);
+  LOG4CXX_INFO(_logLdaq,"Set register called with "<<adr<<" => "<<val);
 
   _mdcc->writeRegister(adr,val);
 
@@ -344,13 +344,14 @@ void lydaq::LMdccServer::c_setregister(Mongoose::Request &request, Mongoose::Jso
 }
 void lydaq::LMdccServer::c_getregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"Set register called ");
+  LOG4CXX_INFO(_logLdaq,"Get register called ");
   if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
   uint32_t adr=atol(request.get("address","2").c_str());
+  LOG4CXX_INFO(_logLdaq,"Get register called with "<<adr);
 
   response["STATUS"]="DONE";
   response["VALUE"]=_mdcc->readRegister(adr);
-
+  //std::cout<<response<<std::endl;
 }
 void lydaq::LMdccServer::c_setcalibregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
