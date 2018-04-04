@@ -328,6 +328,42 @@ void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose
   response["VALUE"]=nc;
 
 }
+void lydaq::LMdccServer::c_setregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Set register called ");
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t adr=atol(request.get("address","2").c_str());
+  uint32_t val=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Set register called "<<adr<<" => "<<val);
+
+  _mdcc->writeRegister(adr,val);
+
+  response["STATUS"]="DONE";
+  response["VALUE"]=_mdcc->readRegister(adr);
+
+}
+void lydaq::LMdccServer::c_getregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Set register called ");
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t adr=atol(request.get("address","2").c_str());
+
+  response["STATUS"]="DONE";
+  response["VALUE"]=_mdcc->readRegister(adr);
+
+}
+void lydaq::LMdccServer::c_setcalibregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Calib register called ");
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t nc=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Calib register called "<<nc);
+  _mdcc->setCalibRegister(nc);
+
+  response["STATUS"]="DONE";
+  response["VALUE"]=nc;
+
+}
 
 void lydaq::LMdccServer::c_settrigext(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -511,9 +547,12 @@ lydaq::LMdccServer::LMdccServer(std::string name) : zdaq::baseApplication(name),
  _fsm->addCommand("RELOADCALIB",boost::bind(&lydaq::LMdccServer::c_reloadcalib,this,_1,_2));
  _fsm->addCommand("SETCALIBCOUNT",boost::bind(&lydaq::LMdccServer::c_setcalibcount,this,_1,_2));
  _fsm->addCommand("SETSPILLREGISTER",boost::bind(&lydaq::LMdccServer::c_setspillregister,this,_1,_2));
+  _fsm->addCommand("SETCALIBREGISTER",boost::bind(&lydaq::LMdccServer::c_setcalibregister,this,_1,_2));
  _fsm->addCommand("SETHARDRESET",boost::bind(&lydaq::LMdccServer::c_sethardreset,this,_1,_2));
  _fsm->addCommand("SETTRIGEXT",boost::bind(&lydaq::LMdccServer::c_settrigext,this,_1,_2));
 
+ _fsm->addCommand("SETREG",boost::bind(&lydaq::LMdccServer::c_setregister,this,_1,_2));
+ _fsm->addCommand("GETREG",boost::bind(&lydaq::LMdccServer::c_getregister,this,_1,_2));
 
  
   

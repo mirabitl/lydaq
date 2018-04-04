@@ -48,10 +48,15 @@ namespace lydaq
     void c_calibon(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_caliboff(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_resettdc(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setcalibregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_setspillregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_sethardreset(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
     void c_settrigext(Mongoose::Request &request, Mongoose::JsonResponse &response);
+
+    void c_setregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_getregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    
   private:
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;
