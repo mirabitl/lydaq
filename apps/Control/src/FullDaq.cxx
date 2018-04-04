@@ -69,13 +69,17 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _fsm->addCommand("SETHARDRESET",boost::bind(&FullDaq::triggerHardReset,this,_1,_2));
     _fsm->addCommand("CALIBCOUNT",boost::bind(&FullDaq::triggerCalibCount,this,_1,_2));
     _fsm->addCommand("CALIBON",boost::bind(&FullDaq::triggerCalibOn,this,_1,_2));
+    _fsm->addCommand("CALIBREGISTER",boost::bind(&FullDaq::triggerCalibRegister,this,_1,_2));
     _fsm->addCommand("RELOADCALIB",boost::bind(&FullDaq::triggerReloadCalib,this,_1,_2));
     _fsm->addCommand("SET6BDAC",boost::bind(&FullDaq::tdcSet6bDac,this,_1,_2));
     _fsm->addCommand("SETVTHTIME",boost::bind(&FullDaq::tdcSetVthTime,this,_1,_2));
     _fsm->addCommand("SETMASK",boost::bind(&FullDaq::tdcSetMask,this,_1,_2));
     _fsm->addCommand("SETRUNHEADER",boost::bind(&FullDaq::setRunHeader,this,_1,_2));
-	
+
     
+    _fsm->addCommand("TRIGGERSETREG",boost::bind(&FullDaq::triggerSetRegister,this,_1,_2));
+    _fsm->addCommand("TRIGGERGETREG",boost::bind(&FullDaq::triggerGetRegister,this,_1,_2));
+
   cout<<"Building FullDaq"<<endl;
   
 
@@ -1204,6 +1208,40 @@ void FullDaq::triggerCalibOn(Mongoose::Request &request, Mongoose::JsonResponse 
   else
     _mdccClient->sendCommand("CALIBON");
   response["CALIBON"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::triggerCalibRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+  uint32_t nc=atoi(request.get("value","4").c_str());
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+   std::stringstream sp;sp<<"&value="<<nc;
+  _mdccClient->sendCommand("SETCALIBREGISTER",sp.str());
+ 
+  response["CALIBREGISTER"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::triggerSetRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+  uint32_t adr=atoi(request.get("address","2").c_str());
+  uint32_t value=atoi(request.get("value","0").c_str());
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  std::stringstream sp;sp<<"&value="<<value<<"&address="<<adr;
+  _mdccClient->sendCommand("SETREG",sp.str());
+ 
+  response["REGISTER"]==_mdccClient->answer()["answer"]["VALUE"];
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::triggerGetRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+  uint32_t adr=atoi(request.get("address","2").c_str());
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  std::stringstream sp;sp<<"&address="<<adr;
+  _mdccClient->sendCommand("GETREG",sp.str());
+ 
+  response["REGISTER"]==_mdccClient->answer()["answer"]["VALUE"];
   response["STATUS"]="DONE";
   return;
 }

@@ -61,12 +61,15 @@ public:
    void triggerHardReset(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerCalibCount(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerCalibOn(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void triggerCalibRegister(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerReloadCalib(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSet6bDac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetVthTime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setRunHeader(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcstatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void triggerSetRegister(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void triggerGetRegister(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
   
   std::string state(){return _fsm->state();}
