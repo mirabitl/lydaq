@@ -48,7 +48,7 @@ namespace lydaq
     uint32_t calibCount();
     void setCalibCount(uint32_t nc);
 
-
+    void setCalibRegister(uint32_t nc);
     void setSpillRegister(uint32_t nc);
     uint32_t spillRegister();
     void useSPSSpill(bool t);

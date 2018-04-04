@@ -110,6 +110,8 @@ void lydaq::MDCCHandler::calibOff(){this->writeRegister(0x8,0x0);}
 uint32_t lydaq::MDCCHandler::calibCount(){return this->readRegister(0xa);}
 void lydaq::MDCCHandler::setCalibCount(uint32_t nc){this->writeRegister(0xa,nc);}
 
+void lydaq::MDCCHandler::setCalibRegister(uint32_t nc){this->writeRegister(0x8,nc);}
+
 uint32_t lydaq::MDCCHandler::hardReset(){return this->readRegister(0xc);}
 void lydaq::MDCCHandler::setHardReset(uint32_t nc){this->writeRegister(0xc,nc);}
 
