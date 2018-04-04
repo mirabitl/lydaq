@@ -465,6 +465,10 @@ class fdaqClient:
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","DIFSTATUS",lcgi)
       return sr
+  def daq_tdcstatus(self):
+      lcgi={}
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
+      return sr
       
   def daq_evbstatus(self):
       lcgi={}
@@ -568,6 +572,18 @@ class fdaqClient:
       lcgi["value"]=value
       
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SPILLREGISTER",lcgi)
+      print sr    
+  def trig_setregister(self,address,value):
+      lcgi={}
+      lcgi["address"]=address
+      lcgi["value"]=value
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TRIGGERSETREG",lcgi)
+      print sr    
+  def trig_getregister(self,address):
+      lcgi={}
+      lcgi["address"]=address
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TRIGGERGETREG",lcgi)
       print sr    
 
   def trig_hardreset(self):
@@ -928,6 +944,7 @@ grp_action.add_argument('--daq-services',action='store_true',help='Triggers teh 
 grp_action.add_argument('--daq-initialise',action='store_true',help=' initialise the DAQ')
 grp_action.add_argument('--daq-configure',action='store_true',help=' configure the DAQ')
 grp_action.add_argument('--daq-status',action='store_true',help=' display DAQ status of all DIF')
+grp_action.add_argument('--daq-tdcstatus',action='store_true',help=' display DAQ status of all TDC')
 grp_action.add_argument('--daq-state',action='store_true',help=' display DAQ state')
 grp_action.add_argument('--daq-evbstatus',action='store_true',help=' display event builder status')
 grp_action.add_argument('--daq-startrun',action='store_true',help=' start the run')
@@ -963,6 +980,8 @@ grp_action.add_argument('--trig-calibon',action='store_true',help=' set the valu
 grp_action.add_argument('--trig-calibcount',action='store_true',help=' set the value of the calibcount register --value=xx ')
 grp_action.add_argument('--trig-rearm',action='store_true',help=' reload calib  ')
 grp_action.add_argument('--trig-hardreset',action='store_true',help=' send a hard reset to mezzanines ')
+grp_action.add_argument('--trig-setregister',action='store_true',help=' set the value of the Mdcc register --value=xx --address=yy')
+grp_action.add_argument('--trig-getregister',action='store_true',help=' get the value of the Mdcc register  --address=yy')
 
 
 
@@ -1039,6 +1058,7 @@ parser.add_argument('--host', action='store', dest='host',default=None,help='hos
 parser.add_argument('--jobname', action='store', dest='jobname',default=None,help='job name')
 parser.add_argument('--jobpid', action='store', type=int,dest='jobpid',default=None,help='job pid')
 parser.add_argument('--value', action='store', type=int,dest='value',default=None,help='value to pass')
+parser.add_argument('--address', action='store', type=int,dest='address',default=None,help='address to pass')
 
 
 parser.add_argument('-v','--verbose',action='store_true',default=False,help='Raw Json output')
@@ -1225,6 +1245,14 @@ elif(results.daq_status):
     else:
         parseReturn(r_cmd,sr)
     exit(0)
+elif(results.daq_tdcstatus):
+    r_cmd='tdcstatus'
+    sr=fdc.daq_tdcstatus()
+    if (results.verbose):
+        print sr
+    else:
+        parseReturn(r_cmd,sr)
+    exit(0)
 elif(results.daq_evbstatus):
     r_cmd='shmStatus'
     sr=fdc.daq_evbstatus()
@@ -1377,6 +1405,25 @@ elif(results.trig_spillregister):
         fdc.trig_spillregister(results.value)
     else:
         print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_setregister):
+    r_cmd='triggerSetRegister'
+    if (results.value==None):
+        print 'Please specify the value --value=xx'
+        exit(0)
+    if (results.address==None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr=fdc.trig_setregister(results.address,results.value)
+    print sr
+    exit(0)
+elif(results.trig_getregister):
+    r_cmd='triggerGetRegister'
+    if (results.address==None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr=fdc.trig_getregister(results.address)
+    print sr
     exit(0)
 elif(results.trig_calibon):
     r_cmd='triggerSpillRegister'
