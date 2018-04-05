@@ -82,10 +82,13 @@ scons -j4
 #### LYDAQ
 cd $LYDAQROOT
 . compile
-/opt/lydaq/deploys.sh localhost
+/opt/lydaq/deploy.sh localhost
 sudo cp $ZDAQROOT/etc/difdim.cfg /etc
 sudo cp $ZDAQROOT/etc/ljc.conf /etc
 sudo cp $ZDAQROOT/etc/Log4cxxConfig.xml /etc
 sudo cp $ZDAQROOT/etc/mystartup.sh /etc/init.d/
+cp $LYDAQROOT/etc/* /opt/dhcal/etc
+cp $LYDAQROOT/etc/.pythonrc /opt/dhcal/etc
+sudo cp /opt/dhcal/etc/*.py /usr/lib/python2.7/dist-packages/
 sudo /etc/init.d/mystartup.sh start
 sudo chmod o-w /opt
