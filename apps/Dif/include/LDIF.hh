@@ -36,9 +36,14 @@ public:
   // initialise
   void initialise(zdaq::zmPusher* p=NULL);
   // configure
-  void difConfigure(uint32_t ctrl);
+  //void difConfigure(uint32_t ctrl);
+  void difConfigure(uint32_t ctrlreg,uint32_t p2pa=0x4e,uint32_t pa2pd=0x3e6,uint32_t pd2daq=0x4e,uint32_t daq2dr=0x4e,uint32_t d2ar=0x4e);
+
+
+  
   void chipConfigure();
-  void configure(uint32_t ctrl);
+  //void configure(uint32_t ctrl,uint32_t l1=0x4e,uint32_t l2=0x3e6,uint32_t l3=0x4e,uint32_t l4=0x4e,uint32_t l5=0x4e);
+  void configure(uint32_t ctrl,uint32_t l1=0,uint32_t l2=0,uint32_t l3=0,uint32_t l4=0,uint32_t l5=0);
   // Start Stop
   void start();
   void readout();

@@ -193,7 +193,7 @@ void lydaq::LDIF::destroy()
     }
 
 }
-void lydaq::LDIF::difConfigure(uint32_t ctrlreg)
+void lydaq::LDIF::difConfigure(uint32_t ctrlreg,uint32_t p2pa,uint32_t pa2pd,uint32_t pd2daq,uint32_t daq2dr,uint32_t d2ar)
 {
   if (_rd==NULL)
     {
@@ -202,7 +202,9 @@ void lydaq::LDIF::difConfigure(uint32_t ctrlreg)
       return;
     }
   
-  _rd->setPowerManagment(0x8c52, 0x3e6,0xd640,0x4e,0x4e);// Start decale de 36000 clock (8b68 a la place de 43 ECAL needs)
+  //_rd->setPowerManagment(0x8c52, 0x3e6,0xd640,0x4e,0x4e);// Start decale de 36000 clock (8b68 a la place de 43 ECAL needs)
+  _rd->setPowerManagment(p2pa, pa2pd,pd2daq,daq2dr,d2ar);// Start decale de 36000 clock (8b68 a la place de 43 ECAL needs)
+  //_rd->setPowerManagment(0x4e, 0x3e6,0x4e,0x4e,0x4e);// old value
   _rd->setControlRegister(ctrlreg);
   try
     {
@@ -252,9 +254,9 @@ void lydaq::LDIF::chipConfigure()
 		
 
 }
-void lydaq::LDIF::configure(uint32_t ctrlreg)
+void lydaq::LDIF::configure(uint32_t ctrlreg,uint32_t l1,uint32_t l2,uint32_t l3,uint32_t l4,uint32_t l5)
 {
-  this->difConfigure(ctrlreg);
+  this->difConfigure(ctrlreg,l1,l2,l3,l4,l5);
   if (_state.compare("DIF_CONFIGURED")!=0)
     {
       _status->slc=0;
