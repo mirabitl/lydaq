@@ -82,6 +82,17 @@ def parseReturn(command,sr,res=None):
             #print d
             #for d in x["difs"]:
             print '#%4d %5x %6d %12d %12d %15s %s ' % (d["id"],d["slc"],d["gtc"],d["bcid"],d["bytes"],d["host"],d["state"])
+    if (command=="tdcstatus" and not results.verbose):
+
+        sj=json.loads(sr)
+        ssj=sj["answer"]["tdclist"][0]
+        print "\033[1m %4s %6s %6s %12s %5s  \033[0m" % ('DIF','SLC','EVENT','BCID','DETID')
+
+        for d in ssj:
+            #print d
+            #for d in x["difs"]:
+            #print ((d["sourceid"]-10)/256,d["event"],d["gtc"],d["abcid"],d["detid"])
+            print '#%4d %6d %6d %12d %5d ' % ((d["sourceid"]-10)/256,d["event"],d["gtc"],d["abcid"],d["detid"])
     if (command=="dbStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
@@ -1361,7 +1372,7 @@ elif(results.daq_ctrlreg):
     else:
         print 'Please specify the value --ctrlreg=0X######'
         exit(0)
-    fdc.daq_ctrlreg(lct)
+    fdc.daq_ctrlreg(results.ctrlreg)
     exit(0)
 
 elif(results.trig_status):
