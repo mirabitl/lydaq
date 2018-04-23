@@ -479,6 +479,7 @@ class fdaqClient:
   def daq_tdcstatus(self):
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
+      print sr
       return sr
       
   def daq_evbstatus(self):
