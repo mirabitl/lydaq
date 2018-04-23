@@ -167,12 +167,17 @@ void lydaq::TdcManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonR
 
 void lydaq::TdcManager::initialise(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logLdaq,"****** CMD: "<<m->command());
+//  std::cout<<"m= "<<m->command()<<std::endl<<m->content()<<std::endl;
+
+  Json::Value jtype=this->parameters()["type"];
+  _type=jtype.asInt();
+  printf ("_type =%d\n",_type); 
 
    // Need a TDC tag
    if (m->content().isMember("tdc"))
      {
+     printf ("found tdc/n");
        this->parameters()["tdc"]=m->content()["tdc"];
      }
    if (!this->parameters().isMember("tdc"))
@@ -441,11 +446,11 @@ void lydaq::TdcManager::setVthTime(uint32_t vth)
 void lydaq::TdcManager::start(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
   // Create run file
   Json::Value jc=m->content();
   _run=jc["run"].asInt();
-  _type=jc["type"].asInt();
+
   // Clear evnt number
    for (uint32_t i=0;i<MAX_TDC_NB;i++)
     {
@@ -455,13 +460,25 @@ void lydaq::TdcManager::start(zdaq::fsmmessage* m)
  
   switch (_type)
     {
-    case 0:
+    case 0:		// ilc mode	
       {
 	for (auto x:_vsCtrl)
+	{
+	  this->SetILCMode(x);
 	  this->startAcquisition(x,true);
+	}
       break;
       }
-    
+    case 1:		// beamtest mode
+      {
+	for (auto x:_vsCtrl)
+	{
+	  this->SetBeamtestMode(x);	
+	  this->startAcquisition(x,true);
+ 	}	    
+      break;
+      }
+     
     }
 }
 void lydaq::TdcManager::stop(zdaq::fsmmessage* m)
@@ -586,6 +603,42 @@ void lydaq::TdcManager::startAcquisition( NL::Socket* sctrl,bool start)
   {
     throw e.msg();
   }
+}
+void lydaq::TdcManager::SetBeamtestMode( NL::Socket* sctrl)
+{
+
+ uint16_t sockbuf[0x200];
+ sockbuf[0]=htons(0xFF00);
+ sockbuf[1]=htons(1);
+ sockbuf[2]=htons(0x219);
+ sockbuf[3]=htons(1);
+  // Send the Buffer
+  try
+  {
+    sctrl->send((const void*) sockbuf,4*sizeof(uint16_t));
+  }
+  catch (NL::Exception e)
+  {
+    throw e.msg();
+  }
+}
+void lydaq::TdcManager::SetILCMode( NL::Socket* sctrl)
+{
+
+ uint16_t sockbuf[0x200];
+ sockbuf[0]=htons(0xFF00);
+ sockbuf[1]=htons(1);
+ sockbuf[2]=htons(0x219);
+ sockbuf[3]=htons(0);
+  // Send the Buffer
+  try
+  {
+    sctrl->send((const void*) sockbuf,4*sizeof(uint16_t));
+  }
+  catch (NL::Exception e)
+  {
+    throw e.msg();
+  }
 
 
 
@@ -593,3 +646,4 @@ void lydaq::TdcManager::startAcquisition( NL::Socket* sctrl,bool start)
   
   
 }
+

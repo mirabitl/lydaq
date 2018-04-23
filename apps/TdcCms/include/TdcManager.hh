@@ -43,6 +43,8 @@ public:
   void writeRamAvm(NL::Socket* sctrl,uint16_t* sa,uint16_t* sb,uint32_t sby);
   void queryCRC(NL::Socket* sctrl);
   void startAcquisition( NL::Socket* sctrl,bool start);
+  void SetBeamtestMode( NL::Socket* sctrl);
+  void SetILCMode( NL::Socket* sctrl);
   void listen();
   void dolisten();
   void set6bDac(uint8_t dac);
