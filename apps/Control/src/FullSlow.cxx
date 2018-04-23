@@ -477,49 +477,55 @@ if (_caenClient==NULL && _isegClient==NULL)
 
 void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  bool found=false;
   if (_gpioClient!=NULL){
 
     _gpioClient->sendCommand("DIFON");
     response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
   }
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("ON");
     response["STATUS"]=_genesysClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
   }
   if (_zupClient!=NULL){
 
     _zupClient->sendCommand("ON");
     response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
   }
+  if (found) return;
   LOG4CXX_ERROR(_logLdaq, "No LV client");
   response["STATUS"]=Json::Value::null;
   return;
 }
 void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  bool found=false;
   if (_gpioClient!=NULL){
 
     _gpioClient->sendCommand("DIFOFF");
     response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
   }
 
   if (_genesysClient!=NULL){
 
     _genesysClient->sendCommand("OFF");
     response["STATUS"]=_genesysClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
+
   }
   if (_zupClient!=NULL){
 
     _zupClient->sendCommand("OFF");
     response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
-    return;
+    found=true;
+
   }
+  if (found) return;
   LOG4CXX_ERROR(_logLdaq, "No LV client");
   response["STATUS"]=Json::Value::null;
   return;
@@ -528,12 +534,6 @@ void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
 }
 void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-    if (_gpioClient!=NULL){
-
-    _gpioClient->sendCommand("STATUS");
-    response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
-    return;
-  }
 
   if (_genesysClient!=NULL){
 
@@ -548,6 +548,13 @@ void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     response["STATUS"]=_zupClient->answer()["answer"]["STATUS"];
     return;
   }
+      if (_gpioClient!=NULL ){
+
+    _gpioClient->sendCommand("STATUS");
+    response["STATUS"]=_gpioClient->answer()["answer"]["STATUS"];
+    return;
+  }
+
   LOG4CXX_ERROR(_logLdaq, "No LV client");
   response["STATUS"]=Json::Value::null;
   return;
