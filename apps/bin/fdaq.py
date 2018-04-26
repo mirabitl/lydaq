@@ -748,6 +748,12 @@ class fdaqClient:
       self.trig_pause()
       return
   def daq_fullscurve(self,ch,beg,las,step=2):
+      ### petiroc to scan
+      firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
+      firmware2=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,19]
+      firmwaret=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
+      firmware=firmwaret
+      ###
       self.daq_start()
       #### commenter en dessous
       if (ch==255):
@@ -758,11 +764,14 @@ class fdaqClient:
           self.daq_stop()
           return
       if (ch==1023):
-          for ist in range(0,12):
+          #for ist in range(0,12):
+          #    self.tdc_setmask((1<<ist))
+          #    self.daq_scurve(100,200,beg,las,(1<<ist),step)
+          #    self.tdc_setmask((1<<(31-ist)))
+          #    self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
+          for ist in firmware:
               self.tdc_setmask((1<<ist))
               self.daq_scurve(100,200,beg,las,(1<<ist),step)
-              self.tdc_setmask((1<<(31-ist)))
-              self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
           self.daq_stop()
           return
       ipr=0
@@ -770,6 +779,7 @@ class fdaqClient:
           ipr=ch/2
       else:
           ipr=(31-ch/2)
+      ipr=ch
       self.tdc_setmask((1<<ipr))
       self.daq_scurve(100,50,beg,las,(1<<ipr),step)
       self.daq_stop()
