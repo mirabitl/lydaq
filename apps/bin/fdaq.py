@@ -597,6 +597,10 @@ class fdaqClient:
       lcgi["address"]=address
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TRIGGERGETREG",lcgi)
       print sr    
+  def trig_tdcreset(self):
+      lcgi={}
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETTDC",lcgi)
+      print sr    
 
   def trig_hardreset(self):
       lcgi={}
@@ -1004,6 +1008,7 @@ grp_action.add_argument('--trig-rearm',action='store_true',help=' reload calib  
 grp_action.add_argument('--trig-hardreset',action='store_true',help=' send a hard reset to mezzanines ')
 grp_action.add_argument('--trig-setregister',action='store_true',help=' set the value of the Mdcc register --value=xx --address=yy')
 grp_action.add_argument('--trig-getregister',action='store_true',help=' get the value of the Mdcc register  --address=yy')
+grp_action.add_argument('--trig-tdcreset',action='store_true',help=' hard reset of Tdc counters')
 
 
 
@@ -1445,6 +1450,11 @@ elif(results.trig_getregister):
         print 'Please specify the address --address=xx'
         exit(0)
     sr=fdc.trig_getregister(results.address)
+    print sr
+    exit(0)
+elif(results.trig_tdcreset):
+    r_cmd='trigResetTdc'
+    sr=fdc.trig_tdcreset()
     print sr
     exit(0)
 elif(results.trig_calibon):

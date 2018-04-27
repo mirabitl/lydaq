@@ -73,12 +73,14 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _fsm->addCommand("RELOADCALIB",boost::bind(&FullDaq::triggerReloadCalib,this,_1,_2));
     _fsm->addCommand("SET6BDAC",boost::bind(&FullDaq::tdcSet6bDac,this,_1,_2));
     _fsm->addCommand("SETVTHTIME",boost::bind(&FullDaq::tdcSetVthTime,this,_1,_2));
+    _fsm->addCommand("SETTDCMODE",boost::bind(&FullDaq::tdcSetMode,this,_1,_2));
     _fsm->addCommand("SETMASK",boost::bind(&FullDaq::tdcSetMask,this,_1,_2));
     _fsm->addCommand("SETRUNHEADER",boost::bind(&FullDaq::setRunHeader,this,_1,_2));
 
     
     _fsm->addCommand("TRIGGERSETREG",boost::bind(&FullDaq::triggerSetRegister,this,_1,_2));
     _fsm->addCommand("TRIGGERGETREG",boost::bind(&FullDaq::triggerGetRegister,this,_1,_2));
+    _fsm->addCommand("RESETTDC",boost::bind(&FullDaq::resetTdc,this,_1,_2));
 
   cout<<"Building FullDaq"<<endl;
   
@@ -1245,6 +1247,19 @@ void FullDaq::triggerGetRegister(Mongoose::Request &request, Mongoose::JsonRespo
   response["STATUS"]="DONE";
   return;
 }
+void FullDaq::resetTdc(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  std::stringstream sp;sp<<"&value="<<0;
+  _mdccClient->sendCommand("RESETTDC",sp.str());
+  std::stringstream sp1;sp1<<"&value="<<1;
+  _mdccClient->sendCommand("RESETTDC",sp1.str());
+  //std::cout<<"GETREG "<<_mdccClient->answer()<<std::endl;
+  response["RESET"]=_mdccClient->answer()["answer"]["VALUE"];
+  response["STATUS"]="DONE";
+  return;
+}
 
 void FullDaq::triggerReloadCalib(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
@@ -1280,6 +1295,19 @@ void FullDaq::tdcSetVthTime(Mongoose::Request &request, Mongoose::JsonResponse &
       tdc->sendCommand("SETVTHTIME",sp.str());
     }
   response["VTHTIME"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::tdcSetMode(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+
+  uint32_t nc=atoi(request.get("value","2").c_str());
+  for (auto tdc:_tdcClients)
+    {
+      std::stringstream sp;sp<<"&value="<<nc;
+      tdc->sendCommand("SETMODE",sp.str());
+    }
+  response["TDCMODE"]=nc;
   response["STATUS"]="DONE";
   return;
 }
