@@ -50,7 +50,9 @@ lydaq::TdcManager::TdcManager(std::string name) : zdaq::baseApplication(name), _
   _fsm->addCommand("SETVTHTIME",boost::bind(&lydaq::TdcManager::c_setvthtime,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::TdcManager::c_setMask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::TdcManager::c_downloadDB,this,_1,_2));
-  
+
+  _fsm->addCommand("SETMODE",boost::bind(&lydaq::TdcManager::c_setMode,this,_1,_2));
+
   
   
  
@@ -86,6 +88,7 @@ void lydaq::TdcManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
       jt["gtc"]=_msh->tdc(i)->gtc();
       jt["abcid"]=(Json::Value::UInt64)_msh->tdc(i)->abcid();
       jt["event"]=_msh->tdc(i)->event();
+      jt["triggers"]=_msh->tdc(i)->triggers();
       jl.append(jt);
     }
   response["TDCSTATUS"]=jl;
@@ -146,6 +149,18 @@ sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
   LOG4CXX_INFO(_logLdaq,"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
   this->setMask(nc);
   response["MASK"]=nc;
+}
+void lydaq::TdcManager::c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"SetMode called ");
+  response["STATUS"]="DONE";
+
+
+   uint32_t mode=atol(request.get("value","2").c_str());
+   if (mode!=2)
+     _type=mode;
+   LOG4CXX_INFO(_logLdaq,"SetMode called with"<<mode<<" "<<_type );
+  response["MODE"]=_type;
 }
 void lydaq::TdcManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -462,6 +477,7 @@ void lydaq::TdcManager::start(zdaq::fsmmessage* m)
     {
     case 0:		// ilc mode	
       {
+	LOG4CXX_INFO(_logLdaq," Starting ILC "<<_type);
 	for (auto x:_vsCtrl)
 	{
 	  this->SetILCMode(x);
@@ -471,6 +487,7 @@ void lydaq::TdcManager::start(zdaq::fsmmessage* m)
       }
     case 1:		// beamtest mode
       {
+	LOG4CXX_INFO(_logLdaq," Starting Beamtest "<<_type);
 	for (auto x:_vsCtrl)
 	{
 	  this->SetBeamtestMode(x);	

@@ -36,6 +36,7 @@ public:
   void c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   

@@ -23,7 +23,7 @@
 using namespace lydaq;
 using namespace zdaq;
 
-lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m),_lastGtc(0),_startIdx(0),_event(0),_adr(adr),_dsData(NULL),_triggerId(24)
+lydaq::TdcFpga::TdcFpga(uint32_t m,uint32_t adr) :_abcid(0),_gtc(0),_mezzanine(m),_lastGtc(0),_startIdx(0),_event(0),_ntrg(0),_adr(adr),_dsData(NULL),_triggerId(24)
 {
   _channels.clear();
   _nBuffers=0;
@@ -42,6 +42,7 @@ void lydaq::TdcFpga::clear()
 {
   _gtc=0;
   _event=0;
+  _ntrg=0;
   _lastGtc=0;
 }
 void lydaq::TdcFpga::addChannels(uint8_t* buf,uint32_t size_buf)
@@ -55,6 +56,7 @@ void lydaq::TdcFpga::addChannels(uint8_t* buf,uint32_t size_buf)
 
   if (size_buf==8)
     {
+      printf("\t ====================> bad buffer structure %d \n",_lastGtc);
       _event++;
       this->processEventTdc();
       _channels.clear();
@@ -66,6 +68,7 @@ void lydaq::TdcFpga::addChannels(uint8_t* buf,uint32_t size_buf)
     }
   if (rgtc==_lastGtc)
     {
+      // printf(" ====================> buffer extension %d from %d add %d \n",rgtc,_channels.size(),(int) buf[8]);
       _abcid=rabcid;
       _gtc=rgtc;
       uint32_t nlines=buf[7];
@@ -81,6 +84,7 @@ void lydaq::TdcFpga::addChannels(uint8_t* buf,uint32_t size_buf)
     }
   else
     {
+      // printf(" ====================> New event writing %d with %d chans \n",_lastGtc,_channels.size());
       _event++;
       this->processEventTdc();
       _channels.clear();
@@ -113,6 +117,7 @@ void lydaq::TdcFpga::processEventTdc()
 	{
 	  trbcid=x.bcid();
 	  printf("Trigger %x %d %d %ld %d %x %f \n ", _adr,_mezzanine,_gtc,_abcid,_channels.size(),trbcid,x.tdcTime());
+	  _ntrg++;
 	  //  break;
 	}
     }
@@ -125,15 +130,16 @@ void lydaq::TdcFpga::processEventTdc()
   int nch=0;
   for (auto x:_channels)
   	{
-   ss<<boost::format("\t %d %d %f ") % (int) x.channel() % (int) x.bcid() % x.tdcTime();
-  if (x.channel()!=16 && (x.bcid()>(trbcid-4) && x.bcid()<(trbcid+4)))
+   //ss<<boost::format("\t %d %d %f ") % (int) x.channel() % (int) x.bcid() % x.tdcTime();
+  if (x.channel()!=_triggerId && (x.bcid()>(trbcid-4) && x.bcid()<(trbcid+4)))
    {
+   ss<<boost::format("\t %d %d %f ") % (int) x.channel() % (int) x.bcid() % x.tdcTime();
    ss<<"---> found\n";
    }
-  else
-   ss<<"\n";
+  //else
+  // ss<<"\n";
   nch++;
-  if (nch>40) {ss<<" and more.. \n";break;}
+  //if (nch>40) {ss<<" and more.. \n";break;}
   }
   std::cout<<ss.str()<<std::flush;
 

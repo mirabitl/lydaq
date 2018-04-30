@@ -25,6 +25,7 @@ public:
   uint64_t abcid(){return _abcid;}
   uint32_t gtc(){return _gtc;}
   uint32_t event(){return _event;}
+  uint32_t triggers(){return _ntrg;}
   void clear();
   void connect(zmq::context_t* c,std::string dest);
 private:
@@ -32,7 +33,7 @@ private:
   uint8_t _buf[0x100000];
   vector<TdcChannel> _channels;
   uint64_t _abcid;
-  uint32_t _gtc,_lastGtc,_event,_detid,_id;
+  uint32_t _gtc,_lastGtc,_event,_detid,_id,_ntrg;
   uint32_t _nBuffers;
   zdaq::zmPusher* _dsData;
   std::string _sdir;
