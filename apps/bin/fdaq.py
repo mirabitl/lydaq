@@ -85,14 +85,14 @@ def parseReturn(command,sr,res=None):
     if (command=="tdcstatus" and not results.verbose):
 
         sj=json.loads(sr)
-        ssj=sj["answer"]["tdclist"][0]
-        print "\033[1m %4s %6s %6s %12s %5s  \033[0m" % ('DIF','SLC','EVENT','BCID','DETID')
+        ssj=sj["answer"]["tdclist"]
+        print "\033[1m %4s %6s %6s %12s %5s %5s \033[0m" % ('DIF','SLC','EVENT','BCID','DETID','TRIGS')
 
         for d in ssj:
             #print d
             #for d in x["difs"]:
             #print ((d["sourceid"]-10)/256,d["event"],d["gtc"],d["abcid"],d["detid"])
-            print '#%4d %6d %6d %12d %5d ' % ((d["sourceid"]-10)/256,d["event"],d["gtc"],d["abcid"],d["detid"])
+            print '#%4d %6d %6d %12d %5d %5d ' % ((d[0]["sourceid"]-10)/256,d[0]["gtc"],d[0]["event"],d[0]["abcid"],d[0]["detid"],d[0]["triggers"])
     if (command=="dbStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
@@ -325,11 +325,11 @@ class fdaqClient:
     lcgi={}
 
     for x,y in self.p_conf["HOSTS"].iteritems():
-        print "HOST ",x
+        #print "HOST ",x
         sr=executeCMD(x,9999,"LJC-%s" % x,"STATUS",lcgi)
         sj=json.loads(sr)
         ssj=sj["answer"]["JOBS"]
-        print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID','NAME','HOST','STATUS')
+        #print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID','NAME','HOST','STATUS')
         for x in ssj:
             print "%6d %15s %25s %20s" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
         
@@ -479,7 +479,7 @@ class fdaqClient:
   def daq_tdcstatus(self):
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
-      print sr
+      #print sr
       return sr
       
   def daq_evbstatus(self):
