@@ -153,11 +153,20 @@ void lydaq::TdcFpga::processEventTdc()
 	  idx+=8;
       
 	}
- 
+#ifdef ALLEVENTS
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_abcid,_gtc,idx);
       if (_event%100==0)
 	printf("Publish %d %d GTC %d %llx channels %d \n",_mezzanine,_event,_gtc,_abcid,_channels.size());
+#else
+      if (trbcid>0 || _event%10000==0)
+	{
+      memcpy((unsigned char*) _dsData->payload(),temp,idx);
+      _dsData->publish(_abcid,_gtc,idx);
+
+      printf("Publish %d %d GTC %d %llx channels %d \n",_mezzanine,_event,_gtc,_abcid,_channels.size());
+	}
+#endif
     }
   //if (_event%100==0 )
   //std::cout<<"read=>"<<_mezzanine<<" "<<_event<<" "<<_gtc<<" "<<_abcid<<" "<<_channels.size()<<std::endl<<std::fflush;
