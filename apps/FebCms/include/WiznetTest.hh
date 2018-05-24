@@ -9,20 +9,24 @@
 #include <zlib.h>
 #include <iostream>
 #include "ReadoutLogger.hh"
+#include "baseApplication.hh"
 
 namespace lydaq
 {
 
-  class WiznetTest 
+  class WiznetTest : public zdaq::baseApplication
 {
 public:
   WiznetTest(std::string address,uint16_t portslc,uint16_t porttdc);
+  void c_start(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_stop(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  
   void processBuffer(uint16_t l,char* b);
   void processPacket();   
   void initialise();
   void start();
   void stop();
-  void endOfBuffer();
   inline bool isStart(uint16_t *b) {return (*b)==0XCAFE;}
   inline bool isEnd(uint16_t *b) {return (*b)==0XEFAC;}
 private:
@@ -32,8 +36,7 @@ private:
   lydaq::WiznetInterface* _wiznet;
   lydaq::WiznetMessage* _msg;
 
-  uint8_t _buf[32*1024];
-  uint8_t* _payload;
+  uint16_t _buf[32*1024];
   uint16_t _idx;
   uint16_t _currentLength,_packetNb;
   

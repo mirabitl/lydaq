@@ -1,10 +1,36 @@
 #include "WiznetTest.hh"
 lydaq::WiznetTest::WiznetTest(std::string address,uint16_t portslc,uint16_t porttdc)
-  : _address(address),_portslc(portslc),_porttdc(porttdc),_idx(0),_sBuf(0),_lBuf(0),_currentLength(0)
+  :  zdaq::baseApplication("WIZNET"),_address(address),_portslc(portslc),_porttdc(porttdc),_idx(0),_sBuf(0),_lBuf(0),_currentLength(0)
 {
   _wiznet= new lydaq::WiznetInterface();
   _msg=new lydaq::WiznetMessage();
   memset(_buf,0,32*1024);
+  this->fsm()->addCommand("START",boost::bind(&lydaq::WiznetTest::c_start,this,_1,_2));
+  this->fsm()->addCommand("STOP",boost::bind(&lydaq::WiznetTest::c_stop,this,_1,_2));
+  this->fsm()->addCommand("STATUS",boost::bind(&lydaq::WiznetTest::c_status,this,_1,_2));
+  this->fsm()->start(30000);
+}
+void lydaq::WiznetTest::c_start(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Start CMD called ");
+  this->start();
+  response["STATUS"]="CA MARCHE PAS CETTE MERDE";
+}
+void lydaq::WiznetTest::c_stop(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Stop CMD called ");
+  this->stop();
+  response["STATUS"]="CA MARCHE PAS CETTE MERDE Ete ne plus on s'arrete";
+}
+void lydaq::WiznetTest::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"Status CMD called ");
+  this->stop();
+  Json::Value jrep;
+  jrep["packets"]=_packetNb;
+  jrep["packetLength"]=_currentLength;
+  
+  response["STATUS"]=jrep;
 }
 
 void lydaq::WiznetTest::initialise()
