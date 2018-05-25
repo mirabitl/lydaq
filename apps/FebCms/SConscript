@@ -124,8 +124,10 @@ EXE_LIBS=LIBRARIES
 EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
 
-testtdc=env.Program("bin/lydaq_testtdc",source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-#plist.append(testtdc)
+#testtdc=env.Program("bin/lydaq_testtdc",source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+
+plist.append(tdcd)
 myinc=[]
 for x in Glob("#include/*.hh"):
   myinc.append("include/"+x.name)

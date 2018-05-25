@@ -25,7 +25,7 @@ public:
   void processBuffer(uint16_t l,char* b);
   void processPacket();   
   void initialise();
-  void start();
+  void start(uint16_t nc=1);
   void stop();
   inline bool isStart(uint16_t *b) {return (*b)==0XCAFE;}
   inline bool isEnd(uint16_t *b) {return (*b)==0XEFAC;}
@@ -36,9 +36,9 @@ private:
   lydaq::WiznetInterface* _wiznet;
   lydaq::WiznetMessage* _msg;
 
-  uint16_t _buf[32*1024];
+  uint8_t _buf[32*1024];
   uint16_t _idx;
-  uint16_t _currentLength,_packetNb;
+  uint32_t _currentLength,_packetNb;
   
   uint16_t* _sBuf;
   uint32_t* _lBuf;
