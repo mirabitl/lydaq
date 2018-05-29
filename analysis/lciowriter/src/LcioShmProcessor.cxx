@@ -97,6 +97,7 @@ void LcioShmProcessor::processEvent(uint32_t gtc,std::vector<zdaq::buffer*> vbuf
     std::cout<<"Standard completion "<<theEventNumber_<<" GTC "<<gtc<<std::endl;
   for (std::vector<zdaq::buffer*>::iterator iv=vbuf.begin();iv!=vbuf.end();iv++) 
     {
+      (*iv)->uncompress();
       unsigned char* cdata=(unsigned char*) (*iv)->ptr();
       int32_t* idata=(int32_t*) cdata;
       //printf("\t writing %d bytes",idata[SHM_BUFFER_SIZE]);
