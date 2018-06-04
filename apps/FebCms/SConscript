@@ -104,7 +104,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 #LIBRARY_SOURCES=Glob("#src/*.cc")
 
 #print LIBRARY_SOURCES
-LIBRARY_SOURCES=['src/MessageHandler.cc','src/WiznetMessageHandler.cc','src/WiznetInterface.cc','src/WiznetTest.cc']
+LIBRARY_SOURCES=['src/MessageHandler.cc','src/WiznetMessageHandler.cc','src/WiznetInterface.cc','src/WiznetTest.cc','src/TdcConfigAccess.cc']
 
 print LIBRARY_SOURCES
 

@@ -112,3 +112,44 @@ void lydaq::WiznetInterface::registerDataHandler(std::string  address,uint16_t p
   uint64_t id=( (uint64_t) lydaq::WiznetMessageHandler::convertIP(address)<<32)|port;
   _msh->addHandler(id,f);
 }
+
+
+void lydaq::WiznetInterface::writeRamAvm(NL::Socket* sctrl,uint16_t* _slcAddr,uint16_t* _slcBuffer,uint32_t  _slcBytes )
+{
+  if (_slcBuffer[1]<2) return;
+  uint16_t sockbuf[0x20000];
+  sockbuf[0]=htons(0xFF00);
+  sockbuf[1]=htons(_slcBytes);
+  int idx=2;
+  for (int i=0;i<_slcBytes;i++)
+  {
+    sockbuf[idx]=htons(_slcAddr[i]);
+    sockbuf[idx+1]=htons(_slcBuffer[i]);
+    idx+=2;
+  }
+  //
+  // Creating file  with name = SLC
+  std::stringstream sb;
+  for (int i=0;i<_slcBytes-1;i++)
+  {
+   
+    sb<<std::hex<<(int)(_slcBuffer[i]&0xFF);
+  }
+  char name[2512];
+  memset(name,0,2512);
+  sprintf(name,"/dev/shm/%s/%d/%s",sctrl->hostTo().c_str(),sctrl->portTo(),sb.str().c_str());
+  int fd= ::open(name,O_CREAT| O_RDWR | O_NONBLOCK,S_IRWXU);
+    printf(" Creating %s \n",name);
+
+  ::close(fd);
+  // Send the Buffer
+  try
+  {
+    sctrl->send((const void*) sockbuf,idx*sizeof(uint16_t));
+  }
+  catch (NL::Exception e)
+  {
+    throw e.msg();
+  }
+ 
+}

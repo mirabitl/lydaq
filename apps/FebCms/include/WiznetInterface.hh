@@ -32,6 +32,9 @@ public:
   void listen();
   void sendMessage(WiznetMessage* wmsg);
   void registerDataHandler(std::string  address,uint16_t port,FEBFunctor f);
+
+  inline std::map<uint64_t,NL::Socket*>& controlSockets(){ return _vsCtrl;}
+  void writeRamAvm(NL::Socket* sctrl,uint16_t* _slcAddr,uint16_t* _slcBuffer,uint32_t  _slcBytes );
 private:
   void dolisten();
   
