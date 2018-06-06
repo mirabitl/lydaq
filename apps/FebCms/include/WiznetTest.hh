@@ -25,6 +25,7 @@ public:
   void c_packet(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
   void processBuffer(uint16_t l,char* b);
+  void processSlc(uint16_t l,char* b);
   void processPacket();   
   void initialise();
   void start(uint16_t nc=1);
