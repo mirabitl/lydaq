@@ -12,6 +12,7 @@ lydaq::WiznetTest::WiznetTest(std::string address,uint16_t portslc,uint16_t port
   this->fsm()->addCommand("STOP",boost::bind(&lydaq::WiznetTest::c_stop,this,_1,_2));
   this->fsm()->addCommand("STATUS",boost::bind(&lydaq::WiznetTest::c_status,this,_1,_2));
   this->fsm()->addCommand("PACKET",boost::bind(&lydaq::WiznetTest::c_packet,this,_1,_2));
+  this->fsm()->addCommand("MODE",boost::bind(&lydaq::WiznetTest::c_mode,this,_1,_2));
 
   this->fsm()->start(30000);
 }
@@ -20,6 +21,13 @@ void lydaq::WiznetTest::c_start(Mongoose::Request &request, Mongoose::JsonRespon
   LOG4CXX_INFO(_logLdaq,"Start CMD called ");
   uint32_t nc=atol(request.get("value","32").c_str());
   this->start(nc);
+  response["STATUS"]="CA MARCHE !";
+}
+void lydaq::WiznetTest::c_mode(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq,"MODE CMD called ");
+  uint32_t nc=atol(request.get("value","0").c_str());
+  this->mode(nc);
   response["STATUS"]="CA MARCHE !";
 }
 void lydaq::WiznetTest::c_configure(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -94,6 +102,20 @@ void lydaq::WiznetTest::start(uint16_t nc)
   _msg->_buf[2]=htons(0x220);
   _msg->_buf[3]=htons(nc);
   _wiznet->sendMessage(_msg);
+  _nProcessed=0;
+  _lastGTC=0;
+  _lastABCID=0;
+  _event=0;
+}
+void lydaq::WiznetTest::mode(uint16_t nc)
+{
+  _msg->_address=( (uint64_t) lydaq::WiznetMessageHandler::convertIP(_address)<<32)|_portslc;
+  _msg->_length =4;
+  _msg->_buf[0]=htons(0xFF00);
+  _msg->_buf[1]=htons(1);
+  _msg->_buf[2]=htons(0x219);
+  _msg->_buf[3]=htons(nc);
+  _wiznet->sendMessage(_msg);
 }
 void lydaq::WiznetTest::stop()
 {
@@ -105,15 +127,72 @@ void lydaq::WiznetTest::stop()
   _msg->_buf[3]=htons(0);
   _wiznet->sendMessage(_msg);
 }
+#define CHBYTES 6
 void lydaq::WiznetTest::processPacket()
 {
  _lBuf= (uint32_t*) &_buf[0];
  _sBuf= (uint16_t*) &_buf[0];
 
- printf ("packet %x # %d with payload length %d  and tottal size %d \n",ntohl(_lBuf[0]),ntohl(_lBuf[1]),ntohl(_lBuf[2]),_idx);
+if (ntohl(_lBuf[0])==0xcafedade)
+   {
+     if (_lastABCID!=0)
+       {
+	 // Write Event
+	 printf("new Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
+	 _chlines=0;
+       }
+
+     
+     uint32_t gtc= (_buf[7]|(_buf[6]<<8)|(_buf[5]<<16)|(_buf[4]<<24));
+     uint64_t abcid=(_buf[13]|(_buf[12]<<8)|(_buf[11]<<16)|(_buf[10]<<24)|(_buf[9]<<32));
+     _nProcessed++;
+     _event++;
+     _lastGTC=gtc;
+     _lastABCID=abcid;
+     printf("Header for new Event %d Packets %d GTC %d ABCID %llu \n",_event,_nProcessed,gtc,abcid);
+
+#ifdef DEBUGPACKET
+     printf("\n==> ");
+     for (int i=0;i<_idx;i++)
+       {
+	 printf("%.2x ",(_buf[i]));
+	 
+	 if (i%16==15)
+	   {
+	     printf("\n==> ");
+	   }
+       }
+     printf("\n");
+#endif
+     return;
+   }
+
+ 
+ _nProcessed++;
+ 
+
+ uint16_t channel = ntohs(_sBuf[2]);
+ uint16_t* tmp= (uint16_t*) &_buf[7];
+ uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
+ uint16_t nlines= ntohs(_sBuf[5]);
+ printf ("%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
-#define DEBUGPACKET
+#define DEBUGLINES
+#ifdef DEBUGLINES
+ uint8_t* cl= (uint8_t*) &_buf[12];
+
+ for (int i=0;i<nlines;i++)
+   {
+     for (int j=0;j<CHBYTES;j++)
+       printf("%.2x ",(cl[i*CHBYTES+j]));
+     printf("\n");
+     _chlines++;
+   }
+ 
+#endif 
+
+ 
 #ifdef DEBUGPACKET
 
  printf("\n==> ");
@@ -129,31 +208,13 @@ void lydaq::WiznetTest::processPacket()
    }
  printf("\n");
 
- #ifdef CAMARCHEPAS
- _cpos=0;int pos=0;
- pos=sprintf((char*) &_cpacket[0],"\n==> ");
- if (pos>0)   _cpos+=pos;
- for (int i=0;i<_idx;i++)
-   {
-     pos=sprintf((char*)&_cpacket[_cpos],"%.2x ",(_buf[i]));
-     if (pos>0)   _cpos+=pos;
-     if (i%16==15)
-       {
-	 pos+=sprintf((char*)&_cpacket[_cpos],"\n==> ");
-	 if (pos>0)   _cpos+=pos;
-       }
-   }
- pos=sprintf((char*)&_cpacket[_cpos],"\n");
- if (pos>0)   _cpos+=pos;
- printf("%s \n",_cpacket);
- #endif
  #endif
 }
 void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
 {
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
-  if (l>8192)
+  if (l>811192)
     {
     printf("\t \t ==> ERRROR %d bytes %x  %x %d lines First= %d Last= %d \n",l,ntohs(sptr[0]),ntohs(sptr[1]),ntohs(sptr[2]),ntohs(sptr[3]),ntohs(sptr[l/2-1]));
     int lines=l/2;
@@ -169,12 +230,12 @@ void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
    else
     {
       
-      printf("\t \t ==> GOOD %d bytes |%x|%x|%x|%x|%x| \n",l,ntohs(sptr[0]),ntohs(sptr[1]),ntohs(sptr[2]),ntohs(sptr[3]),ntohs(sptr[4]));
-      if (l<200)
+      //printf("\t \t ==> GOOD %d bytes |%x|%x|%x|%x|%x| \n",l,ntohs(sptr[0]),ntohs(sptr[1]),ntohs(sptr[2]),ntohs(sptr[3]),ntohs(sptr[4]));
+      if (l<2)
 	{
 	   printf("\n\t ");
 
-	   for (int i=0;i<l;i++)
+	   for (int i=0;i<32;i++)
 	     {
 	       printf("%.2x ",(uint8_t) (b[i]));
 	       
@@ -187,24 +248,29 @@ void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
 
 	}
     }
-
+  // return;
 
   int header_len=10;
   for (uint16_t ibx=0;ibx<l;ibx++)
     {
       _sBuf= (uint16_t*) &b[ibx];
       _lBuf= (uint32_t*) &b[ibx];
+      uint8_t* _cBuf= (uint8_t*) &b[ibx];
 
       //if (ntohs(_sBuf[ibx])==0xCAFE && ntohs(_sBuf[ibx+1])==0xBABE  )
-      if (ntohl(_lBuf[0]) ==0xcafebabe)
+      if (ntohl(_lBuf[0]) ==0xcafebabe || ntohl(_lBuf[0]) ==0xcafedade  )
 	{
 	  if (_currentLength>0) this->processPacket();
 	  _idx=0;
 	  _packetNb=ntohl(_lBuf[1]);
 	  //_lBuf[0]=htonl(++_packetNb);
-	  _currentLength=ntohl(_lBuf[2]);
+	  //_currentLength=ntohl(_lBuf[2]);
+	  if (ntohl(_lBuf[0]) ==0xcafebabe)
+	    _currentLength=ntohs(_sBuf[5]);
+	  else
+	    _currentLength=18;
 
-	  printf("Starting packet %d of %d bytes \n",_packetNb,_currentLength);
+	  //printf("Starting packet %d of %d bytes \n",_packetNb,_currentLength);
 	  _buf[_idx]= b[ibx];
 	  _idx++;
 	}
