@@ -27,7 +27,7 @@ public:
 
   void processBuffer(uint16_t l,char* b);
   void processSlc(uint16_t l,char* b);
-  void processPacket();   
+  bool processPacket();   
   void initialise();
   void start(uint16_t nc=1);
   void mode(uint16_t nc=0);
@@ -45,7 +45,7 @@ private:
   int32_t _cpos;
   uint8_t _buf[128*1024],_cpacket[128*1024];
   uint16_t _idx;
-  uint32_t _currentLength,_packetNb,_chlines;
+  uint32_t _expectedLength,_packetNb,_chlines;
   
   uint16_t* _sBuf;
   uint32_t* _lBuf;

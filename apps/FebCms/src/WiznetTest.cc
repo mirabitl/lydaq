@@ -2,7 +2,7 @@
 #include "TdcConfigAccess.hh"
 #include <iostream>
 lydaq::WiznetTest::WiznetTest(std::string address,uint16_t portslc,uint16_t porttdc)
-  :  zdaq::baseApplication("WIZNET"),_address(address),_portslc(portslc),_porttdc(porttdc),_idx(0),_sBuf(0),_lBuf(0),_currentLength(0)
+  :  zdaq::baseApplication("WIZNET"),_address(address),_portslc(portslc),_porttdc(porttdc),_idx(0),_sBuf(0),_lBuf(0),_expectedLength(0)
 {
   _wiznet= new lydaq::WiznetInterface();
   _msg=new lydaq::WiznetMessage();
@@ -50,7 +50,7 @@ void lydaq::WiznetTest::c_status(Mongoose::Request &request, Mongoose::JsonRespo
   this->stop();
   Json::Value jrep;
   jrep["packets"]=_packetNb;
-  jrep["packetLength"]=_currentLength;
+  jrep["packetLength"]=_expectedLength;
   
   response["STATUS"]=jrep;
 }
@@ -128,28 +128,43 @@ void lydaq::WiznetTest::stop()
   _wiznet->sendMessage(_msg);
 }
 #define CHBYTES 6
-void lydaq::WiznetTest::processPacket()
+bool lydaq::WiznetTest::processPacket()
 {
  _lBuf= (uint32_t*) &_buf[0];
  _sBuf= (uint16_t*) &_buf[0];
 
+ if (ntohl(_lBuf[0])==0xcafedade)
+   {
+     _expectedLength=18;
+   }
+ else
+   {
+     _expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
+   }
+ printf("Current length %d  ExpectedLength %d \n",_idx,_expectedLength);
+ if (_idx!=_expectedLength) return false;
 if (ntohl(_lBuf[0])==0xcafedade)
    {
      if (_lastABCID!=0)
        {
 	 // Write Event
-	 printf("new Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
+	 printf("Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
 	 _chlines=0;
        }
 
      
      uint32_t gtc= (_buf[7]|(_buf[6]<<8)|(_buf[5]<<16)|(_buf[4]<<24));
      uint64_t abcid=(_buf[13]|(_buf[12]<<8)|(_buf[11]<<16)|(_buf[10]<<24)|(_buf[9]<<32));
+     if (abcid==_lastABCID)
+       {
+	 printf("HEADER ERROR \n");
+       }
      _nProcessed++;
      _event++;
      _lastGTC=gtc;
      _lastABCID=abcid;
-     printf("Header for new Event %d Packets %d GTC %d ABCID %llu \n",_event,_nProcessed,gtc,abcid);
+     printf("Header for new Event %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
+#define DEBUGLINES
 
 #ifdef DEBUGPACKET
      printf("\n==> ");
@@ -164,7 +179,7 @@ if (ntohl(_lBuf[0])==0xcafedade)
        }
      printf("\n");
 #endif
-     return;
+     return true;
    }
 
  
@@ -178,15 +193,14 @@ if (ntohl(_lBuf[0])==0xcafedade)
  printf ("%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
-#define DEBUGLINES
 #ifdef DEBUGLINES
  uint8_t* cl= (uint8_t*) &_buf[12];
 
  for (int i=0;i<nlines;i++)
    {
-     for (int j=0;j<CHBYTES;j++)
-       printf("%.2x ",(cl[i*CHBYTES+j]));
-     printf("\n");
+     // for (int j=0;j<CHBYTES;j++)
+     //   printf("%.2x ",(cl[i*CHBYTES+j]));
+     // printf("\n");
      _chlines++;
    }
  
@@ -260,17 +274,30 @@ void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
       //if (ntohs(_sBuf[ibx])==0xCAFE && ntohs(_sBuf[ibx+1])==0xBABE  )
       if (ntohl(_lBuf[0]) ==0xcafebabe || ntohl(_lBuf[0]) ==0xcafedade  )
 	{
-	  if (_currentLength>0) this->processPacket();
-	  _idx=0;
-	  _packetNb=ntohl(_lBuf[1]);
-	  //_lBuf[0]=htonl(++_packetNb);
-	  //_currentLength=ntohl(_lBuf[2]);
-	  if (ntohl(_lBuf[0]) ==0xcafebabe)
-	    _currentLength=ntohs(_sBuf[5]);
-	  else
-	    _currentLength=18;
-
-	  //printf("Starting packet %d of %d bytes \n",_packetNb,_currentLength);
+	  if (_expectedLength>0 )
+	    if (this->processPacket())
+	      {
+		_idx=0;
+		_packetNb=ntohl(_lBuf[1]);
+		//_lBuf[0]=htonl(++_packetNb);
+		//_expectedLength=ntohl(_lBuf[2]);
+		if (ntohl(_lBuf[0]) ==0xcafebabe)
+		  _expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
+		else
+		  _expectedLength=18;
+	      }
+	  if (_expectedLength==0)
+	    {
+	      _idx=0;
+	      _packetNb=ntohl(_lBuf[1]);
+	      //_lBuf[0]=htonl(++_packetNb);
+	      //_expectedLength=ntohl(_lBuf[2]);
+	      if (ntohl(_lBuf[0]) ==0xcafebabe)
+		_expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
+	      else
+		_expectedLength=18;
+	    }
+	  //printf("Starting packet %d of %d bytes \n",_packetNb,_expectedLength);
 	  _buf[_idx]= b[ibx];
 	  _idx++;
 	}
