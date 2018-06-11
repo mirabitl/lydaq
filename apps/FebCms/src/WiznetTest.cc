@@ -73,8 +73,8 @@ void lydaq::WiznetTest::initialise()
   _wiznet->initialise();
   _wiznet->addCommunication(_address,_portslc);
   _wiznet->addDataTransfer(_address,_porttdc);
-  _wiznet->registerDataHandler(_address,_porttdc,boost::bind(&lydaq::WiznetTest::processBuffer, this,_1,_2));
-  _wiznet->registerDataHandler(_address,_portslc,boost::bind(&lydaq::WiznetTest::processSlc, this,_1,_2));
+  _wiznet->registerDataHandler(_address,_porttdc,boost::bind(&lydaq::WiznetTest::processBuffer, this,_1,_2,_3));
+  _wiznet->registerDataHandler(_address,_portslc,boost::bind(&lydaq::WiznetTest::processSlc, this,_1,_2,_3));
   _wiznet->listen();
 }
 void lydaq::WiznetTest::configure(std::string name)
@@ -224,7 +224,7 @@ if (ntohl(_lBuf[0])==0xcafedade)
 
  #endif
 }
-void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
+void lydaq::WiznetTest::processBuffer(uint64_t id,uint16_t l,char* b)
 {
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
@@ -310,7 +310,7 @@ void lydaq::WiznetTest::processBuffer(uint16_t l,char* b)
   
 
 }
-void lydaq::WiznetTest::processSlc(uint16_t l,char* b)
+void lydaq::WiznetTest::processSlc(uint64_t id,uint16_t l,char* b)
 {
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;

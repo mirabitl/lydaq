@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 typedef std::pair<uint32_t,unsigned char*> ptrBuf;
-typedef boost::function<void (uint16_t,char*)> FEBFunctor;
+typedef boost::function<void (uint64_t,uint16_t,char*)> FEBFunctor;
 
 namespace lydaq
 {

@@ -189,7 +189,7 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket) throw (std:
       return;
           
     }
-  icmd->second(p.first,(char*) p.second);
+  icmd->second(id,p.first,(char*) p.second);
   p.first=0;
   return;
 }
