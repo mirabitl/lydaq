@@ -125,7 +125,7 @@ EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
 
 #testtdc=env.Program("bin/lydaq_testtdc",source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/FebDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 
 plist.append(tdcd)
 myinc=[]
