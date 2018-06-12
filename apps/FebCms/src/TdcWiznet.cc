@@ -19,6 +19,7 @@
 #include <map>
 #include <bitset>
 #include <boost/format.hpp>
+#include <arpa/inet.h>
 
 using namespace lydaq;
 using namespace zdaq;
@@ -52,7 +53,7 @@ void lydaq::TdcWiznet::clear()
 #define CHBYTES 6
 
 
-bool lydaq::WiznetTest::processPacket()
+bool lydaq::TdcWiznet::processPacket()
 {
  uint32_t* _lBuf= (uint32_t*) &_buf[0];
  uint16_t* _sBuf= (uint16_t*) &_buf[0];
@@ -79,7 +80,7 @@ bool lydaq::WiznetTest::processPacket()
 	 // Write Event
 	 printf("Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
 	 // To be done
-	 thi->processEventTdc();
+	 this->processEventTdc();
 	 // Reset lines number
 	 _chlines=0;
        }
@@ -162,8 +163,8 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
   int header_len=10;
   for (uint16_t ibx=0;ibx<l;ibx++)
     {
-      _sBuf= (uint16_t*) &b[ibx];
-      _lBuf= (uint32_t*) &b[ibx];
+      uint16_t* _sBuf= (uint16_t*) &b[ibx];
+      uint32_t*_lBuf= (uint32_t*) &b[ibx];
       uint8_t* _cBuf= (uint8_t*) &b[ibx];
 
       if (ntohl(_lBuf[0]) ==0xcafebabe || ntohl(_lBuf[0]) ==0xcafedade  )
@@ -172,7 +173,6 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 	    if (this->processPacket())
 	      {
 		_idx=0;
-		_packetNb=ntohl(_lBuf[1]);
 		if (ntohl(_lBuf[0]) ==0xcafebabe)
 		  _expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
 		else
@@ -181,7 +181,6 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 	  if (_expectedLength==0)
 	    {
 	      _idx=0;
-	      _packetNb=ntohl(_lBuf[1]);
 	      if (ntohl(_lBuf[0]) ==0xcafebabe)
 		_expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
 	      else
@@ -235,17 +234,18 @@ void lydaq::TdcWiznet::processEventTdc()
 
   itemp[1]=_lastGTC;
   ltemp[1]=_lastABCID;
-  itemp[4]= 0;
-  itemp[5]=_addr;
+  itemp[4]= _event;
+  itemp[5]=_adr;
   itemp[6]=_chlines;
   uint32_t idx=28; // 4 x6 int + 1 int64
   uint32_t trbcid=0;
   memcpy(&temp[idx],_linesbuf,_chlines*CHBYTES);
+  idx+=_chlines*CHBYTES;
   if (_dsData!=NULL)
     {
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
-      _dsData->publish(_abcid,_gtc,idx);
+      _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
-	printf("Publish %x %d GTC %d %llx channels %d \n",_addr,_event,_lastGTC,_lastABCID,_chlines);
+	printf("Publish %x %d GTC %d %llx channels %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines);
     }
 }

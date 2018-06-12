@@ -34,7 +34,7 @@ private:
   uint8_t _linesbuf[0x100000];
 
   uint64_t _lastABCID;
-  uint32_t _lastGTC,_event,_detid,_id,_ntrg;
+  uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
   uint32_t _nProcessed;
   zdaq::zmPusher* _dsData;
   uint8_t _triggerId;

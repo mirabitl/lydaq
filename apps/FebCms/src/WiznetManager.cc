@@ -23,7 +23,7 @@ using namespace zdaq;
 using namespace lydaq;
 
 
-lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(name), _group(NULL),_context(NULL)
+lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(name),_context(NULL)
 {
   _fsm=this->fsm();
   // Register state
@@ -77,7 +77,7 @@ void lydaq::WiznetManager::c_status(Mongoose::Request &request, Mongoose::JsonRe
 {
   LOG4CXX_INFO(_logLdaq,"Status CMD called ");
   response["STATUS"]="DONE";
-   if (_msh==NULL) return;
+
   Json::Value jl;
   for (auto x:_vTdc)
     {
@@ -98,7 +98,7 @@ void lydaq::WiznetManager::c_diflist(Mongoose::Request &request, Mongoose::JsonR
   LOG4CXX_INFO(_logLdaq,"Diflist CMD called ");
   response["STATUS"]="DONE";
   response["DIFLIST"]="EMPTY";
-  if (_msh==NULL) return;
+
   Json::Value jl;
   for (auto x:_vTdc)
     {
@@ -164,7 +164,7 @@ void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::Js
   LOG4CXX_INFO(_logLdaq,"downloadDB called ");
   response["STATUS"]="DONE";
 
-  if (_msh==NULL) return;
+
   
   std::string dbstate=request.get("state","NONE");
   Json::Value jTDC=this->parameters()["tdc"];
@@ -209,7 +209,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
        return;
      }
    // Scan the network
-   std::map<uint32_t,std::string> diflist=lydaq::TdcMessageHandler::scanNetwork(jTDC["network"].asString());
+   std::map<uint32_t,std::string> diflist=lydaq::WiznetMessageHandler::scanNetwork(jTDC["network"].asString());
    // Download the configuration
    _tca=new lydaq::TdcConfigAccess();
    if (jTDC.isMember("json"))
@@ -242,7 +242,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
        std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
        if (idif==diflist.end()) continue;
 
-       _tdc=new lydaq::TdcWiznet(eip);
+       lydaq::TdcWiznet* _tdc=new lydaq::TdcWiznet(eip);
        // Slow control
        _wiznet->addCommunication(idif->second,10001);
        _wiznet->registerDataHandler(idif->second,10001,boost::bind(&lydaq::TdcWiznet::processSlc, _tdc,_1,_2,_3));
@@ -253,7 +253,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
        _wiznet->addCommunication(idif->second,10002);
        _wiznet->registerDataHandler(idif->second,10002,boost::bind(&lydaq::TdcWiznet::processBuffer, _tdc,_1,_2,_3));
 
-       _vTdc->push_back(_tdc);
+       _vTdc.push_back(_tdc);
      }
    //std::string network=
   // Connect to the event builder
@@ -274,30 +274,12 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
     x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All Wiznet sockets
-  this->listen();
-  disconnected_=0;
+  _wiznet->listen();
+
   
 }
 
-void lydaq::WiznetManager::dolisten()
-{
- 
-       while(true) {
-
-                if(!_group->listen(2000))
-		  std::cout << "\nNo msg recieved during the last 2 seconds";
-        }
-
-    
-}
-void lydaq::WiznetManager::listen()
-{
-  g_store.create_thread(boost::bind(&lydaq::WiznetManager::dolisten, this));
-  _running=true;
-}
-
-
-void lydaq::WiznetManager::writeAddress(std::string host,uint32_t port,uin16_t addr,uint16_t val)
+void lydaq::WiznetManager::writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val)
 {
   _msg->_address=( (uint64_t) lydaq::WiznetMessageHandler::convertIP(host)<<32)|port;
   _msg->_length =4;
@@ -461,13 +443,12 @@ void lydaq::WiznetManager::stop(zdaq::fsmmessage* m)
     }
 
   ::sleep(2);
-  //g_run.join_all();
+
 
 }
 void lydaq::WiznetManager::destroy(zdaq::fsmmessage* m)
 {
-  _running=false;
-  g_run.join_all();
+
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
  
   for (auto x:_vTdc)
