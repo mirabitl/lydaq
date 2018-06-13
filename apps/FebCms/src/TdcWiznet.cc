@@ -20,7 +20,7 @@
 #include <bitset>
 #include <boost/format.hpp>
 #include <arpa/inet.h>
-
+#define CHBYTES 6
 using namespace lydaq;
 using namespace zdaq;
 
@@ -50,7 +50,7 @@ void lydaq::TdcWiznet::clear()
 
 
 
-#define CHBYTES 6
+
 
 
 bool lydaq::TdcWiznet::processPacket()
@@ -87,7 +87,7 @@ bool lydaq::TdcWiznet::processPacket()
 
      // Find new gtc and absolute bcid
      uint32_t gtc= (_buf[7]|(_buf[6]<<8)|(_buf[5]<<16)|(_buf[4]<<24));
-     uint64_t abcid=(_buf[13]|(_buf[12]<<8)|(_buf[11]<<16)|(_buf[10]<<24)|(_buf[9]<<32));
+     uint64_t abcid=((uint64_t) _buf[13]|((uint64_t) _buf[12]<<8)|((uint64_t) _buf[11]<<16)|((uint64_t) _buf[10]<<24)|((uint64_t) _buf[9]<<32));
      if (abcid==_lastABCID)
        {
 	 printf("HEADER ERROR \n");
@@ -126,9 +126,10 @@ bool lydaq::TdcWiznet::processPacket()
 
 
  uint8_t* cl= (uint8_t*) &_buf[12];
- uint8_t* cdestl=(uint8_t*) &_linesbuf[_chlines];
+ uint8_t* cdestl=(uint8_t*) &_linesbuf[_chlines*CHBYTES];
  memcpy(cdestl,cl,nlines*CHBYTES);
  _chlines+=nlines;
+ #undef DEBUGLINES
 #ifdef DEBUGLINES
  for (int i=0;i<nlines;i++)
    {
@@ -156,6 +157,7 @@ bool lydaq::TdcWiznet::processPacket()
 }
 void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 {
+  printf("Entering procesBuffer %x %d \n",id,l);
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
 
@@ -196,11 +198,12 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 	  _idx++;
 	}
     }
-  
+  printf("Exiting procesBuffer %x %d \n",id,l);  
 
 }
 void lydaq::TdcWiznet::processSlc(uint64_t id,uint16_t l,char* b)
 {
+    printf("Entering procesSLC %x %d \n",id,l);  
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
       
@@ -221,6 +224,7 @@ void lydaq::TdcWiznet::processSlc(uint64_t id,uint16_t l,char* b)
       printf("\n");
 
     }
+    printf("Exiting processSLC %x %d \n",id,l);  
 }
 
 
@@ -237,15 +241,15 @@ void lydaq::TdcWiznet::processEventTdc()
   itemp[4]= _event;
   itemp[5]=_adr;
   itemp[6]=_chlines;
-  uint32_t idx=28; // 4 x6 int + 1 int64
+  uint32_t idx=28; // 4 x5 int + 1 int64
   uint32_t trbcid=0;
   memcpy(&temp[idx],_linesbuf,_chlines*CHBYTES);
-  idx+=_chlines*CHBYTES;
+  idx+=(_chlines*CHBYTES);
   if (_dsData!=NULL)
     {
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
-	printf("Publish %x %d GTC %d %llx channels %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines);
+      printf("Publish %x %d GTC %d %llx channels %d size %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines,idx);
     }
 }

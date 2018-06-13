@@ -30,8 +30,8 @@ public:
   void connect(zmq::context_t* c,std::string dest);
 private:
   uint32_t _adr,_idx,_chlines;
-  uint8_t _buf[0x100000];
-  uint8_t _linesbuf[0x100000];
+  uint8_t _buf[0x1000000];
+  uint8_t _linesbuf[0x1000000];
 
   uint64_t _lastABCID;
   uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
