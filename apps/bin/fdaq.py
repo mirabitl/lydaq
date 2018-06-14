@@ -92,7 +92,8 @@ def parseReturn(command,sr,res=None):
             #print d
             #for d in x["difs"]:
             #print ((d["sourceid"]-10)/256,d["event"],d["gtc"],d["abcid"],d["detid"])
-            print '#%4d %6d %6d %12d %5d %5d ' % ((d[0]["sourceid"]-10)/256,d[0]["gtc"],d[0]["event"],d[0]["abcid"],d[0]["detid"],d[0]["triggers"])
+            for x in d:
+                print '#%4d %6d %6d %12d %5d %5d ' % ((x["sourceid"]-10)/256,x["gtc"],x["event"],x["abcid"],x["detid"],x["triggers"])
     if (command=="dbStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
@@ -755,7 +756,7 @@ class fdaqClient:
       ### petiroc to scan
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
       firmware2=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,19]
-      firmwaret=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
+      firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       firmware=firmwaret
       ###
       self.daq_start()
@@ -764,7 +765,7 @@ class fdaqClient:
           self.tdc_setmask(0XFFFFFFFF)
           #self.tdc_setmask(0Xf7fffffb)
           #self.tdc_setmask(1073741832)
-          self.daq_scurve(100,200,beg,las,4294967295,step)
+          self.daq_scurve(100,2000,beg,las,4294967295,step)
           self.daq_stop()
           return
       if (ch==1023):
