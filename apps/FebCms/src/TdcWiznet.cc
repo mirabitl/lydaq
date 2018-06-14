@@ -140,7 +140,7 @@ bool lydaq::TdcWiznet::processPacket()
 	 fprintf(stderr,"Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
 	 // To be done
 	 this->processEventTdc();
-	 fprintf(stderr,"Event send \n");
+	 //fprintf(stderr,"Event send \n");
 	 // Reset lines number
 	 _chlines=0;
        }
@@ -150,13 +150,17 @@ bool lydaq::TdcWiznet::processPacket()
      uint64_t abcid=((uint64_t) _buf[13]|((uint64_t) _buf[12]<<8)|((uint64_t) _buf[11]<<16)|((uint64_t) _buf[10]<<24)|((uint64_t) _buf[9]<<32));
      if (abcid==_lastABCID)
        {
-	 printf("HEADER ERROR \n");
+	 printf(" ABCID HEADER ERROR \n");
+       }
+     if (gtc==_lastGTC)
+       {
+	 printf(" GTC HEADER ERROR \n");
        }
      _nProcessed++;
      _event++;
      _lastGTC=gtc;
      _lastABCID=abcid;
-     fprintf(stderr,"Header for new Event %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
+     fprintf(stderr," New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
 
 #ifdef DEBUGPACKET
      printf("\n==> ");
@@ -214,7 +218,7 @@ bool lydaq::TdcWiznet::processPacket()
    }
  printf("\n");
 #endif
- fprintf(stderr,"packet processed \n");
+ // fprintf(stderr,"packet processed \n");
 
  uint16_t expectedSize=16+nlines*CHBYTES;
  if (_idx>(expectedSize+1))
