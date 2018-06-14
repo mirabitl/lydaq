@@ -15,9 +15,12 @@ public:
   TdcWiznet(uint32_t adr);
   void processBuffer(uint64_t id, uint16_t l,char* b);
   void processSlc(uint64_t id, uint16_t l,char* b);
-  bool processPacket();   
+  bool processPacket();
+  void purgeBuffer();
 
   void processEventTdc();
+
+  int16_t checkBuffer(uint8_t* b,uint32_t maxidx);
   inline void setTriggerId(uint8_t i) {_triggerId=i;}
   inline uint32_t detectorId(){return _detid;}
   inline uint32_t difId(){return _id;}

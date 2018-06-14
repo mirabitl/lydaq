@@ -24,6 +24,42 @@
 using namespace lydaq;
 using namespace zdaq;
 
+int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
+{
+  uint32_t* _lBuf= (uint32_t*) b;
+  uint16_t* _sBuf= (uint16_t*) b;
+
+  uint32_t elen=0;
+ // Check TAG coherency
+ if (ntohl(_lBuf[0])==0xcafedade)
+   {
+     elen=18; // Header
+     uint32_t* leb=(uint32_t*) &b[elen-4];
+     if (ntohl(leb[0])==0xdadecafe)
+       return elen;
+     else
+       return -1;
+   }
+ else
+   {
+     if (ntohl(_lBuf[0])==0xcafebabe)
+       {
+	 elen=ntohs(_sBuf[5])*CHBYTES+16; //Channels
+	 if (elen<16 || elen > 208) return -2;
+	 if (elen>maxidx) return -3;
+	 uint32_t* leb=(uint32_t*) &b[elen-4];
+	 if (ntohl(leb[0])==0xbabecafe)
+	   return elen;
+	 else
+	   return -4;
+	 
+       }
+     else
+       return 0;
+   }
+}
+
+
 lydaq::TdcWiznet::TdcWiznet(uint32_t adr) : _ntrg(0),_adr(adr),_dsData(NULL),_triggerId(0)
 {
   this->clear();
@@ -58,29 +94,32 @@ bool lydaq::TdcWiznet::processPacket()
  uint32_t* _lBuf= (uint32_t*) &_buf[0];
  uint16_t* _sBuf= (uint16_t*) &_buf[0];
 
- // Check TAG coherency
- if (ntohl(_lBuf[0])==0xcafedade)
-   {
-     _expectedLength=18; // Header
-   }
- else
-   {
-     _expectedLength=ntohs(_sBuf[5])*CHBYTES+16; //Channels
-   }
- //printf("Current length %d  ExpectedLength %d \n",_idx,_expectedLength);
- // Exit if bad buffer structure
- if (_idx!=_expectedLength) return false;
+ // // Check TAG coherency
+ // if (ntohl(_lBuf[0])==0xcafedade)
+ //   {
+ //     _expectedLength=18; // Header
+ //   }
+ // else
+ //   {
+ //     _expectedLength=ntohs(_sBuf[5])*CHBYTES+16; //Channels
+ //   }
+ // fprintf(stderr,"Current length %d  ExpectedLength %d \n",_idx,_expectedLength);
+ // // Exit if bad buffer structure
+ // // if (_idx!=_expectedLength) return false;
+ // if (_idx!=_expectedLength) return false;
 
-
+ int16_t tag=checkBuffer(_buf,_idx);
+ if (tag<0) return false;
  
  if (ntohl(_lBuf[0])==0xcafedade)
    {
      if (_lastABCID!=0)
        {
 	 // Write Event
-	 printf("Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
+	 fprintf(stderr,"Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
 	 // To be done
 	 this->processEventTdc();
+	 fprintf(stderr,"Event send \n");
 	 // Reset lines number
 	 _chlines=0;
        }
@@ -96,7 +135,7 @@ bool lydaq::TdcWiznet::processPacket()
      _event++;
      _lastGTC=gtc;
      _lastABCID=abcid;
-     printf("Header for new Event %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
+     fprintf(stderr,"Header for new Event %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
 
 #ifdef DEBUGPACKET
      printf("\n==> ");
@@ -121,7 +160,7 @@ bool lydaq::TdcWiznet::processPacket()
  uint16_t* tmp= (uint16_t*) &_buf[7];
  uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
  uint16_t nlines= ntohs(_sBuf[5]);
- printf ("%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
+ fprintf (stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
 
@@ -154,10 +193,11 @@ bool lydaq::TdcWiznet::processPacket()
    }
  printf("\n");
 #endif
+ fprintf(stderr,"packet processed \n");
 }
 void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 {
-  printf("Entering procesBuffer %x %d \n",id,l);
+  fprintf(stderr,"Entering procesBuffer %llx %d  IDX %d \n",id,l,_idx);
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
 
@@ -171,6 +211,7 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 
       if (ntohl(_lBuf[0]) ==0xcafebabe || ntohl(_lBuf[0]) ==0xcafedade  )
 	{
+	  fprintf(stderr,"Header Found %x %d  expected length %d  current index %d \n", ntohl(_lBuf[0]),ibx,_expectedLength,_idx);
 	  if (_expectedLength>0 )
 	    if (this->processPacket())
 	      {
@@ -180,6 +221,8 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 		else
 		  _expectedLength=18;
 	      }
+	    else
+	      fprintf(stderr,"Packet not processed \n");
 	  if (_expectedLength==0)
 	    {
 	      _idx=0;
@@ -198,8 +241,47 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 	  _idx++;
 	}
     }
-  printf("Exiting procesBuffer %x %d \n",id,l);  
+  //  if (l==16384) purgeBuffer();
+  fprintf(stderr,"Exiting procesBuffer %llx %d \n",id,l);  
 
+}
+
+void lydaq::TdcWiznet::purgeBuffer()
+{
+  fprintf(stderr,"Entering PURGEBUFFER %d \n",_idx);
+
+  uint8_t cbuf[0x1000000];
+  for (uint16_t ibx=0;ibx<_idx;ibx++)
+    {
+      uint16_t* _sBuf= (uint16_t*) &_buf[ibx];
+      uint32_t*_lBuf= (uint32_t*) &_buf[ibx];
+      uint8_t* _cBuf= (uint8_t*) &_buf[ibx];
+
+      if (ntohl(_lBuf[0]) ==0xcafebabe || ntohl(_lBuf[0]) ==0xcafedade  )
+	{
+	  fprintf(stderr,"Purge Header Found \n");
+	  if (_expectedLength>0 )
+	    {
+
+	    if (this->processPacket())
+	      {
+
+		if (ntohl(_lBuf[0]) ==0xcafebabe)
+		  _expectedLength=ntohs(_sBuf[5])*CHBYTES+16;
+		else
+		  _expectedLength=18;
+
+		memcpy(cbuf,&_buf[ibx],_idx-ibx);
+		_idx=_idx-ibx;
+		memcpy(&_buf[0],cbuf,_idx);
+		break;
+		
+	      }
+	    }
+	}
+
+  
+    }
 }
 void lydaq::TdcWiznet::processSlc(uint64_t id,uint16_t l,char* b)
 {
