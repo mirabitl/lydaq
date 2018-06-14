@@ -30,28 +30,49 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
   uint16_t* _sBuf= (uint16_t*) b;
 
   uint32_t elen=0;
+ if (ntohl(_lBuf[0])!=0xcafedade && ntohl(_lBuf[0])!=0xcafebabe)
+   return 0;
  // Check TAG coherency
  if (ntohl(_lBuf[0])==0xcafedade)
    {
      elen=18; // Header
      uint32_t* leb=(uint32_t*) &b[elen-4];
+     if (elen>maxidx)
+       {
+	 fprintf(stderr,"CheckBuf header:Not enough data ELEN %d MAXID %d \n",elen,maxidx);
+	 return -5;
+       }
      if (ntohl(leb[0])==0xdadecafe)
        return elen;
      else
-       return -1;
+       {
+	 fprintf(stderr,"CheckBuf header :Missing CAFEDADE end tag \n");
+	 return -1;
+       }
    }
  else
    {
      if (ntohl(_lBuf[0])==0xcafebabe)
        {
 	 elen=ntohs(_sBuf[5])*CHBYTES+16; //Channels
-	 if (elen<16 || elen > 208) return -2;
-	 if (elen>maxidx) return -3;
+	 if (elen<16 || elen > 208)
+	   {
+	     fprintf(stderr,"CheckBuf:Wrong size %d \n",elen);
+	     return -2;
+	   }
+	 if (elen>maxidx)
+	   {
+	     fprintf(stderr,"CheckBuf:Not enough data ELEN %d MAXID %d \n",elen,maxidx);
+	     return -3;
+	   }
 	 uint32_t* leb=(uint32_t*) &b[elen-4];
 	 if (ntohl(leb[0])==0xbabecafe)
 	   return elen;
 	 else
-	   return -4;
+	   {
+	     fprintf(stderr,"CheckBuf:Missing CAFEBABE end tag \n");
+	     return -4;
+	   }
 	 
        }
      else
@@ -194,10 +215,49 @@ bool lydaq::TdcWiznet::processPacket()
  printf("\n");
 #endif
  fprintf(stderr,"packet processed \n");
+
+ uint16_t expectedSize=16+nlines*CHBYTES;
+ if (_idx>(expectedSize+1))
+   {
+     char temp[0x10000];
+     uint16_t remain=_idx-expectedSize;
+     memcpy(temp,&_buf[expectedSize],remain);
+     memcpy(_buf,temp,remain);
+     _idx=remain;
+     this->processPacket();
+   }
+ return true;
+ 
 }
 void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 {
   fprintf(stderr,"Entering procesBuffer %llx %d  IDX %d \n",id,l,_idx);
+  for (uint16_t ibx=0;ibx<l;ibx++)
+    {
+      int16_t tag = checkBuffer((uint8_t*) &b[ibx],l-ibx+1);
+      if (tag>0)
+	{
+	  bool ok=processPacket();
+	  if (ok)
+	    {
+	      _idx=0;
+	    }
+	}
+      else
+	if (tag<0)
+	  {
+	    fprintf(stderr,"StructError %d ibx %d _idx %d \n",tag,ibx,_idx);
+	  }
+      _buf[_idx]=b[ibx];
+      _idx++;
+    }
+  
+
+
+
+  fprintf(stderr,"Exiting procesBuffer %llx %d  IDX %d \n",id,l,_idx);
+  return;
+  
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
 
@@ -263,7 +323,7 @@ void lydaq::TdcWiznet::purgeBuffer()
 	  if (_expectedLength>0 )
 	    {
 
-	    if (this->processPacket())
+	      if (this->processPacket())
 	      {
 
 		if (ntohl(_lBuf[0]) ==0xcafebabe)
