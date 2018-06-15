@@ -6,6 +6,7 @@
 #include <list>
 #include <vector>
 #include <stdint.h>
+#include "debug.hh"
 using namespace std;
 namespace lydaq {
 

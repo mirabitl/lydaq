@@ -150,17 +150,17 @@ bool lydaq::TdcWiznet::processPacket()
      uint64_t abcid=((uint64_t) _buf[13]|((uint64_t) _buf[12]<<8)|((uint64_t) _buf[11]<<16)|((uint64_t) _buf[10]<<24)|((uint64_t) _buf[9]<<32));
      if (abcid==_lastABCID)
        {
-	 printf(" ABCID HEADER ERROR \n");
+	 fprintf(stderr," ABCID HEADER ERROR %lld last %lld \n",abcid,_lastABCID);
        }
      if (gtc==_lastGTC)
        {
-	 printf(" GTC HEADER ERROR \n");
+	 fprintf(stderr," GTC HEADER ERROR  %d last %d \n",gtc,_lastGTC);
        }
      _nProcessed++;
      _event++;
      _lastGTC=gtc;
      _lastABCID=abcid;
-     fprintf(stderr," New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
+     DEBUG_PRINT(" New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
 
 #ifdef DEBUGPACKET
      printf("\n==> ");
@@ -185,7 +185,7 @@ bool lydaq::TdcWiznet::processPacket()
  uint16_t* tmp= (uint16_t*) &_buf[7];
  uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
  uint16_t nlines= ntohs(_sBuf[5]);
- fprintf (stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
+ DEBUG_PRINT("%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
 
@@ -235,7 +235,7 @@ bool lydaq::TdcWiznet::processPacket()
 }
 void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 {
-  fprintf(stderr,"Entering procesBuffer %llx %d  IDX %d \n",id,l,_idx);
+  DEBUG_PRINT("Entering procesBuffer %llx %d  IDX %d \n",id,l,_idx);
   for (uint16_t ibx=0;ibx<l;ibx++)
     {
       int16_t tag = checkBuffer((uint8_t*) &b[ibx],l-ibx+1);
@@ -259,7 +259,7 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
 
 
 
-  fprintf(stderr,"Exiting procesBuffer %llx %d  IDX %d \n",id,l,_idx);
+  DEBUG_PRINT("Exiting procesBuffer %llx %d  IDX %d \n",id,l,_idx);
   return;
   
   uint16_t* sptr=(uint16_t*) b;
@@ -349,28 +349,28 @@ void lydaq::TdcWiznet::purgeBuffer()
 }
 void lydaq::TdcWiznet::processSlc(uint64_t id,uint16_t l,char* b)
 {
-    printf("Entering procesSLC %x %d \n",id,l);  
+  fprintf(stderr,"Entering procesSLC %x %d \n",id,l);  
   uint16_t* sptr=(uint16_t*) b;
   uint16_t lines=l/2;
       
-  printf("\t \t ==> SLC %d bytes |%x|%x|%x|%x|%x| \n",l,ntohs(sptr[0]),ntohs(sptr[1]),ntohs(sptr[2]),ntohs(sptr[3]),ntohs(sptr[4]));
+  fprintf(stderr,"\t \t ==> SLC %d bytes |%x|%x|%x|%x|%x| \n",l,ntohs(sptr[0]),ntohs(sptr[1]),ntohs(sptr[2]),ntohs(sptr[3]),ntohs(sptr[4]));
   if (l<800)
     {
-      printf("\n\t ");
+      fprintf(stderr,"\n\t ");
 
       for (int i=0;i<l;i++)
 	{
-	  printf("%.2x ",(uint8_t) (b[i]));
+	  fprintf(stderr,"%.2x ",(uint8_t) (b[i]));
 	       
 	  if (i%16==15)
 	    {
-	      printf("\n\t ");
+	      fprintf(stderr,"\n\t ");
 	    }
 	}
-      printf("\n");
+      fprintf(stderr,"\n");
 
     }
-    printf("Exiting processSLC %x %d \n",id,l);  
+  fprintf(stderr,"Exiting processSLC %x %d \n",id,l);  
 }
 
 
@@ -396,6 +396,6 @@ void lydaq::TdcWiznet::processEventTdc()
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
-      printf("Publish %x %d GTC %d %llx channels %d size %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines,idx);
+	INFO_PRINT("Publish %x %d GTC %d %llx channels %d size %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines,idx);
     }
 }
