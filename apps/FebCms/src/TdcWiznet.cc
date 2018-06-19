@@ -185,7 +185,7 @@ bool lydaq::TdcWiznet::processPacket()
  uint16_t* tmp= (uint16_t*) &_buf[7];
  uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
  uint16_t nlines= ntohs(_sBuf[5]);
- DEBUG_PRINT("%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
+ fprintf(stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
 

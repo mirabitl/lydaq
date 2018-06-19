@@ -448,14 +448,14 @@ void FullDaq::prepare(zdaq::fsmmessage* m)
   // Builder
   if (_builderClient)
     {
-      printf("Buider Config\n");
+      fprintf(stderr,"Builder Config\n");
       if (this->parameters().isMember("builder"))
 	{
 	  _builderClient->sendTransition("CONFIGURE",this->parameters()["builder"]);
 	}
        else
 	 _builderClient->sendTransition("CONFIGURE");
-
+      fprintf(stderr,"End of Builder configuretion \n");
     }
 }
 
@@ -567,7 +567,9 @@ void FullDaq::initialise(zdaq::fsmmessage* m)
   // Initialise TDC
   for (auto tdc:_tdcClients)
     {
+      fprintf(stderr,"send transition to TDC \n");
       tdc->sendTransition("INITIALISE");
+      fprintf(stderr,"End  of transition to TDC \n");
     }
   
   // Fill status
