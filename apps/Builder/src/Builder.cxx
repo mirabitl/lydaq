@@ -26,7 +26,7 @@ lydaq::dsBuilder::dsBuilder(std::string name) : _running(false),_merger(NULL)
     char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Service "<<name<<" started on port "<<atoi(wp));
     _fsm->start(atoi(wp));
     }
 
@@ -35,8 +35,7 @@ lydaq::dsBuilder::dsBuilder(std::string name) : _running(false),_merger(NULL)
 
 void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
 {
-  std::cout<<"Received "<<m->command()<<std::endl;
-  std::cout<<"Received "<<m->value()<<std::endl;
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Received "<<m->command()<<" Value "<<m->value());
 
   
   Json::Value jc=m->content();
@@ -49,9 +48,9 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
   for (Json::ValueConstIterator it = books.begin(); it != books.end(); ++it)
     {
       const Json::Value& book = *it;
-      std::cout<<"Registering "<<(*it).asString()<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Registering "<<(*it).asString());
       _merger->registerDataSource((*it).asString());
-      std::cout<<"done"<<std::endl;
+      
       array_keys.append((*it).asString());
 
     }
@@ -60,13 +59,12 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
   for (Json::ValueConstIterator it = pbooks.begin(); it != pbooks.end(); ++it)
     {
       const Json::Value& book = *it;
-      std::cout<<"registering "<<(*it).asString()<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"registering "<<(*it).asString());
       _merger->registerProcessor((*it).asString());
       parray_keys.append((*it).asString());
-      std::cout<<"done"<<std::endl;
     }
 
-  std::cout<<" Setting parameters"<<std::endl;
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Setting parameters");
   _merger->loadParameters(jc);
   // Overwrite msg
     //Prepare complex answer
@@ -75,13 +73,13 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
   prep["processorRegistered"]=parray_keys;
        
   m->setAnswer(prep);
-  std::cout <<"end of configure"<<std::endl;
+  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of configure");
   return;
 }
 
 void lydaq::dsBuilder::start(zdaq::fsmmessage* m)
 {
-    std::cout<<"Received "<<m->command()<<std::endl;
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Received "<<m->command());
     Json::Value jc=m->content();
     _merger->start(jc["run"].asInt());
     _running=true;
@@ -91,13 +89,13 @@ void lydaq::dsBuilder::stop(zdaq::fsmmessage* m)
   
   _merger->stop();
   _running=false;
-  printf("Builder is stopped \n");fflush(stdout);
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Builder is stopped \n");fflush(stdout);
 }
 void lydaq::dsBuilder::halt(zdaq::fsmmessage* m)
 {
   
   
-    std::cout<<"Received "<<m->command()<<std::endl;
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Received "<<m->command());
     if (_running)
       this->stop(m);
     std::cout<<"Destroying"<<std::endl;
@@ -106,7 +104,7 @@ void lydaq::dsBuilder::halt(zdaq::fsmmessage* m)
 }
 void lydaq::dsBuilder::status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-    std::cout<<"dowmnload"<<request.getUrl()<<" "<<request.getMethod()<<" "<<request.getData()<<std::endl;
+  //std::cout<<"dowmnload"<<request.getUrl()<<" "<<request.getMethod()<<" "<<request.getData()<<std::endl;
     if (_merger!=NULL)
       {
 
@@ -118,7 +116,7 @@ void lydaq::dsBuilder::status(Mongoose::Request &request, Mongoose::JsonResponse
 }
 void lydaq::dsBuilder::registerds(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-    std::cout<<"registerds"<<request.getUrl()<<" "<<request.getMethod()<<" "<<request.getData()<<std::endl;
+  //std::cout<<"registerds"<<request.getUrl()<<" "<<request.getMethod()<<" "<<request.getData()<<std::endl;
     if (_merger!=NULL)
       {
 	_merger->setNumberOfDataSource(atoi(request.get("ndif","0").c_str()));
@@ -141,16 +139,16 @@ void lydaq::dsBuilder::c_setheader(Mongoose::Request &request, Mongoose::JsonRes
   if (!parsingSuccessful)
     {response["STATUS"]="Cannot parse header tag "; return;}
   const Json::Value& jdevs=jsta;
-  std::cout<<jdevs<<std::endl;
+  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"Header "<<jdevs);
   std::vector<uint32_t>& v=_merger->runHeader();
   v.clear();
   for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
     v.push_back((*jt).asInt());
 
-  std::cout<<jdevs<<std::endl;
-    std::cout<<" LOL "<<std::endl;
+  //std::cout<<jdevs<<std::endl;
+  //  std::cout<<" LOL "<<std::endl;
   _merger->processRunHeader();
-    std::cout<<" LOL AGAIN "<<std::endl;
+  //  std::cout<<" LOL AGAIN "<<std::endl;
   response["STATUS"]="DONE";
   response["VALUE"]=jsta;
 
