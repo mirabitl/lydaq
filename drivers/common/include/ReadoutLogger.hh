@@ -10,5 +10,6 @@ static LoggerPtr _logDIF(Logger::getLogger("ReadoutDIF"));
 static LoggerPtr _logCCC(Logger::getLogger("ReadoutCCC"));
 static LoggerPtr _logMDCC(Logger::getLogger("ReadoutMdcc"));
 static LoggerPtr _logFTDI(Logger::getLogger("ReadoutFTDI"));
+static LoggerPtr _logFeb(Logger::getLogger("ReadoutFeb"));
 static LoggerPtr _logLdaq(Logger::getLogger("LocalDAQ"));
 #endif

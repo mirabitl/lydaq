@@ -136,7 +136,7 @@ myinc=[]
 for x in Glob("#include/*.h"):
   myinc.append("include/"+x.name)
 print myinc
-env.Install(DHCAL_ROOT+"/opt/dhcal/lib",SDHCALcommon)
+#env.Install(DHCAL_ROOT+"/opt/dhcal/lib",SDHCALcommon)
 ###env.Install("/opt/dhcal/lib",SDHCALcommon)
 ###env.Install("/opt/dhcal/include/readout",myinc)
 
@@ -144,4 +144,7 @@ env.Install(DHCAL_ROOT+"/opt/dhcal/lib",SDHCALcommon)
 env.Alias('install', [DHCAL_ROOT+"/opt/dhcal/lib"])
 
 
+INCLUDE_FILES=Glob("./include/*.hh")
+env.Install("../include",INCLUDE_FILES)
+env.Alias('install', ["../include"])
 
