@@ -88,7 +88,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<"Service "<<name<<" started on port "<<atoi(wp));
     _fsm->start(atoi(wp));
     }
 
@@ -462,7 +462,7 @@ void FullDaq::prepare(zdaq::fsmmessage* m)
 
 std::string FullDaq::difstatus()
 {
-  printf("%s \n",__PRETTY_FUNCTION__);
+  //printf("%s \n",__PRETTY_FUNCTION__);
   Json::Value devlist;
   for (auto dc:_DIFClients)
     {
@@ -628,7 +628,7 @@ void FullDaq::configure(zdaq::fsmmessage* m)
     {
       tdc->sendTransition("CONFIGURE");
       //
-      std::cout<<"sending command DIFLIST \n";
+      LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"sending command DIFLIST ");
       tdc->sendCommand("DIFLIST");
       if (!tdc->answer().empty())
 	{
@@ -650,7 +650,7 @@ void FullDaq::configure(zdaq::fsmmessage* m)
 	    }
 	}
       else
-	std::cout<<"No answer from DIFLIST!!!!"<<std::endl;
+	LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<"No answer from DIFLIST!!!!");
     }
 //       std::cout<<"SENDING "<<jsou<<std::endl;
   if (_builderClient)
@@ -659,7 +659,7 @@ void FullDaq::configure(zdaq::fsmmessage* m)
       Json::Value jl;
       jl["sources"]=jsou;
       std::stringstream sp;sp<<"&ndif="<<jsou.size();
-      std::cout<<"Sending REGISTERDS "<<sp.str()<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Sending REGISTERDS "<<sp.str());
       _builderClient->sendCommand("REGISTERDS",sp.str());
     }
   m->setAnswer(jsta);
@@ -669,10 +669,10 @@ void FullDaq::start(zdaq::fsmmessage* m)
 {
   // Get the new run number
  
-      std::cout<<" calling for new runs from the web interface \n";
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" calling for new runs from the web interface");
       std::string url="https://ilcconfdb.ipnl.in2p3.fr/runid";
       std::string jsconf=fsmwebCaller::curlQuery(url,this->login());
-      std::cout<<jsconf<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<jsconf);
       Json::Reader reader;
       Json::Value jcc;
       bool parsingSuccessful = reader.parse(jsconf,jcc);
@@ -680,7 +680,7 @@ void FullDaq::start(zdaq::fsmmessage* m)
         _run=jcc["runid"].asUInt();
       else
         _run=10000;
-      std::cout<<" new run "<<_run<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" new run "<<_run);
    // Tomuvol patch
       if (this->parameters().isMember("tmvdb"))
 	{
@@ -690,7 +690,7 @@ void FullDaq::start(zdaq::fsmmessage* m)
   boost::thread_group g;
   for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
     {
-      std::cout<<" calling for DIFS \n";
+      LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling  singlestart for DIFS ");
       //std::cout<<"Creating thread"<<std::endl;
       g.create_thread(boost::bind(&FullDaq::singlestart, this,(*it)));
     }
@@ -699,7 +699,7 @@ void FullDaq::start(zdaq::fsmmessage* m)
   // Start the builder
    if (_builderClient)
     {
-      std::cout<<" calling for BUILDER \n";
+      LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling Builder start ");
       Json::Value jl;
       jl["run"]=_run;
       _builderClient->sendTransition("START",jl);
@@ -707,7 +707,7 @@ void FullDaq::start(zdaq::fsmmessage* m)
    // Start TDC
    for (auto tdc:_tdcClients)
 	{
-	  std::cout<<" calling for TDC \n";
+	  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling  start for TDCs ");
 	  Json::Value jl;
 	  jl["run"]=_run;
 	  jl["type"]=0;
@@ -716,16 +716,17 @@ void FullDaq::start(zdaq::fsmmessage* m)
   //Start the CCC
    if (_cccClient)
      {
-        std::cout<<" calling for CCC \n";
+       LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling SDCC start ");
        _cccClient->sendTransition("START");
      }
   // Resume the MDCC
    if (_mdccClient)
      {
+       LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling MDCC start ");
        _mdccClient->sendTransition("RESET");
        //_mdccClient->sendTransition("RESUME");
      }
-   std::cout<<" calling ends \n";
+   LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" calling ends");
    m->setAnswer(toJson(this->difstatus()));  
 }
 void FullDaq::stop(zdaq::fsmmessage* m)
@@ -749,7 +750,7 @@ void FullDaq::stop(zdaq::fsmmessage* m)
       g.create_thread(boost::bind(&FullDaq::singlestop, this,(*it)));
     }
   g.join_all();
-  std::cout<<"end of STOP of DIF Status \n";
+  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP of DIF Status ");
   // Stop TDC
    for (auto tdc:_tdcClients)
 	{
@@ -757,13 +758,13 @@ void FullDaq::stop(zdaq::fsmmessage* m)
 	}
   
   ::sleep(1);
-   std::cout<<"end of STOP of TDC Status \n";
+   LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP of TDC Status ");
   // Stop the builder
    if (_builderClient)
     {
       _builderClient->sendTransition("STOP");
     }
-   std::cout<<"end of STOP waiting for DIF Status \n";
+   LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP waiting for DIF Status ");
    // Tomuvol patch
    if (this->parameters().isMember("tmvdb"))
 	{
@@ -813,7 +814,7 @@ void FullDaq::doubleSwitchZup(Mongoose::Request &request, Mongoose::JsonResponse
   {
     if (_zupClient==NULL && _gpioClient==NULL)
       {
-	LOG4CXX_ERROR(_logLdaq, "No zup or GPIO client");
+	LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No zup or GPIO client");
 	response["STATUS"]="NO Zup/GPIO CLient";
 	return;
       }
@@ -828,7 +829,7 @@ void FullDaq::doubleSwitchZup(Mongoose::Request &request, Mongoose::JsonResponse
     sleep((unsigned int) 2);
     _zupClient->sendTransition("ON");
     ::sleep( npause);
-    std::cout<<" LV is ON"<<std::endl;
+    LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" LV is ON");
     response["STATUS"]="DONE";
 
     response["DOUBLESWITCHZUP"]="ON";
@@ -844,7 +845,7 @@ void FullDaq::doubleSwitchZup(Mongoose::Request &request, Mongoose::JsonResponse
     sleep((unsigned int) 2);
     _gpioClient->sendTransition("ON");
     ::sleep( npause);
-    std::cout<<" LV is ON"<<std::endl;
+    LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" LV is ON");
     response["STATUS"]="DONE";
 
     response["DOUBLESWITCHZUP"]="ON";
@@ -888,7 +889,7 @@ void FullDaq::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response)
      response["LVON"]=_gpioClient->answer();
      return;
     }
-     LOG4CXX_ERROR(_logLdaq, "No zup client");response["STATUS"]="NO Zup CLient";return;
+     LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No zup client");response["STATUS"]="NO Zup CLient";return;
   }
 void FullDaq::forceState(Mongoose::Request &request, Mongoose::JsonResponse &response)
   {
@@ -914,7 +915,7 @@ void FullDaq::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &response
      response["LVON"]=_gpioClient->answer();
      return;
     }
-     LOG4CXX_ERROR(_logLdaq, "No zup client");response["STATUS"]="NO Zup CLient";return;
+     LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No zup client");response["STATUS"]="NO Zup CLient";return;
      
    
 
@@ -940,7 +941,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
       this->parameters()["db"]["state"]=statereq;
 
       _dbClient->sendTransition("DELETE",this->parameters()["db"]);
-      std::cout<<" Downloading"<<this->parameters()["db"]["dbstate"].asString()<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Downloading"<<this->parameters()["db"]["dbstate"].asString());
   
       _dbClient->sendTransition("CONFIGURE",this->parameters()["db"]);
   
@@ -968,7 +969,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
        }
      else
        {
-	 LOG4CXX_ERROR(_logLdaq, "No DB client"); response["STATUS"]="NO DB Client";return;
+	 LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No DB client"); response["STATUS"]="NO DB Client";return;
        }
    }
 }
@@ -985,15 +986,15 @@ void FullDaq::setControlRegister(Mongoose::Request &request, Mongoose::JsonRespo
  
   response["STATUS"]="DONE";
   response["CTRLREG"]=ctrlreg;
-  std::cout<<" Chamge Ctrlreg to "<<std::hex<<_ctrlreg<<std::dec<<std::endl;
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Change Ctrlreg to "<<std::hex<<_ctrlreg<<std::dec);
 }
 
 void FullDaq::dbStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  printf("%s \n",__PRETTY_FUNCTION__);
+  //  printf("%s \n",__PRETTY_FUNCTION__);
   response["run"]=_run;
   response["state"]= "unknown";
-  std::cout<<this->parameters()<<std::endl;
+  //std::cout<<this->parameters()<<std::endl;
   if (!this->parameters().empty())
     {
       if (this->parameters().isMember("db"))
@@ -1013,7 +1014,7 @@ void FullDaq::registerDataSource(Mongoose::Request &request, Mongoose::JsonRespo
       response["STATUS"]="Missing detid or sourceid";
       return;
     }
-  if (_dbClient==NULL){LOG4CXX_ERROR(_logLdaq, "No DB client"); response["STATUS"]="NO DB Client";return;}
+  if (_dbClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No DB client"); response["STATUS"]="NO DB Client";return;}
   Json::Value jl;
   jl["detid"]=detid;
   jl["sourceid"]=sid;
@@ -1031,9 +1032,9 @@ void  FullDaq::builderStatus(Mongoose::Request &request, Mongoose::JsonResponse 
   response["run"]=-1;
   response["event"]=-1;
   
-  if (_builderClient==NULL){LOG4CXX_ERROR(_logLdaq, "No SHM client");response["STATUS"]= "No SHM client";return;}
+  if (_builderClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No SHM client");response["STATUS"]= "No SHM client";return;}
   _builderClient->sendCommand("STATUS");
-  std::cout<<_builderClient->answer()<<std::endl;
+  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<_builderClient->answer());
   if (!_builderClient->answer().empty())
     {
       if (_builderClient->answer().isMember("answer"))
@@ -1085,14 +1086,14 @@ void FullDaq::status(Mongoose::Request &request, Mongoose::JsonResponse &respons
 }
 void FullDaq::pauseTrigger(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendTransition("PAUSE");
   response["TRIGGER"]="PAUSED";
   response["STATUS"]="DONE";
 }
 void FullDaq::resumeTrigger(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendTransition("RESUME");
   response["TRIGGER"]="RESUMED";
   response["STATUS"]="DONE";
@@ -1100,7 +1101,7 @@ void FullDaq::resumeTrigger(Mongoose::Request &request, Mongoose::JsonResponse &
 
 void FullDaq::pauseEcal(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendTransition("ECALPAUSE");
   response["ECAL"]="PAUSED";
   response["STATUS"]="DONE";
@@ -1108,14 +1109,14 @@ void FullDaq::pauseEcal(Mongoose::Request &request, Mongoose::JsonResponse &resp
 }
 void FullDaq::resumeEcal(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendTransition("ECALRESUME");
   response["ECAL"]="RESUMED";
   response["STATUS"]="DONE";
 }
 void FullDaq::resetTriggerCounters(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendTransition("RESET");
   response["COUNTERS"]="RESETTED";
   response["STATUS"]="DONE";
@@ -1123,7 +1124,7 @@ void FullDaq::resetTriggerCounters(Mongoose::Request &request, Mongoose::JsonRes
 // a continuer
 void FullDaq::triggerStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   _mdccClient->sendCommand("STATUS");
   response["COUNTERS"]=_mdccClient->answer()["answer"]["COUNTERS"];
   response["STATUS"]="DONE";
@@ -1131,7 +1132,7 @@ void FullDaq::triggerStatus(Mongoose::Request &request, Mongoose::JsonResponse &
 void FullDaq::triggerSpillOn(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("clock","50").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
  
   std::stringstream sp;sp<<"&nclock="<<nc;
   _mdccClient->sendCommand("SPILLON",sp.str());
@@ -1143,7 +1144,7 @@ void FullDaq::triggerSpillOn(Mongoose::Request &request, Mongoose::JsonResponse 
 void FullDaq::triggerSpillOff(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("clock","50000").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
    std::stringstream sp;sp<<"&nclock="<<nc;
   _mdccClient->sendCommand("SPILLOFF",sp.str());
   
@@ -1155,7 +1156,7 @@ void FullDaq::triggerSpillOff(Mongoose::Request &request, Mongoose::JsonResponse
 void FullDaq::triggerBeam(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("clock","250000000").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
    std::stringstream sp;sp<<"&nclock="<<nc;
   _mdccClient->sendCommand("BEAMON",sp.str());
   response["BEAM"]=nc;
@@ -1167,7 +1168,7 @@ void FullDaq::triggerBeam(Mongoose::Request &request, Mongoose::JsonResponse &re
 void FullDaq::triggerSpillRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("value","0").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
  
   std::stringstream sp;sp<<"&value="<<nc;
   _mdccClient->sendCommand("SETSPILLREGISTER",sp.str());
@@ -1180,7 +1181,7 @@ void FullDaq::triggerSpillRegister(Mongoose::Request &request, Mongoose::JsonRes
 void FullDaq::triggerHardReset(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("value","1").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
  
   std::stringstream sp;sp<<"&value="<<nc;
   _mdccClient->sendCommand("SETHARDRESET",sp.str());
@@ -1192,7 +1193,7 @@ void FullDaq::triggerHardReset(Mongoose::Request &request, Mongoose::JsonRespons
 void FullDaq::triggerCalibCount(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("clock","50").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
    std::stringstream sp;sp<<"&nclock="<<nc;
   _mdccClient->sendCommand("SETCALIBCOUNT",sp.str());
   response["CALIBCOUNT"]=nc;
@@ -1204,7 +1205,7 @@ void FullDaq::triggerCalibCount(Mongoose::Request &request, Mongoose::JsonRespon
 void FullDaq::triggerCalibOn(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("value","1").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
  
 
   if (nc==0)
@@ -1218,7 +1219,7 @@ void FullDaq::triggerCalibOn(Mongoose::Request &request, Mongoose::JsonResponse 
 void FullDaq::triggerCalibRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t nc=atoi(request.get("value","4").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
    std::stringstream sp;sp<<"&value="<<nc;
   _mdccClient->sendCommand("SETCALIBREGISTER",sp.str());
  
@@ -1230,7 +1231,7 @@ void FullDaq::triggerSetRegister(Mongoose::Request &request, Mongoose::JsonRespo
 {
   uint32_t adr=atoi(request.get("address","2").c_str());
   uint32_t value=atoi(request.get("value","0").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   std::stringstream sp;sp<<"&value="<<value<<"&address="<<adr;
   _mdccClient->sendCommand("SETREG",sp.str());
  
@@ -1241,7 +1242,7 @@ void FullDaq::triggerSetRegister(Mongoose::Request &request, Mongoose::JsonRespo
 void FullDaq::triggerGetRegister(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
   uint32_t adr=atoi(request.get("address","2").c_str());
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   std::stringstream sp;sp<<"&address="<<adr;
   _mdccClient->sendCommand("GETREG",sp.str());
   //std::cout<<"GETREG "<<_mdccClient->answer()<<std::endl;
@@ -1252,7 +1253,7 @@ void FullDaq::triggerGetRegister(Mongoose::Request &request, Mongoose::JsonRespo
 void FullDaq::resetTdc(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
 
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
   std::stringstream sp;sp<<"&value="<<0;
   _mdccClient->sendCommand("RESETTDC",sp.str());
   std::stringstream sp1;sp1<<"&value="<<1;
@@ -1266,7 +1267,7 @@ void FullDaq::resetTdc(Mongoose::Request &request, Mongoose::JsonResponse &respo
 void FullDaq::triggerReloadCalib(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
 
-  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq, "No MDC client");response["STATUS"]= "No MDCC client";return;}
+  if (_mdccClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No MDC client");response["STATUS"]= "No MDCC client";return;}
 
     _mdccClient->sendCommand("RELOADCALIB");
 
@@ -1333,7 +1334,7 @@ void FullDaq::tdcSetMask(Mongoose::Request &request, Mongoose::JsonResponse &res
 void FullDaq::setRunHeader(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
 {
 
-  if (_builderClient==NULL){LOG4CXX_ERROR(_logLdaq, "No Builder client");response["STATUS"]= "No Builder client";return;}
+  if (_builderClient==NULL){LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No Builder client");response["STATUS"]= "No Builder client";return;}
     uint32_t rtyp=atoi(request.get("type","0").c_str());
     uint32_t rval=atoi(request.get("value","0").c_str());
     uint32_t mask=atoi(request.get("mask","4294967295").c_str());

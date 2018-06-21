@@ -61,7 +61,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      LOG4CXX_INFO(_logLdaq," Service "<<name<<" is starting on "<<atoi(wp));
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Service "<<name<<" is starting on "<<atoi(wp));
 
       
     _fsm->start(atoi(wp));
@@ -75,7 +75,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
 }
 void lydaq::WiznetManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"Status CMD called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Status CMD called ");
   response["STATUS"]="DONE";
 
   Json::Value jl;
@@ -95,7 +95,7 @@ void lydaq::WiznetManager::c_status(Mongoose::Request &request, Mongoose::JsonRe
 }
 void lydaq::WiznetManager::c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"Diflist CMD called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Diflist CMD called ");
   response["STATUS"]="DONE";
   response["DIFLIST"]="EMPTY";
 
@@ -113,7 +113,7 @@ void lydaq::WiznetManager::c_diflist(Mongoose::Request &request, Mongoose::JsonR
 
 void lydaq::WiznetManager::c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"Set6bdac called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Set6bdac called ");
   response["STATUS"]="DONE";
 
   
@@ -124,18 +124,18 @@ void lydaq::WiznetManager::c_set6bdac(Mongoose::Request &request, Mongoose::Json
 }
 void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"set VThTime called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"set VThTime called ");
   response["STATUS"]="DONE";
 
   
   uint32_t nc=atol(request.get("value","380").c_str());
-  LOG4CXX_INFO(_logLdaq,"Value set "<<nc);
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Value set "<<nc);
   this->setVthTime(nc);
   response["VTHTIME"]=nc;
 }
 void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"SetMask called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"SetMask called ");
   response["STATUS"]="DONE";
 
   
@@ -143,25 +143,25 @@ void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonR
 uint32_t nc;
 sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
   
-  LOG4CXX_INFO(_logLdaq,"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
   this->setMask(nc);
   response["MASK"]=nc;
 }
 void lydaq::WiznetManager::c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"SetMode called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"SetMode called ");
   response["STATUS"]="DONE";
 
 
    uint32_t mode=atol(request.get("value","2").c_str());
    if (mode!=2)
      _type=mode;
-   LOG4CXX_INFO(_logLdaq,"SetMode called with"<<mode<<" "<<_type );
+   LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"SetMode called with"<<mode<<" "<<_type );
   response["MODE"]=_type;
 }
 void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logLdaq,"downloadDB called ");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"downloadDB called ");
   response["STATUS"]="DONE";
 
 
@@ -179,7 +179,7 @@ void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::Js
 
 void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq,"****** CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"****** CMD: "<<m->command());
 //  std::cout<<"m= "<<m->command()<<std::endl<<m->content()<<std::endl;
  
   Json::Value jtype=this->parameters()["type"];
@@ -194,7 +194,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
      }
    if (!this->parameters().isMember("tdc"))
      {
-       LOG4CXX_ERROR(_logLdaq," No tdc tag found ");
+       LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No tdc tag found ");
        return;
      }
    // Now create the Message handler
@@ -205,7 +205,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
    //_msh =new lydaq::TdcMessageHandler("/dev/shm");
    if (!jTDC.isMember("network"))
      {
-       LOG4CXX_ERROR(_logLdaq," No tdc:network tag found ");
+       LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No tdc:network tag found ");
        return;
      }
    // Scan the network
@@ -232,7 +232,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
      }
    if (_tca->asicMap().size()==0)
      {
-        LOG4CXX_ERROR(_logLdaq," No ASIC found in the configuration ");
+        LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
        return;
      }
    // Initialise the network
@@ -267,7 +267,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
   if (!this->parameters().isMember("publish"))
     {
       
-       LOG4CXX_ERROR(_logLdaq," No publish tag found ");
+       LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No publish tag found ");
        return;
     }
   for (auto x:_vTdc)
@@ -291,7 +291,7 @@ void lydaq::WiznetManager::writeAddress(std::string host,uint32_t port,uint16_t 
 }
 void lydaq::WiznetManager::configure(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
 
    // Now loop on slowcontrol socket
 
@@ -392,7 +392,7 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
 
 void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
   // Create run file
   Json::Value jc=m->content();
@@ -410,7 +410,7 @@ void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
     {
     case 0:		// ilc mode	
       {
-	LOG4CXX_INFO(_logLdaq," Starting ILC "<<_type);
+	LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Starting ILC "<<_type);
 	for (auto x:_wiznet->controlSockets())
 	  {
 	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x219,0); //ILC Mode
@@ -421,7 +421,7 @@ void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
       }
     case 1:		// beamtest mode
       {
-	LOG4CXX_INFO(_logLdaq," Starting Beamtest "<<_type);
+	LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Starting Beamtest "<<_type);
 	for (auto x:_wiznet->controlSockets())
 	  {
 	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x219,1); // Beam test Mode
@@ -434,7 +434,7 @@ void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
 }
 void lydaq::WiznetManager::stop(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
   for (auto x:_wiznet->controlSockets())
     {
@@ -449,11 +449,11 @@ void lydaq::WiznetManager::stop(zdaq::fsmmessage* m)
 void lydaq::WiznetManager::destroy(zdaq::fsmmessage* m)
 {
 
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
  
   for (auto x:_vTdc)
     delete x;
-  LOG4CXX_INFO(_logLdaq," Data sockets deleted");
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Data sockets deleted");
   _vTdc.clear();
 
   // To be done: _wiznet->clear();
