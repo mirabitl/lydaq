@@ -39,14 +39,14 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
      uint32_t* leb=(uint32_t*) &b[elen-4];
      if (elen>maxidx)
        {
-	 fprintf(stderr,"CheckBuf header:Not enough data ELEN %d MAXID %d \n",elen,maxidx);
+	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
 	 return -5;
        }
      if (ntohl(leb[0])==0xdadecafe)
        return elen;
      else
        {
-	 fprintf(stderr,"CheckBuf header :Missing CAFEDADE end tag \n");
+	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing CAFEDADE end tag ");
 	 return -1;
        }
    }
@@ -57,12 +57,12 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	 elen=ntohs(_sBuf[5])*CHBYTES+16; //Channels
 	 if (elen<16 || elen > 208)
 	   {
-	     fprintf(stderr,"CheckBuf:Wrong size %d \n",elen);
+	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Wrong size "<<elen);
 	     return -2;
 	   }
 	 if (elen>maxidx)
 	   {
-	     fprintf(stderr,"CheckBuf:Not enough data ELEN %d MAXID %d \n",elen,maxidx);
+	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Not enough data ELEN"<<elen <<" MAXID "<<maxidx);
 	     return -3;
 	   }
 	 uint32_t* leb=(uint32_t*) &b[elen-4];
@@ -70,7 +70,7 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	   return elen;
 	 else
 	   {
-	     fprintf(stderr,"CheckBuf:Missing CAFEBABE end tag \n");
+	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Missing CAFEBABE end tag ");
 	     return -4;
 	   }
 	 
@@ -137,7 +137,7 @@ bool lydaq::TdcWiznet::processPacket()
      if (_lastABCID!=0)
        {
 	 // Write Event
-	 fprintf(stderr,"Writing completed Event %d GTC %d ABCID %llu  Lines %d written\n",_event,_lastGTC,_lastABCID,_chlines);
+	 LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Writing completed Event"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<_id);
 	 // To be done
 	 this->processEventTdc();
 	 //fprintf(stderr,"Event send \n");
@@ -150,11 +150,12 @@ bool lydaq::TdcWiznet::processPacket()
      uint64_t abcid=((uint64_t) _buf[13]|((uint64_t) _buf[12]<<8)|((uint64_t) _buf[11]<<16)|((uint64_t) _buf[10]<<24)|((uint64_t) _buf[9]<<32));
      if (abcid==_lastABCID)
        {
-	 fprintf(stderr," ABCID HEADER ERROR %lld last %lld \n",abcid,_lastABCID);
+	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<_id<<" ABCID HEADER ERROR "<<abcid<<"  last "<<_lastABCID);
        }
      if (gtc==_lastGTC)
        {
-	 fprintf(stderr," GTC HEADER ERROR  %d last %d \n",gtc,_lastGTC);
+	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<_id<<" GTC HEADER ERROR "<<gtc<<"  last "<<_lastGTC);
+	 //fprintf(stderr," GTC HEADER ERROR  %d last %d \n",gtc,_lastGTC);
        }
      _nProcessed++;
      _event++;
@@ -185,7 +186,8 @@ bool lydaq::TdcWiznet::processPacket()
  uint16_t* tmp= (uint16_t*) &_buf[7];
  uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
  uint16_t nlines= ntohs(_sBuf[5]);
- fprintf(stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
+ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"Packets="<<_nProcessed<<" channel="<<channel<<" GTC="<<gtc<<" lines="<<nlines<<" index="<<_idx); 
+ //fprintf(stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
 
@@ -250,7 +252,7 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
       else
 	if (tag<0)
 	  {
-	    fprintf(stderr,"StructError %d ibx %d _idx %d \n",tag,ibx,_idx);
+	    LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<_id<<"StructError Tag="<<tag<<" ibx="<<ibx<< " _idx="<<_idx);
 	  }
       _buf[_idx]=b[ibx];
       _idx++;
@@ -396,6 +398,6 @@ void lydaq::TdcWiznet::processEventTdc()
       memcpy((unsigned char*) _dsData->payload(),temp,idx);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
-	INFO_PRINT("Publish %x %d GTC %d %llx channels %d size %d \n",_adr,_event,_lastGTC,_lastABCID,_chlines,idx);
+	LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" Lines="<<_chlines<<" size="<<idx);
     }
 }

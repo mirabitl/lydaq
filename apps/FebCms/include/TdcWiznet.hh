@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdint.h>
 #include "debug.hh"
+#include "ReadoutLogger.hh"
 using namespace std;
 namespace lydaq {
 
