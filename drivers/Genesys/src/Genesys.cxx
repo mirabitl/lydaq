@@ -69,15 +69,15 @@ void lydaq::Genesys::setIos()
   /* 
      now clean the modem line and activate the settings for the port
   */
-  tcflush(fd1, TCIFLUSH);
+  tcflush(fd1, TCIOFLUSH);
   tcsetattr(fd1,TCSANOW,&newtio);
          
 }
 lydaq::Genesys::Genesys(std::string device,uint32_t address)
 {
-
+  fprintf(stderr,"%s device %s address %d \n",__PRETTY_FUNCTION__,device.c_str(),address);
   fd1=open(device.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-
+  fprintf(stderr,"%s device %s FD1 %d \n",__PRETTY_FUNCTION__,device.c_str(),fd1);
   if (fd1 == -1 )
 
     {
@@ -91,47 +91,36 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
     {
 
       fcntl(fd1, F_SETFL,0);
-      printf("Port 1 has been sucessfully opened and %d is the file description\n",fd1);
+      fprintf(stderr,"Port %d has been sucessfully opened and %d is the file description\n",address,fd1);
     }
 
   int portstatus = 0;
+#define OLDWAY
 #ifdef OLDWAY
   struct termios options;
   // Get the current options for the port...
   tcgetattr(fd1, &options);
+  
   // Set the baud rates to 115200...
   cfsetispeed(&options, B9600);
   cfsetospeed(&options, B9600);
-  // Enable the receiver and set local mode...
-  options.c_cflag |= (CLOCAL | CREAD);
-
-  options.c_cflag &= ~PARENB;
-  options.c_cflag &= ~CSTOPB;
-  options.c_cflag &= ~CSIZE;
-  options.c_cflag |= CS8;
-  //options.c_cflag |= SerialDataBitsInterp(8);           /* CS8 - Selects 8 data bits */
-  options.c_cflag &= ~CRTSCTS;                            // disable hardware flow control
-  options.c_iflag &= ~(IXON | IXOFF | IXANY);           // disable XON XOFF (for transmit and receive)
-  options.c_cflag |= CRTSCTS;                     /* enable hardware flow control */
-
-
-  options.c_cc[VMIN] = 1;     //min carachters to be read
-  options.c_cc[VTIME] = 1;    //Time to wait for data (tenths of seconds)
-
-
-  // Set the new options for the port...
-  tcsetattr(fd1, TCSANOW, &options);
-
-
-  //Set the new options for the port...
-  tcflush(fd1, TCIFLUSH);
-  if (tcsetattr(fd1, TCSANOW, &options)==-1)
+  memset(&options,0,sizeof(options));
+  
+  options.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
+  options.c_iflag = IGNPAR;
+  options.c_oflag = 0;
+  options.c_lflag = 0;
+  options.c_cc[VMIN] = 0;      /* block untill n bytes are received */
+  options.c_cc[VTIME] = 0;     /* block untill a timer expires (n * 100 mSec.) */
+  int error = tcsetattr(fd1, TCSANOW, &options);
+  if (error==-1)
     {
-      perror("On tcsetattr:");
-      portstatus = -1;
+      fprintf(stderr,"Cannot set options \n");
+      portstatus=-1;
     }
   else
-    portstatus = 1;
+    portstatus=1;
+  // Enable the receiver and set local mode...
 
 #else
   setIos();
@@ -174,6 +163,7 @@ void lydaq::Genesys::OFF()
 
 void lydaq::Genesys::readCommand(std::string cmd)
 {
+  fprintf(stderr,"%s %s \n",__PRETTY_FUNCTION__,cmd.c_str());
   memset(buff,0,1024);
   fd_set set;
   struct timeval timeout;
@@ -192,10 +182,13 @@ void lydaq::Genesys::readCommand(std::string cmd)
     {
       read( fd1, buff, 100 ); /* there was data to read */
     
-      //std::cout<<"Y avait "<<buff<<std::endl;
+      std::cout<<"Y avait "<<buff<<std::endl;
     }
   wr=write(fd1,cmd.c_str(),cmd.length());
-  //std::cout<<"sleep "<<std::endl;
+  //fflush(fd1);
+  std::cout<<"sleep "<<wr<<std::endl;
+
+  sleep((int) 1);
   for (int i=0;i<20;i++) usleep(1000);
   memset(buff,0,1024);
   int32_t nchar=0,rd=0;
@@ -207,22 +200,23 @@ void lydaq::Genesys::readCommand(std::string cmd)
       timeout.tv_sec = 0;
       timeout.tv_usec = 480000;
 
-
+      fprintf(stderr,"waiting for select \n");
       rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
       if(rv == -1)
 	{
 	  perror("select"); /* an error accured */
+	  fprintf(stderr,"Bad select %d \n",rv); /* a timeout occured */
 	}
       else if(rv == 0)
 	{
-	  //printf("Nothing in select \n"); /* a timeout occured */
+	  fprintf(stderr,"Nothing in select \n"); /* a timeout occured */
 	  break;
 	}
       else
 	{
-
+	  fprintf(stderr,"y a des donnees \n");
 	  rd=read(fd1,&buff[nchar],100);
-	  //printf(" rd = %d nchar %d %s\n",rd,nchar,buff);
+	  printf(" rd = %d nchar %d %s\n",rd,nchar,buff);
 	  if (rd>0)
 	    nchar+=rd;
 	}
@@ -230,7 +224,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
     }
 
     
-  //printf("nchar %d OOOLLAA %s\n",nchar,buff);
+  fprintf(stderr,"nchar %d OOOLLAA %s\n",nchar,buff);
   int istart=0;
   char bufr[100];
   memset(bufr,0,100);
@@ -238,8 +232,8 @@ void lydaq::Genesys::readCommand(std::string cmd)
   for (int i=0;i<nchar;i++)
     if (buff[i]<0x5f) {bufr[istart]=buff[i];istart++;}
   //memcpy(bufr,&buff[istart],nchar-istart);
-  std::string toto;toto.assign(bufr,istart-1);
-  //printf(" %d %d Corrected %s\n",istart,nchar,toto.c_str());
+  std::string toto;if (istart>1) toto.assign(bufr,istart-1);
+  fprintf(stderr," %d %d Corrected %s\n",istart,nchar,toto.c_str());
     
   _value=toto;
 }
