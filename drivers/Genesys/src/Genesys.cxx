@@ -81,9 +81,8 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   if (fd1 == -1 )
 
     {
-
-      perror("open_port: Unable to open /dev/ttyS0 – ");
-
+      LOG4CXX_FATAL(_logGenesys,__PRETTY_FUNCTION__<<"  Unable to open "<<device);
+  
     }
 
   else
@@ -91,7 +90,8 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
     {
 
       fcntl(fd1, F_SETFL,0);
-      fprintf(stderr,"Port %d has been sucessfully opened and %d is the file description\n",address,fd1);
+      LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<"  Successfull open of "<<device);
+      //fprintf(stderr,"Port %d has been sucessfully opened and %d is the file description\n",address,fd1);
     }
 
   int portstatus = 0;
@@ -115,7 +115,8 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   int error = tcsetattr(fd1, TCSANOW, &options);
   if (error==-1)
     {
-      fprintf(stderr,"Cannot set options \n");
+      //fprintf(stderr,"Cannot set options \n");
+      LOG4CXX_FATAL(_logGenesys,__PRETTY_FUNCTION__<<" Cannot set RS232 options ");
       portstatus=-1;
     }
   else
@@ -142,6 +143,8 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   // wr=write(fd1,s.str().c_str(),s.str().length());usleep(50000);
   // printf("%d Bytes sent are %d \n",portstatus,wr);
 
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" address set to "<<address);
+
 }
 lydaq::Genesys::~Genesys()
 {
@@ -163,7 +166,8 @@ void lydaq::Genesys::OFF()
 
 void lydaq::Genesys::readCommand(std::string cmd)
 {
-  fprintf(stderr,"%s %s \n",__PRETTY_FUNCTION__,cmd.c_str());
+  //fprintf(stderr,"%s %s \n",__PRETTY_FUNCTION__,cmd.c_str());
+  LOG4CXX_DEBUG(_logGenesys,__PRETTY_FUNCTION__<<" command "<<cmd);
   memset(buff,0,1024);
   fd_set set;
   struct timeval timeout;
@@ -177,16 +181,19 @@ void lydaq::Genesys::readCommand(std::string cmd)
 
   rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
   if(rv == -1)
-    perror("select"); /* an error accured */
+    {
+      //perror("select"); /* an error accured */
+      LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select failed");
+    }
   else if(rv != 0)
     {
       read( fd1, buff, 100 ); /* there was data to read */
     
-      std::cout<<"Y avait "<<buff<<std::endl;
+      //std::cout<<"Y avait "<<buff<<std::endl;
     }
   wr=write(fd1,cmd.c_str(),cmd.length());
   //fflush(fd1);
-  std::cout<<"sleep "<<wr<<std::endl;
+  //std::cout<<"sleep "<<wr<<std::endl;
 
   //sleep((int) 1);
   for (int i=0;i<80;i++) usleep(1000);
@@ -200,23 +207,25 @@ void lydaq::Genesys::readCommand(std::string cmd)
       timeout.tv_sec = 0;
       timeout.tv_usec = 480000;
 
-      fprintf(stderr,"waiting for select \n");
+      //  fprintf(stderr,"waiting for select \n");
       rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
       if(rv == -1)
 	{
-	  perror("select"); /* an error accured */
-	  fprintf(stderr,"Bad select %d \n",rv); /* a timeout occured */
+	  LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select failed");
+	  //perror("select"); /* an error accured */
+	  //fprintf(stderr,"Bad select %d \n",rv); /* a timeout occured */
 	}
       else if(rv == 0)
 	{
-	  fprintf(stderr,"Nothing in select \n"); /* a timeout occured */
+	  LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select empty ");
+	  //fprintf(stderr,"Nothing in select \n"); /* a timeout occured */
 	  break;
 	}
       else
 	{
-	  fprintf(stderr,"y a des donnees \n");
+	  //fprintf(stderr,"y a des donnees \n");
 	  rd=read(fd1,&buff[nchar],100);
-	  printf(" rd = %d nchar %d %s\n",rd,nchar,buff);
+	  //printf(" rd = %d nchar %d %s\n",rd,nchar,buff);
 	  if (rd>0)
 	    nchar+=rd;
 	}
@@ -224,7 +233,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
     }
 
     
-  fprintf(stderr,"nchar %d OOOLLAA %s\n",nchar,buff);
+  //fprintf(stderr,"nchar %d OOOLLAA %s\n",nchar,buff);
   int istart=0;
   char bufr[100];
   memset(bufr,0,100);
@@ -233,7 +242,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
     if (buff[i]<0x5f) {bufr[istart]=buff[i];istart++;}
   //memcpy(bufr,&buff[istart],nchar-istart);
   std::string toto;if (istart>1) toto.assign(bufr,istart-1);
-  fprintf(stderr," %d %d Corrected %s\n",istart,nchar,toto.c_str());
+  //fprintf(stderr," %d %d Corrected %s\n",istart,nchar,toto.c_str());
     
   _value=toto;
 }
@@ -242,15 +251,18 @@ void lydaq::Genesys::INFO()
   do
     {
       this->readCommand("IDN?\r");
-      std::cout<<boost::format(" Device %s \n") % _value;
+      //std::cout<<boost::format(" Device %s \n") % _value;
     } while (_value.compare("LAMBDA,GEN6-200")!=0);
+
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" ID: "<<_value);
   this->readCommand("MODE?\r");
-  std::cout<<boost::format(" Status %s \n") % _value;
+  //std::cout<<boost::format(" Status %s \n") % _value;
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" MODE: "<<_value);
   std::size_t found;
   do {
     this->readCommand("STT?\r");
-    std::cout<<boost::format("Full Status=>\n\t %s \n") % _value;
-
+    //std::cout<<boost::format("Full Status=>\n\t %s \n") % _value;
+    LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" STATUS: "<<_value);
     
     found=_value.find("MV(");
     if (found == std::string::npos) continue;;
@@ -267,7 +279,8 @@ void lydaq::Genesys::INFO()
     std::cout<<boost::format("Vset %f Vread %f Iset %f I read %f  \n") % _vSet % _vRead % _iSet % _iRead;
   } while (found==std::string::npos);
   this->readCommand("OUT?\r");
-  std::cout<<boost::format("Output Status=>\n\t %s \n") % _value;
+  //std::cout<<boost::format("Output Status=>\n\t %s \n") % _value;
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" Out: "<<_value);
   _lastInfo=time(0);
   /*
     wr=write(fd1,":MDL?;",6);usleep(50000);
