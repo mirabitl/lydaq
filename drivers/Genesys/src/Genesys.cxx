@@ -188,8 +188,8 @@ void lydaq::Genesys::readCommand(std::string cmd)
   //fflush(fd1);
   std::cout<<"sleep "<<wr<<std::endl;
 
-  sleep((int) 1);
-  for (int i=0;i<20;i++) usleep(1000);
+  //sleep((int) 1);
+  for (int i=0;i<80;i++) usleep(1000);
   memset(buff,0,1024);
   int32_t nchar=0,rd=0;
   while (1)
