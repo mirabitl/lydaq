@@ -39,14 +39,14 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
      uint32_t* leb=(uint32_t*) &b[elen-4];
      if (elen>maxidx)
        {
-	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
+	 LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
 	 return -5;
        }
      if (ntohl(leb[0])==0xdadecafe)
        return elen;
      else
        {
-	 LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing CAFEDADE end tag ");
+	 LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing CAFEDADE end tag ");
 	 return -1;
        }
    }
@@ -57,12 +57,12 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	 elen=ntohs(_sBuf[5])*CHBYTES+16; //Channels
 	 if (elen<16 || elen > 208)
 	   {
-	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Wrong size "<<elen);
+	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Wrong size "<<elen);
 	     return -2;
 	   }
 	 if (elen>maxidx)
 	   {
-	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Not enough data ELEN"<<elen <<" MAXID "<<maxidx);
+	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Not enough data ELEN"<<elen <<" MAXID "<<maxidx);
 	     return -3;
 	   }
 	 uint32_t* leb=(uint32_t*) &b[elen-4];
@@ -70,7 +70,7 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	   return elen;
 	 else
 	   {
-	     LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Missing CAFEBABE end tag ");
+	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Missing CAFEBABE end tag ");
 	     return -4;
 	   }
 	 
@@ -252,7 +252,7 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
       else
 	if (tag<0)
 	  {
-	    LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<_id<<"StructError Tag="<<tag<<" ibx="<<ibx<< " _idx="<<_idx);
+	    LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<_id<<"StructError Tag="<<tag<<" ibx="<<ibx<< " _idx="<<_idx);
 	  }
       _buf[_idx]=b[ibx];
       _idx++;
