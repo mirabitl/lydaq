@@ -64,7 +64,7 @@ FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Service "<<name<<" started on port "<<atoi(wp));
       _fsm->start(atoi(wp));
     }
 
@@ -127,7 +127,7 @@ void FullSlow::stop(zdaq::fsmmessage* m)
 }
 void FullSlow::discover(zdaq::fsmmessage* m)
 {
-
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Discovering devices");
   Json::Value cjs=this->configuration()["HOSTS"];
   //  std::cout<<cjs<<std::endl;
   std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
@@ -165,6 +165,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _caenClient= new fsmwebCaller(host,port);
 	      std::string state=_caenClient->queryState();
 	      printf("CAEN client %x  %s \n",_caenClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" CAEN client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _caenClient->sendTransition("CREATE",_jConfigContent);
@@ -176,6 +177,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _isegClient= new fsmwebCaller(host,port);
 	      std::string state=_isegClient->queryState();
 	      printf("ISEG client %x  %s \n",_isegClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" ISEG client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _isegClient->sendTransition("CREATE",_jConfigContent);
@@ -187,6 +189,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _genesysClient= new fsmwebCaller(host,port);
 	      std::string state=_genesysClient->queryState();
 	      printf("GENESYS client %x  %s \n",_genesysClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" GENESYS client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _genesysClient->sendTransition("CREATE",_jConfigContent);
@@ -199,6 +202,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _bmpClient= new fsmwebCaller(host,port);
 	      std::string state=_bmpClient->queryState();
 	      printf("BMP183 client %x  %s \n",_bmpClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" BMP183 client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _bmpClient->sendTransition("CREATE",_jConfigContent);
@@ -211,6 +215,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _hihClient= new fsmwebCaller(host,port);
 	      std::string state=_hihClient->queryState();
 	      printf("HIH8000 client %x  %s \n",_hihClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" HIH8000 client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _hihClient->sendTransition("CREATE",_jConfigContent);
@@ -223,6 +228,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _zupClient= new fsmwebCaller(host,port);
 	      std::string state=_zupClient->queryState();
 	      printf("ZUP client %x  %s \n",_zupClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" ZUP client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _zupClient->sendTransition("CREATE",_jConfigContent);
@@ -235,6 +241,7 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _gpioClient= new fsmwebCaller(host,port);
 	      std::string state=_gpioClient->queryState();
 	      printf("GPIO client %x  %s \n",_gpioClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" GPIO client State="<<state); 
 	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
 		{
 		  _gpioClient->sendTransition("CREATE",_jConfigContent);
@@ -271,7 +278,7 @@ void FullSlow::HVStatus(Mongoose::Request &request, Mongoose::JsonResponse &resp
 
   if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No HV client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No HV client");
       response["STATUS"]=Json::Value::null;
       return;
     }
@@ -300,13 +307,13 @@ void FullSlow::setVoltage(Mongoose::Request &request, Mongoose::JsonResponse &re
   float vset=atof(request.get("value","-1.0").c_str());
   if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      LOG4CXX_ERROR(_logLdaq, __PRETTY_FUNCTION__<<" No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
   if (vset<0)
     {
-            LOG4CXX_ERROR(_logLdaq, "No value set");
+            LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No value set");
 	    response["STATUS"]=Json::Value::null;
 	    return;
 
@@ -335,13 +342,13 @@ void FullSlow::setCurrentLimit(Mongoose::Request &request, Mongoose::JsonRespons
   float iset=atof(request.get("value","-1.0").c_str());
   if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
   if (iset<0)
     {
-            LOG4CXX_ERROR(_logLdaq, "No value set");
+            LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No value set");
 	    response["STATUS"]=Json::Value::null;
 	    return;
 
@@ -371,13 +378,13 @@ void FullSlow::setRampUp(Mongoose::Request &request, Mongoose::JsonResponse &res
   float rup=atof(request.get("value","-1.0").c_str());
   if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
   if (rup<0)
     {
-            LOG4CXX_ERROR(_logLdaq, "No value set");
+            LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No value set");
 	    response["STATUS"]=Json::Value::null;
 	    return;
 
@@ -406,7 +413,7 @@ void FullSlow::HVON(Mongoose::Request &request, Mongoose::JsonResponse &response
   uint32_t last=atoi(request.get("last","0").c_str());
 if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
@@ -433,7 +440,7 @@ void FullSlow::CLEARALARM(Mongoose::Request &request, Mongoose::JsonResponse &re
   uint32_t last=atoi(request.get("last","0").c_str());
 if (_isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No ISEG client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No ISEG client");
       response["STATUS"]=Json::Value::null;
       return;
     }
@@ -454,7 +461,7 @@ void FullSlow::HVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
   uint32_t last=atoi(request.get("last","0").c_str());
 if (_caenClient==NULL && _isegClient==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq, "No CAEN client");
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No CAEN client");
       response["STATUS"]=Json::Value::null;
       return;
     }
@@ -497,7 +504,7 @@ void FullSlow::LVON(Mongoose::Request &request, Mongoose::JsonResponse &response
     found=true;
   }
   if (found) return;
-  LOG4CXX_ERROR(_logLdaq, "No LV client");
+  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No LV client");
   response["STATUS"]=Json::Value::null;
   return;
 }
@@ -526,7 +533,7 @@ void FullSlow::LVOFF(Mongoose::Request &request, Mongoose::JsonResponse &respons
 
   }
   if (found) return;
-  LOG4CXX_ERROR(_logLdaq, "No LV client");
+  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No LV client");
   response["STATUS"]=Json::Value::null;
   return;
    
@@ -555,7 +562,7 @@ void  FullSlow::LVStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     return;
   }
 
-  LOG4CXX_ERROR(_logLdaq, "No LV client");
+  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<"No LV client");
   response["STATUS"]=Json::Value::null;
   return;
 
@@ -570,7 +577,7 @@ void  FullSlow::PTStatus(Mongoose::Request &request, Mongoose::JsonResponse &res
     response["STATUS"]=_bmpClient->answer()["answer"]["STATUS"];
     return;
   }
-  LOG4CXX_ERROR(_logLdaq, "No PT client");
+  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No PT client");
   response["STATUS"]=Json::Value::null;
   return;
 
@@ -585,7 +592,7 @@ void  FullSlow::HumidityStatus(Mongoose::Request &request, Mongoose::JsonRespons
     response["STATUS"]=_hihClient->answer()["answer"]["STATUS"];
     return;
   }
-  LOG4CXX_ERROR(_logLdaq, "No HIH client");
+  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" No HIH client");
   response["STATUS"]=Json::Value::null;
   return;
 
