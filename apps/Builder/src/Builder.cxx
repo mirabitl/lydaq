@@ -79,10 +79,12 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
 
 void lydaq::dsBuilder::start(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Received "<<m->command());
+
     Json::Value jc=m->content();
     _merger->start(jc["run"].asInt());
     _running=true;
+
+    LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"Run "<<jc["run"].asInt()<<" is started ");
 }
 void lydaq::dsBuilder::stop(zdaq::fsmmessage* m)
 {
