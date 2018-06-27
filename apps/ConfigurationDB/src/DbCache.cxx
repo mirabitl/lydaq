@@ -58,18 +58,18 @@ lydaq::DbCache::DbCache(std::string name) : zdaq::baseApplication(name), _mode("
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<" Service "<<name<<" started on port "<<atoi(wp));
     _fsm->start(atoi(wp));
     }
   // Initialise Oracle Acccess
 #ifndef NO_DB
-  std::cout<<"On initialise Oracle "<<std::endl;
+  LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<"On initialise Oracle ");
   try {
     DBInit::init();
   }
   catch(...)
     {
-      LOG4CXX_FATAL(_logDbCache,"Cannot initialise Oracle");
+      LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" Cannot initialise Oracle");
       return;
     }
 
@@ -121,11 +121,12 @@ void lydaq::DbCache::c_publish(Mongoose::Request &request, Mongoose::JsonRespons
       int size_buf=::read(fd,&buf[idx],0x20000);
       if (size_buf<=0) {::close(fd);continue;}
       idx+=size_buf;
-      printf(" Sending %s %d \n",name.c_str(),idx);
-      
+
+      LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<" Sending state "<<name<<" Bytes "<<idx);
       zmq::message_t message(idx);
       memcpy(message.data(),buf,idx);
       _publisher->send(message);
+      LOG4CXX_DEBUG(_logDbCache,__PRETTY_FUNCTION__<<" publish done");
       printf("publish done \n");
       ::close(fd);
 	
@@ -175,7 +176,8 @@ void lydaq::DbCache::initialise(zdaq::fsmmessage* m)
 void lydaq::DbCache::configure(zdaq::fsmmessage* m)
 {
   ///LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
+  LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<" Configure "<<m->content());
   if (_state!=NULL) delete _state;
 #ifndef NO_DB
   Setup* theOracleSetup_=NULL;
@@ -191,17 +193,17 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
     }
  if (m->content().isMember("state"))
     {
-      LOG4CXX_ERROR(_logDbCache,"Changing DB state");
+      LOG4CXX_ERROR(_logDbCache,__PRETTY_FUNCTION__<<" Changing DB state");
       this->parameters()["state"]=m->content()["state"];
     }
  if (m->content().isMember("dbstate"))
     {
-      LOG4CXX_ERROR(_logDbCache,"Changing DB state");
+      LOG4CXX_ERROR(_logDbCache,__PRETTY_FUNCTION__<<" Changing DB state");
       this->parameters()["state"]=m->content()["dbstate"];
     }
   if (!this->parameters().isMember("mode"))
     {
-      LOG4CXX_FATAL(_logDbCache,"No access mode specified");
+      LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" No access mode specified");
       Json::Value jerr="No access mode specified";
       m->setAnswer(jerr);
       return;
@@ -210,7 +212,7 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
   _mode=this->parameters()["mode"].asString();
   if (!this->parameters().isMember("path"))
     {
-      LOG4CXX_FATAL(_logDbCache,"No write path specified");
+      LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" No write path specified");
       Json::Value jerr="No write path specified";
       m->setAnswer(jerr);
       return;
@@ -219,14 +221,14 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
   _path=this->parameters()["path"].asString();
   if (!this->parameters().isMember("state"))
     {
-      LOG4CXX_FATAL(_logDbCache,"No state or file specified");
+      LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" No state or file specified");
       Json::Value jerr="No state or file specified";
       m->setAnswer(jerr);
       return;
       
     }
   _stateName=this->parameters()["state"].asString();
-  LOG4CXX_INFO(_logDbCache,"Selected state name "<<_stateName);
+  LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<" Selected state name "<<_stateName);
   if (_mode.compare("DB")==0)
     {
 #ifndef NO_DB
@@ -234,16 +236,16 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
       try {
        theOracleSetup_=Setup::getSetup(_stateName); 
        std::cout<<"On initialise Oracle "<<(long)theOracleSetup_<< std::endl;
-       LOG4CXX_INFO(_logDbCache,"Downloading "<<_stateName);
+       LOG4CXX_INFO(_logDbCache,__PRETTY_FUNCTION__<<" Downloading "<<_stateName);
        
      }
      catch(...)
        {
-         LOG4CXX_FATAL(_logDbCache,"Setup initialisation failed");
+         LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" Setup initialisation failed");
        }
       _state=theOracleSetup_->getStates()[0];
 #else
-      LOG4CXX_FATAL(_logDbCache,"No Oracle DB access compiled");
+      LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" No Oracle DB access compiled");
       Json::Value jerr="No Oracle DB access compiled";
       m->setAnswer(jerr);
       return;
@@ -258,7 +260,7 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
 	}
       catch (ILCException::Exception e)
 	{
-	  LOG4CXX_ERROR(_logDbCache," Error in Web access"<<e.getMessage());
+	  LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" Error in Web access"<<e.getMessage());
 	  Json::Value jerr=e.getMessage();
 	  m->setAnswer(jerr);
 	  return;
@@ -278,7 +280,7 @@ void lydaq::DbCache::configure(zdaq::fsmmessage* m)
 	}
       catch (ILCException::Exception e)
 	{
-	  LOG4CXX_ERROR(_logDbCache," Error in File access"<<e.getMessage());
+	  LOG4CXX_FATAL(_logDbCache,__PRETTY_FUNCTION__<<" Error in File access"<<e.getMessage());
 	  Json::Value jerr=e.getMessage();
 	  m->setAnswer(jerr);
 	  return;

@@ -8,7 +8,7 @@ using namespace log4cxx;
 using namespace log4cxx::xml;
 using namespace log4cxx::helpers;
 using namespace std;
-static LoggerPtr _logDbCache(Logger::getLogger("DbDbCache"));
+static LoggerPtr _logDbCache(Logger::getLogger("configDbCache"));
 #include <zmq.hpp>
 #include <zhelpers.hpp>
 namespace lydaq {
