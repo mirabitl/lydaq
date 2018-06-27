@@ -11,6 +11,7 @@ static LoggerPtr _logCCC(Logger::getLogger("ReadoutCCC"));
 static LoggerPtr _logMDCC(Logger::getLogger("ReadoutMdcc"));
 static LoggerPtr _logFTDI(Logger::getLogger("ReadoutFTDI"));
 static LoggerPtr _logGenesys(Logger::getLogger("ReadoutGenesys"));
+static LoggerPtr _logCAEN(Logger::getLogger("ReadoutCAEN"));
 static LoggerPtr _logFeb(Logger::getLogger("ReadoutFeb"));
 static LoggerPtr _logLdaq(Logger::getLogger("LocalDAQ"));
 #endif
