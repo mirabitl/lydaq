@@ -21,13 +21,13 @@ using namespace zdaq;
 
 void lydaq::LDIFServer::registerdb(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   _dbstate=m->content()["dbstate"].asString();
 }
 
 void lydaq::LDIFServer::dbcache(std::string server,std::vector<uint32_t> vids)
 {
-  std::cout << "Collecting updates from DBCACHE server...\n" << std::endl;
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Collecting updates from DBCACHE server...");
   zmq::context_t c(2);
   zmq::socket_t subscriber(c, ZMQ_SUB);
   subscriber.connect(server);
@@ -42,7 +42,7 @@ void lydaq::LDIFServer::dbcache(std::string server,std::vector<uint32_t> vids)
     {
        zmq::message_t update;
        subscriber.recv(&update);
-       std::cout<<"update size "<<update.size()<<"\n";
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"update size "<<update.size());
        char cid[200],cdb[200];
        memset(cid,0,200);
        memset(cdb,0,200);
@@ -62,22 +62,22 @@ void lydaq::LDIFServer::dbcache(std::string server,std::vector<uint32_t> vids)
        sscanf(cid,"%d",&difid);
        //std::string sdbst(dbst);
        uint32_t hsi=ret-omsg+1;
-       printf("recived %d bytes %s %s buf size=%d \n",update.size(),cid,cdb,hsi);
+       //printf("recived %d bytes %s %s buf size=%d \n",update.size(),cid,cdb,hsi);
        uint32_t *ibuf=(uint32_t *) buf;
        if (theDIFMap_.find(difid)== theDIFMap_.end()) continue;
       //memcpy(&theDIFDbInfo_[i],curr->getData(),sizeof(DIFDbInfo));
        memcpy(theDIFMap_[difid]->dbdif(),buf,update.size()-((char*) buf-omsg));
        //printf("Dim info read %d %d \n",theDIFMap_[i]->dbdif()->id,theDIFMap_[i]->dbdif()->nbasic);
-       LOG4CXX_INFO(_logLdaq,"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb);
-       std::cout<<"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb<<std::endl;
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb);
+       //std::cout<<"DIF "<<theDIFMap_[difid]->dbdif()->id<<" is read from DB with nasic="<<theDIFMap_[difid]->dbdif()->nbasic<<" from state "<<cdb<<std::endl;
        
     }
-  std::cout << "Exiting updates from DBCACHE server...\n" << std::endl;
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<< "Exiting updates from DBCACHE server...");
   
 }
 void lydaq::LDIFServer::scan(zdaq::fsmmessage* m) 
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   // Store dbcache if changed
   if (m->content().isMember("dbcache"))
     this->parameters()["dbcache"]=m->content()["dbcache"];
@@ -85,7 +85,7 @@ void lydaq::LDIFServer::scan(zdaq::fsmmessage* m)
    this->prepareDevices();
    std::map<uint32_t,FtdiDeviceInfo*>& fm=this->getFtdiMap();
    std::map<uint32_t,LDIF*> dm=this->getDIFMap();
-   //LOG4CXX_INFO(_logLdaq," CMD: SCANDEVICE clear Maps");
+   //LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE clear Maps");
    for ( std::map<uint32_t,LDIF*>::iterator it=dm.begin();it!=dm.end();it++)
      { if (it->second!=NULL) delete it->second;}
    dm.clear();
@@ -97,7 +97,7 @@ void lydaq::LDIFServer::scan(zdaq::fsmmessage* m)
 
        LDIF* d= new LDIF(it->second);
        this->getDIFMap().insert(std::make_pair(it->first,d));
-       LOG4CXX_INFO(_logLdaq," CMD: SCANDEVICE created LDIF @ "<<std::hex<<d<<std::dec);
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE created LDIF @ "<<std::hex<<d<<std::dec);
        Json::Value jd;
        jd["detid"]=d->detectorId();
        jd["sourceid"]=it->first;
@@ -122,7 +122,7 @@ void lydaq::LDIFServer::scan(zdaq::fsmmessage* m)
 void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
 {
   
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   uint32_t difid=m->content()["difid"].asInt();
 
   // Found the detid
@@ -135,7 +135,7 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
   if (this->parameters().isMember("builderAddress"))
     {
       builderAddress=this->parameters()["builderAddress"].asString();
-      std::cout<<" builder address is "<<builderAddress<<" length" <<builderAddress.length()<<std::endl;
+      LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" builder address is "<<builderAddress<<" length" <<builderAddress.length());
     }
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
@@ -144,14 +144,14 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  rc=-1;
 	  return;
 	}
       zdaq::zmPusher* push=NULL;
       if (_context!=NULL && difid>0 && builderAddress.length()>4)
 	{
-	  std::cout<<" Creating pusher to "<<builderAddress<<std::endl;
+	  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<builderAddress);
 	  push=new zdaq::zmPusher(_context,detid,difid);
 	  push->connect(builderAddress);
 	}
@@ -163,11 +163,11 @@ void lydaq::LDIFServer::initialise(zdaq::fsmmessage* m)
 
       for ( std::map<uint32_t,LDIF*>::iterator it=dm.begin();it!=dm.end();it++)
 	{
-	  LOG4CXX_INFO(_logLdaq," calling initialise LDIF @ "<<std::hex<<it->second<<std::dec);
+	  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" calling initialise LDIF @ "<<std::hex<<it->second<<std::dec);
 	  zdaq::zmPusher* push=NULL;
 	  if (_context!=NULL  && builderAddress.length()>4)
 	    {
-	      std::cout<<" Creating pusher to "<<builderAddress<<std::endl;
+	      LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<builderAddress);
 	      push=new zdaq::zmPusher(_context,detid,it->first);
 	      push->connect(builderAddress);
 	    }
@@ -187,13 +187,13 @@ void lydaq::LDIFServer::setGain(Mongoose::Request &request, Mongoose::JsonRespon
   printf("ctrl reg = %u %x \n",ctrlreg1,ctrlreg1);
   // uint32_t ctrlreg= jt["ctrlreg"].asUInt();
   //printf("ctrl reg after = %d %x \n",ctrlreg,ctrlreg);
-  LOG4CXX_INFO(_logLdaq," Gain changed with "<<difid<<" ctr "<<ctrlreg1<<" gain "<<gain);
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Gain changed with "<<difid<<" ctr "<<ctrlreg1<<" gain "<<gain);
   //response["STATUS"]="TRY";
   //return;
 
   if (gain==0|| ctrlreg1==0)
     {
-      LOG4CXX_ERROR(_logLdaq," Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" Gain "<<gain)
+      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" Gain "<<gain)
       response["STATUS"]="Invalid params ";
       return;
     }
@@ -205,7 +205,7 @@ void lydaq::LDIFServer::setGain(Mongoose::Request &request, Mongoose::JsonRespon
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 
 	  response["STATUS"]="DIFID not found ";
 	  return;
@@ -257,13 +257,13 @@ void lydaq::LDIFServer::setThreshold(Mongoose::Request &request, Mongoose::JsonR
   std::cout<<" Json value "<<jt<<std::endl;
   // uint32_t ctrlreg= jt["ctrlreg"].asUInt();
   //printf("ctrl reg after = %d %x \n",ctrlreg,ctrlreg);
-  LOG4CXX_INFO(_logLdaq," Threshold changed with "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2<<" et "<<request.get("CTRLREG","0").c_str());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Threshold changed with "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2<<" et "<<request.get("CTRLREG","0").c_str());
   //response["STATUS"]="TRY";
   //return;
 
   if (B0==0 || B1==0 || B2==0|| ctrlreg1==0)
     {
-      LOG4CXX_ERROR(_logLdaq," Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2);
+      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2);
       response["STATUS"]="Invalid params ";
       return;
     }
@@ -275,7 +275,7 @@ void lydaq::LDIFServer::setThreshold(Mongoose::Request &request, Mongoose::JsonR
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 
 	  response["STATUS"]="DIFID not found ";
 	  return;
@@ -323,7 +323,7 @@ void lydaq::LDIFServer::cmdStatus(Mongoose::Request &request, Mongoose::JsonResp
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  response["STATUS"]="DIFID not found ";
 	  return;
 	}
@@ -376,7 +376,7 @@ void lydaq::LDIFServer::cmdStatus(Mongoose::Request &request, Mongoose::JsonResp
 void lydaq::LDIFServer::status(zdaq::fsmmessage* m)
 {
 
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_DEBUG(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
 
   
   uint32_t difid=m->content()["difid"].asInt();
@@ -389,7 +389,7 @@ void lydaq::LDIFServer::status(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  rc=-1;
 	  return;
 	}
@@ -439,10 +439,10 @@ void lydaq::LDIFServer::status(zdaq::fsmmessage* m)
 void lydaq::LDIFServer::configure(zdaq::fsmmessage* m)
 {
 
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_DEBUG(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   uint32_t difid=m->content()["difid"].asInt();
   uint32_t ctrlreg=m->content()["ctrlreg"].asUInt();
-  LOG4CXX_INFO(_logLdaq," Configuring with "<<difid<<" ctr "<<ctrlreg<<" cont "<<m->content());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Configuring with "<<difid<<" ctr "<<ctrlreg<<" cont "<<m->content());
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
   Json::Value array_slc;
@@ -451,7 +451,7 @@ void lydaq::LDIFServer::configure(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  rc=-1;
 	  return;
 	}
@@ -484,7 +484,7 @@ void lydaq::LDIFServer::configure(zdaq::fsmmessage* m)
 
 void lydaq::LDIFServer::start(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Starting ");
   uint32_t difid=m->content()["difid"].asInt();
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
@@ -493,7 +493,7 @@ void lydaq::LDIFServer::start(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  rc=-1;
 	  return;
 	}
@@ -515,7 +515,7 @@ void lydaq::LDIFServer::start(zdaq::fsmmessage* m)
 }
 void lydaq::LDIFServer::stop(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Stopping ");
   uint32_t difid=m->content()["difid"].asInt();
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
@@ -524,7 +524,7 @@ void lydaq::LDIFServer::stop(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 	  rc=-1;
 	  return;
 	}
@@ -538,7 +538,7 @@ void lydaq::LDIFServer::stop(zdaq::fsmmessage* m)
 
       for ( std::map<uint32_t,LDIF*>::iterator it=dm.begin();it!=dm.end();it++)
 	{
-	  printf("Stopping thread of DIF %d \n",it->first);
+	  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Stopping thread of DIF"<<it->first);
 	  it->second->stop();
 	}
       
@@ -547,7 +547,7 @@ void lydaq::LDIFServer::stop(zdaq::fsmmessage* m)
 }
 void lydaq::LDIFServer::destroy(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Destroying ");
   uint32_t difid=m->content()["difid"].asInt();
   int32_t rc=1;
   std::map<uint32_t,LDIF*> dm=this->getDIFMap();
@@ -556,7 +556,7 @@ void lydaq::LDIFServer::destroy(zdaq::fsmmessage* m)
       std::map<uint32_t,LDIF*>::iterator itd=dm.find(difid);
       if (itd==dm.end())
 	{
-	  LOG4CXX_ERROR(_logLdaq," please do Scan devices first the dif  "<<difid<<"is not registered");
+	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
 
 	  return;
 	}
@@ -643,7 +643,7 @@ lydaq::LDIFServer::LDIFServer(std::string name)  : zdaq::baseApplication(name)
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
     {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
+      LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Service "<<name<<" started on port "<<atoi(wp));
     _fsm->start(atoi(wp));
     }
 
@@ -696,12 +696,12 @@ void lydaq::LDIFServer::prepareDevices()
     }
   else 
     {
-      std::cout << "Unable to open file"<<std::endl; 
-      LOG4CXX_FATAL(_logLdaq," Unable to open /var/log/pi/ftdi_devices");
+      //std::cout << "Unable to open file"<<std::endl; 
+      LOG4CXX_FATAL(_logDIF,__PRETTY_FUNCTION__<<" Unable to open /var/log/pi/ftdi_devices");
     }
 
   for (std::map<uint32_t,FtdiDeviceInfo*>::iterator it=theFtdiDeviceInfoMap_.begin();it!=theFtdiDeviceInfoMap_.end();it++)
-    printf("Device found and register: %d with info %d %d %s type %d \n", it->first,it->second->vendorid,it->second->productid,it->second->name,it->second->type);
+    LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"Device found and register "<<it->first<<" with info "<<it->second->vendorid<<" "<<it->second->productid<<" "<<it->second->name<<" "<<it->second->type);
 }
 
 
