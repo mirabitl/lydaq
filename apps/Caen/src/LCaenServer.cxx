@@ -5,7 +5,7 @@ using namespace lydaq;
 
 void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logCAEN,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
 
   std::string account;
   if (m->content().isMember("account"))
@@ -49,10 +49,10 @@ void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
 }
 void lydaq::LCaenServer::close(zdaq::fsmmessage* m)
 {
-  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  LOG4CXX_INFO(_logCAEN,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   if (_hv==NULL)
     {
-       LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+       LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
        return;
     }
   // _hv->Disconnect();
@@ -67,7 +67,7 @@ Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
   r["status"]=Json::Value::null;
    if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
        return r;
     }
    r["vset"]=_hv->GetVoltageSet(channel);
@@ -93,13 +93,13 @@ Json::Value lydaq::LCaenServer::status(int32_t first,int32_t last)
   r["channels"]=jsonArray;
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
     return r;
   }
   int32_t fi=0,la=0;
   if (!this->parameters().isMember("first") && first<0)
   {
-    LOG4CXX_ERROR(_logLdaq,"Please define first channel");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"Please define first channel");
     return r;
   }
   if (first<0)
@@ -108,7 +108,7 @@ Json::Value lydaq::LCaenServer::status(int32_t first,int32_t last)
     fi=first;
   if (!this->parameters().isMember("last") && last<0)
   {
-    LOG4CXX_ERROR(_logLdaq,"Please define last channel");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"Please define last channel");
     return r;
   }
  if (last<0)
@@ -134,7 +134,7 @@ void lydaq::LCaenServer::c_status(Mongoose::Request &request, Mongoose::JsonResp
 {
   if (_hv==NULL)
     {
-      LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+      LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
        response["STATUS"]=Json::Value::null;
        return;
     }
@@ -146,7 +146,7 @@ void lydaq::LCaenServer::c_status(Mongoose::Request &request, Mongoose::JsonResp
   //if (last!=9999 ) this->parameters()["last"]=last;
   if (first==9999 || last==9999)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -157,7 +157,7 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -167,7 +167,7 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   if (first==9999 || last==9999)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -182,7 +182,7 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"Please open MDC01 first");
     response["STATUS"]="Please open MDC01 first";
     return;
   }
@@ -192,7 +192,7 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   if (first==9999 || last==9999)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -207,7 +207,7 @@ void lydaq::LCaenServer::c_clearalarm(Mongoose::Request &request, Mongoose::Json
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaen opened");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaen opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -217,7 +217,7 @@ void lydaq::LCaenServer::c_clearalarm(Mongoose::Request &request, Mongoose::Json
   if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
   if (first==9999 || last==9999)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -232,7 +232,7 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"Please open MDC01 first");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"Please open MDC01 first");
     response["STATUS"]="Please open MDC01 first";
     return;
   }
@@ -243,7 +243,7 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
   float vset=atof(request.get("value","-1.0").c_str());
   if (first==9999 || last==9999 || vset<0)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -258,7 +258,7 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -269,7 +269,7 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
   float iset=atof(request.get("value","-1.0").c_str());
   if (first==9999 || last==9999 || iset<0)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -284,7 +284,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
 {
   if (_hv==NULL)
   {
-    LOG4CXX_ERROR(_logLdaq,"No HVCaenInterface opened");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
     response["STATUS"]=Json::Value::null;
     return;
   }
@@ -295,7 +295,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
   float rup=atof(request.get("value","-1.0").c_str());
   if (first==9999 || last==9999 || rup<0)
   {
-    LOG4CXX_ERROR(_logLdaq,"First and last channels , and value should be specified");
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels , and value should be specified");
     response["STATUS"]=Json::Value::null;
     return;
   }
