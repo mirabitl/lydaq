@@ -39,14 +39,14 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
      uint32_t* leb=(uint32_t*) &b[elen-4];
      if (elen>maxidx)
        {
-	 LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
+	 LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
 	 return -5;
        }
      if (ntohl(leb[0])==0xdadecafe)
        return elen;
      else
        {
-	 LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing CAFEDADE end tag ");
+	 LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing CAFEDADE end tag ");
 	 return -1;
        }
    }
@@ -57,12 +57,12 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	 elen=ntohs(_sBuf[5])*CHBYTES+16; //Channels
 	 if (elen<16 || elen > 208)
 	   {
-	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Wrong size "<<elen);
+	     LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Wrong size "<<elen);
 	     return -2;
 	   }
 	 if (elen>maxidx)
 	   {
-	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Not enough data ELEN"<<elen <<" MAXID "<<maxidx);
+	     LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Not enough data ELEN"<<elen <<" MAXID "<<maxidx);
 	     return -3;
 	   }
 	 uint32_t* leb=(uint32_t*) &b[elen-4];
@@ -70,7 +70,7 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 	   return elen;
 	 else
 	   {
-	     LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Missing CAFEBABE end tag ");
+	     LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf:Missing CAFEBABE end tag ");
 	     return -4;
 	   }
 	 
@@ -186,7 +186,7 @@ bool lydaq::TdcWiznet::processPacket()
  uint16_t* tmp= (uint16_t*) &_buf[7];
  uint32_t gtc= (_buf[9]|(_buf[8]<<8)|(_buf[7]<<16)|(_buf[6]<<24));
  uint16_t nlines= ntohs(_sBuf[5]);
- LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<_id<<" Packets="<<_nProcessed<<" channel="<<channel<<" GTC="<<gtc<<" lines="<<nlines<<" index="<<_idx); 
+ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Packets="<<_nProcessed<<" channel="<<channel<<" GTC="<<gtc<<" lines="<<nlines<<" index="<<_idx); 
  //fprintf(stderr,"%d packet %x # %d for channel %d with  lines %d and byte size %d \n",_nProcessed,ntohl(_lBuf[0]),gtc,channel,nlines,_idx);
  //  printf ("packet %x # %d with payload length %d  and tottal size %d \n",(_lBuf[0]),(_lBuf[1]),(_lBuf[2]),_idx);
 
@@ -252,7 +252,7 @@ void lydaq::TdcWiznet::processBuffer(uint64_t id,uint16_t l,char* b)
       else
 	if (tag<0)
 	  {
-	    LOG4CXX_WARNING(_logFeb,__PRETTY_FUNCTION__<<_id<<"StructError Tag="<<tag<<" ibx="<<ibx<< " _idx="<<_idx);
+	    LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<_id<<"StructError Tag="<<tag<<" ibx="<<ibx<< " _idx="<<_idx);
 	  }
       _buf[_idx]=b[ibx];
       _idx++;
