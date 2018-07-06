@@ -527,6 +527,12 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETTHRESHOLD",lcgi)
       print sr    
       
+  def daq_settdcmode(self,mode):
+      lcgi={}
+      lcgi["value"]=mode
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETTDCMODE",lcgi)
+      print sr    
 
       
   def trig_status(self):
@@ -988,6 +994,7 @@ grp_action.add_argument('--daq-setgain',action='store_true',help='change the gai
 grp_action.add_argument('--daq-setthreshold',action='store_true',help='change the threholds and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
 grp_action.add_argument('--daq-setvth',action='store_true',help='change the gain and reconfigure chips with -vth=xxx')
 grp_action.add_argument('--daq-setmask',action='store_true',help='change the gain and reconfigure chips with -mask=xxx')
+grp_action.add_argument('--daq-settdcmode',action='store_true',help='change the trigger mode before starting the run with --value=1/0')
 
 
 
@@ -1323,6 +1330,13 @@ elif(results.daq_setthreshold):
         print 'Please specify the B2 --B2=value'
         exit(0)
     fdc.setthreshold(results.B0,results.B1,results.B2)
+    exit(0)
+elif(results.daq_settdcmode):
+    r_cmd='SETTDCMODE'
+    if (results.value==None):
+        print 'Please specify the mode --value=XX'
+        exit(0)
+    fdc.daq_settdcmode(results.value)
     exit(0)
 
 elif(results.daq_startrun):
