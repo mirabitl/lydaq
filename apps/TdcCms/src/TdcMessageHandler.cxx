@@ -28,6 +28,8 @@ using namespace lydaq;
 #define LINELENGTH 8
 
 std::string lmexec(const char* cmd) {
+
+  fprintf(stderr,"Executing %s \n");
   FILE* pipe = popen(cmd, "r");
   if (!pipe) return "ERROR";
   char buffer[128];
@@ -37,6 +39,7 @@ std::string lmexec(const char* cmd) {
       result += buffer;
   }
   pclose(pipe);
+  fprintf(stderr,"On obtient: %s\n",result.c_str());
   return result;
   
 }
@@ -89,6 +92,7 @@ std::map<uint32_t,std::string> lydaq::TdcMessageHandler::scanNetwork(std::string
   }
   return m;
 }
+
 
 
 lydaq::TdcMessageHandler::TdcMessageHandler(std::string directory) : _storeDir(directory)

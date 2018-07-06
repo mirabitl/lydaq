@@ -755,9 +755,9 @@ class fdaqClient:
   def daq_fullscurve(self,ch,beg,las,step=2):
       ### petiroc to scan
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
-      firmware2=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,19]
+      firmware2=[0,1,2,3,4,5,6,7,8,9,10,19,20,21,22,23,24,25,26,27,28,29,30,31]
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
-      firmware=firmwaret
+      firmware=firmware2
       ###
       self.daq_start()
       #### commenter en dessous

@@ -131,6 +131,7 @@ void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::Js
   uint32_t nc=atol(request.get("value","380").c_str());
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Value set "<<nc);
   this->setVthTime(nc);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Completed "<<nc);
   response["VTHTIME"]=nc;
 }
 void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -373,19 +374,21 @@ void lydaq::WiznetManager::setMask(uint32_t mask)
 void lydaq::WiznetManager::setVthTime(uint32_t vth)
 {
 
+    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
     for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
       it->second.setVthTime(vth);
-    
+
+
   // Now loop on slowcontrol socket
     for (auto x:_wiznet->controlSockets())
     {
-      
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data send to "<<x.second->hostTo());      
       _tca->prepareSlowControl(x.second->hostTo());
 
       _wiznet->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
 
     }
-
+    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Fin ");
 }
 
 
