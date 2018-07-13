@@ -6,6 +6,7 @@
 #include <vector>
 #include <json/json.h>
 #include "TmvAccessSql.hh"
+#include <zmq.hpp>
 namespace lydaq
 {
 class FullDaq : public zdaq::baseApplication
@@ -78,6 +79,13 @@ public:
   void forceState(std::string s){_fsm->setState(s);}
   // Virtual from baseAPplication
   virtual void  userCreate(zdaq::fsmmessage* m);
+
+  // Survey
+  void survey();
+  void startSurvey();
+  void stopSurvey();
+  Json::Value surveyStatus();
+  void monitor(Mongoose::Request &request, Mongoose::JsonResponse &response);
 private:
   zdaq::fsmweb* _fsm;
   fsmwebCaller* _dbClient,*_zupClient,*_cccClient,*_mdccClient,*_builderClient,*_gpioClient;
@@ -89,6 +97,14 @@ private:
   Json::Value _jConfigContent;
   // Add-ons for Tomuvol
   TmvAccessSql _tmv;
+
+  // Add-ons for survey
+   boost::thread_group g_survey;
+  bool _survey;
+  uint32_t _period;
+  zmq::context_t* _context;
+  zmq::socket_t *_publisher;
+
 };
 };
 #endif

@@ -13,6 +13,9 @@ using namespace lydaq;
 FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
   {
     _builderClient=0;_dbClient=0;_cccClient=0;_mdccClient=0;_zupClient=0;_gpioClient=0;
+    _context=NULL;
+    _publisher=NULL;
+    _survey=false;
     _DIFClients.clear();
     
     _fsm=this->fsm();
@@ -82,6 +85,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _fsm->addCommand("TRIGGERGETREG",boost::bind(&FullDaq::triggerGetRegister,this,_1,_2));
     _fsm->addCommand("RESETTDC",boost::bind(&FullDaq::resetTdc,this,_1,_2));
 
+    _fsm->addCommand("MONITOR",boost::bind(&FullDaq::monitor,this,_1,_2));
   cout<<"Building FullDaq"<<endl;
   
 
@@ -1398,4 +1402,147 @@ void FullDaq::setGain(Mongoose::Request &request, Mongoose::JsonResponse &respon
  response["STATUS"]="DONE";
   
   
+}
+void FullDaq::startSurvey()
+{
+     
+  if (!this->parameters().isMember("period"))
+    {
+      std::cout<<"Please define Reading period"<<std::endl;
+      return;
+    }
+  else
+    _period=this->parameters()["period"].asUInt();
+  
+  if (this->parameters().isMember("TCPPort") && _context==NULL)
+    {
+      _context= new zmq::context_t(1);
+      _publisher= new zmq::socket_t((*_context), ZMQ_PUB);
+      std::stringstream sport;
+      sport<<"tcp://*:"<<this->parameters()["TCPPort"].asUInt();
+      std::cout<<"Binding to "<<sport.str()<<std::endl;
+      _publisher->bind(sport.str());
+      
+    }
+    
+  if (!this->parameters().isMember("location"))
+    this->parameters()["location"]="/HOME";        
+  g_survey.create_thread(boost::bind(&lydaq::FullDaq::survey, this));
+  _survey=true;
+    
+
+}
+void FullDaq::stopSurvey()
+{
+  //
+  _survey=false;
+  g_survey.join_all();
+}
+
+void FullDaq::survey()
+{
+  Json::FastWriter fastWriter;
+  while (_survey)
+    {
+    
+      if (_publisher==NULL)
+	{
+	  std::cout<<"No publisher defined"<<std::endl;
+	  break;
+	}
+          // ID
+      std::stringstream sheader;
+      sheader<<"FDAQ@"<<this->parameters()["location"].asString()<<"@"<<time(0);
+      std::string head=sheader.str();
+    
+      zmq::message_t ma1((void*)head.c_str(), head.length(), NULL); 
+      _publisher->send(ma1, ZMQ_SNDMORE);
+      // Status
+      Json::Value jstatus=this->surveyStatus();
+      std::string scont= fastWriter.write(jstatus);
+      zmq::message_t ma2((void*)scont.c_str(), scont.length(), NULL); 
+
+      std::cout<<"publishing "<<head<<" =>"<<scont<<std::endl;
+      _publisher->send(ma2);
+      if (!_survey) break;
+      ::sleep(_period);
+    }
+  std::cout<<"End of survey task"<<std::endl;
+
+}
+
+Json::Value FullDaq::surveyStatus()
+{
+  Json::Value rep;
+  
+  if (_builderClient)
+    {
+      _builderClient->sendCommand("STATUS");
+      LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<_builderClient->answer());
+      if (!_builderClient->answer().empty())
+	{
+	  if (_builderClient->answer().isMember("answer"))
+	    {
+	      rep["builder"]["run"]=_builderClient->answer()["answer"]["answer"]["run"];
+	      rep["builder"]["event"]=_builderClient->answer()["answer"]["answer"]["event"];
+	    }
+	}
+    }
+  if (!this->parameters().empty())
+    {
+      if (this->parameters().isMember("db"))
+	{
+	  rep["db"]["state"]= this->parameters()["db"]["state"];
+	}
+    }
+  if (_tdcClients.size()>0)
+    {
+      Json::Value devlist;
+      for (std::vector<fsmwebCaller*>::iterator it=_tdcClients.begin();it!=_tdcClients.end();it++)
+	{
+
+	  (*it)->sendCommand("STATUS");
+	  const Json::Value& jdevs=(*it)->answer();
+	  if (jdevs.isMember("answer"))
+	    if (jdevs["answer"].isMember("TDCSTATUS"))
+	      //for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
+	      devlist.append(jdevs["answer"]["TDCSTATUS"]);
+	}
+      rep["FEB"]=devlist;
+    }
+  if (_DIFClients.size()>0)
+    {
+      Json::Value devlist;
+      for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
+	{
+
+	  (*it)->sendCommand("STATUS");
+	  const Json::Value& jdevs=(*it)->answer();
+	  if (jdevs.isMember("answer"))
+	    if (jdevs["answer"].isMember("DIFLIST"))
+	      {
+		const Json::Value& jdev1=jdevs["answer"]["DIFLIST"];
+		//std::cout<<"GROS DEBUG "<<jdevs<<std::endl;
+		for (Json::ValueConstIterator jt = jdev1.begin(); jt != jdev1.end(); ++jt)
+		  devlist.append(*jt);
+	      }
+	}
+      rep["DIF"]=devlist;
+    }
+
+  rep["STATE"]=this->fsm()->state();
+  return rep;
+}
+void FullDaq::monitor(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+
+  uint32_t nc=atoi(request.get("value","0").c_str());
+  if (nc!=0 && !_survey)
+    startSurvey();
+  else
+    stopSurvey();
+  response["MODE"]=nc;
+
+  response["STATUS"]="DONE";
+  return;
 }

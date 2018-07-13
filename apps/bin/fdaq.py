@@ -462,11 +462,19 @@ class fdaqClient:
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","START",lcgi)
       print sr
+      lcgi["value"]=1
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
+      print sr    
+
 
   def daq_stop(self):
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
       print sr
+
+      lcgi["value"]=0
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
+      print sr    
 
   def daq_destroy(self):
       lcgi={}

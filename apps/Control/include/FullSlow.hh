@@ -38,7 +38,7 @@ public:
   void forceState(std::string s){_fsm->setState(s);}
 private:
   zdaq::fsmweb* _fsm;
-  fsmwebCaller* _caenClient,*_zupClient,*_genesysClient,*_bmpClient,*_isegClient,*_gpioClient,*_hihClient;
+  fsmwebCaller* _caenClient,*_zupClient,*_genesysClient,*_bmpClient,*_isegClient,*_gpioClient,*_hihClient,*_monitorClient;
   Json::Value _jConfigContent;
 };
 };

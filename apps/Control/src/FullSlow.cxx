@@ -28,7 +28,7 @@ using namespace zdaq;
 FullSlow::FullSlow(std::string name) : zdaq::baseApplication(name)
 {
   _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;_hihClient=0;
-  _isegClient=0;
+  _isegClient=0;_monitorClient=0;
  
   _fsm=this->fsm();
  
@@ -92,7 +92,7 @@ void  FullSlow::userCreate(zdaq::fsmmessage* m)
 
 void FullSlow::destroy(zdaq::fsmmessage* m)
 {
-  _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;_hihClient=0;
+  _caenClient=0;_zupClient=0;_genesysClient=0;_bmpClient=0;_gpioClient=0;_hihClient=0;_monitorClient=0;
  
 }
 void FullSlow::configure(zdaq::fsmmessage* m)
@@ -103,6 +103,7 @@ void FullSlow::configure(zdaq::fsmmessage* m)
   if (_isegClient!=0) _isegClient->sendTransition("OPEN");
   if (_bmpClient!=0) _bmpClient->sendTransition("OPEN");
   if (_hihClient!=0) _hihClient->sendTransition("OPEN");
+  if (_monitorClient!=0) _monitorClient->sendTransition("INITIALISE");
  
 }
 void FullSlow::start(zdaq::fsmmessage* m)
@@ -113,6 +114,7 @@ void FullSlow::start(zdaq::fsmmessage* m)
   if (_isegClient!=0) _isegClient->sendTransition("START");
   if (_bmpClient!=0) _bmpClient->sendTransition("START");
   if (_hihClient!=0) _hihClient->sendTransition("START");
+  if (_monitorClient!=0) _monitorClient->sendTransition("START");
  
 }
 void FullSlow::stop(zdaq::fsmmessage* m)
@@ -123,7 +125,7 @@ void FullSlow::stop(zdaq::fsmmessage* m)
   if (_isegClient!=0) _isegClient->sendTransition("STOP");
   if (_bmpClient!=0) _bmpClient->sendTransition("STOP");
   if (_hihClient!=0) _hihClient->sendTransition("STOP");
- 
+  if (_monitorClient!=0) _monitorClient->sendTransition("STOP");
 }
 void FullSlow::discover(zdaq::fsmmessage* m)
 {
@@ -257,6 +259,20 @@ void FullSlow::discover(zdaq::fsmmessage* m)
 	      _gpioClient->sendCommand("VMEON");
 	      
 	    }
+	  if (p_name.compare("MONITORING")==0)
+	    {
+	      _monitorClient= new fsmwebCaller(host,port);
+	      std::string state=_monitorClient->queryState();
+	      printf("MONITORING client %x  %s \n",_monitorClient,state.c_str());
+	      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" MONITORING client State="<<state); 
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  _monitorClient->sendTransition("CREATE",_jConfigContent);
+		}
+	      if (!p_param.empty()) this->parameters()["monitor"]=p_param;
+	      //printf("ZUP client %x \n",_zupClient);
+	    }
+
 	}
 
     }
