@@ -7,6 +7,7 @@
 #include<netdb.h> //hostent
 #include<arpa/inet.h>
 #include "CAENHVWrapper.h"
+#include <iostream>
 using namespace lydaq;
 
 lydaq::HVCaenInterface::HVCaenInterface(std::string host,std::string user,std::string pwd) :theHost_(host),theUser_(user),thePassword_(pwd)
@@ -36,6 +37,7 @@ lydaq::HVCaenInterface::HVCaenInterface(std::string host,std::string user,std::s
     }
   theIp_.assign(ip);
   connected_=false;
+  this->Connect();
 }
 
 lydaq::HVCaenInterface::~HVCaenInterface()
@@ -54,6 +56,8 @@ void lydaq::HVCaenInterface::Disconnect()
       printf("CAENHV_DeinitSystem: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
       return;
     }
+  else
+    printf("CAENHV_DeinitSystem: Connection closed (num. %d)\n\n", ret);
   connected_=false;
   theHandle_=-1;
 }
@@ -62,21 +66,29 @@ void lydaq::HVCaenInterface::Disconnect()
 void lydaq::HVCaenInterface::Connect()
 {
 
-  
+  //if (connected_) return;
   // Now connect to the CAEN crate
-  int32_t ret,sysHndl;
-  int32_t sysType=0;
-  int32_t link=LINKTYPE_TCPIP;
+  CAENHVRESULT ret;
+  int sysHndl;
+  int sysType=0;
+  int link=LINKTYPE_TCPIP;
   ret = CAENHV_InitSystem((CAENHV_SYSTEM_TYPE_t)sysType, link,(char*) theIp_.c_str(),theUser_.c_str(),thePassword_.c_str(), &sysHndl);
 
-
+  //std::cout<<theIp_<<"<- IP "<<theUser_<<"<-User "<<thePassword_<<"<- Pwd "<<std::endl;
   if( ret == CAENHV_OK )
     {
       theID_=ret;
       theHandle_=sysHndl;
+      printf("Connection done %d \n",theHandle_);
       connected_=true;
     }
   else
+    if (ret== CAENHV_DEVALREADYOPEN)
+    {
+      connected_=true;
+      return;
+    }
+    else
     {
     printf("\nCAENHV_InitSystem: %s (num. %d) handle %d \n\n", CAENHV_GetError(sysHndl), ret,sysHndl);    
   connected_=false;
@@ -87,20 +99,30 @@ void lydaq::HVCaenInterface::Connect()
 
 void lydaq::HVCaenInterface::SetOff(uint32_t channel)
 {
+  this->SetIntValue("Pw",BoardSlot(channel),BoardChannel(channel),0);return;
   char ParName[16];
   sprintf(ParName,"%s","Pw");
   int param[1];
   param[0] = 0;
 
-  uint16_t slot=channel/6 ;
+ 
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_SetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK )
+    {
+       printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
 }
 void lydaq::HVCaenInterface::SetOn(uint32_t channel)
 {
+  this->SetIntValue("Pw",BoardSlot(channel),BoardChannel(channel),1);return;
   char ParName[16];
   sprintf(ParName,"%s","Pw");
   int param[1];
@@ -108,13 +130,22 @@ void lydaq::HVCaenInterface::SetOn(uint32_t channel)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_SetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //  printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+  
 }
 void lydaq::HVCaenInterface::SetCurrent(uint32_t channel,float imax)
 {
+  this->SetFloatValue("I0Set",BoardSlot(channel),BoardChannel(channel),imax);return;
   char ParName[16];
   sprintf(ParName,"%s","I0Set");
   float param[1];
@@ -122,13 +153,22 @@ void lydaq::HVCaenInterface::SetCurrent(uint32_t channel,float imax)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_SetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
 }
 void lydaq::HVCaenInterface::SetVoltage(uint32_t channel,float v0)
 {
+  this->SetFloatValue("V0Set",BoardSlot(channel),BoardChannel(channel),v0);return;
   char ParName[16];
   sprintf(ParName,"%s","V0Set");
   float param[1];
@@ -136,15 +176,24 @@ void lydaq::HVCaenInterface::SetVoltage(uint32_t channel,float v0)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
 
   //printf("%d %d %d %f \n",channel,slot,ChList[0],v0);
-  int32_t ret=CAENHV_SetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
 }
 void lydaq::HVCaenInterface::SetVoltageRampUp(uint32_t channel,float v0)
 {
+  this->SetFloatValue("RUp",BoardSlot(channel),BoardChannel(channel),v0);return;
   char ParName[16];
   sprintf(ParName,"%s","RUp");
   float param[1];
@@ -152,15 +201,24 @@ void lydaq::HVCaenInterface::SetVoltageRampUp(uint32_t channel,float v0)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
 
   //printf("%d %d %d %f \n",channel,slot,ChList[0],v0);
-  int32_t ret=CAENHV_SetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
 }
 float lydaq::HVCaenInterface::GetCurrentSet(uint32_t channel)
 {
+  return this->GetFloatValue("I0Set",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","I0Set");
   float param[1];
@@ -168,14 +226,23 @@ float lydaq::HVCaenInterface::GetCurrentSet(uint32_t channel)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_GetChParam: %s (num. %d)\n %f\n", CAENHV_GetError(theHandle_), ret,param[0]) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
   return param[0];
 }
 std::string lydaq::HVCaenInterface::GetName(uint32_t channel)
 {
+  return this->GetStringValue("Name",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","Name");
   char param[1][MAX_CH_NAME];
@@ -183,14 +250,23 @@ std::string lydaq::HVCaenInterface::GetName(uint32_t channel)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=  CAENHV_GetChName(theHandle_,slot,ChNum, ChList,param); 
+  CAENHVRESULT ret=  CAENHV_GetChName(theHandle_,BoardSlot(channel),ChNum, ChList,param); 
   //printf("CAENHV_GetChParam: %s (num. %d)\n %f\n", CAENHV_GetError(theHandle_), ret,param[0]) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
   return std::string(param[0]);
 }
 float lydaq::HVCaenInterface::GetVoltageSet(uint32_t channel)
 {
+  return this->GetFloatValue("V0Set",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","V0Set");
   float param[1];
@@ -198,29 +274,48 @@ float lydaq::HVCaenInterface::GetVoltageSet(uint32_t channel)
 
   uint16_t slot=channel/6; 
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
   
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_GetChParam: %s (num. %d)\n %f \n", CAENHV_GetError(theHandle_), ret,param[0]) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
   return param[0];
 }
 float lydaq::HVCaenInterface::GetCurrentRead(uint32_t channel)
 {
+  return this->GetFloatValue("IMon",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","IMon");
   float param[1];
   
 
   uint16_t slot=channel/6;
+  slot=(slot+1)*2;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_GetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %x) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      //this->Disconnect();
+      //::sleep((unsigned int) 2);
+      // this->Connect();
+    }
+
   return param[0];
 }
 float lydaq::HVCaenInterface::GetVoltageRead(uint32_t channel)
 {
+  return this->GetFloatValue("VMon",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","VMon");
   float param[1];
@@ -228,14 +323,24 @@ float lydaq::HVCaenInterface::GetVoltageRead(uint32_t channel)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  slot=(slot+1)*2;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   //printf("CAENHV_GetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %x) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      // this->Disconnect();
+      //::sleep((unsigned int) 2);
+      // this->Connect();
+    }
+
   return param[0];
 }
 float lydaq::HVCaenInterface::GetVoltageRampUp(uint32_t channel)
 {
+  return this->GetFloatValue("RUp",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","RUp");
   float param[1];
@@ -243,25 +348,131 @@ float lydaq::HVCaenInterface::GetVoltageRampUp(uint32_t channel)
 
   uint16_t slot=channel/6;
   uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
+  ChList[0]=BoardChannel(channel);
 
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,BoardSlot(channel),ParName, ChNum, ChList,param);
   printf("CAENHV_GetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      this->Disconnect();
+      ::sleep((unsigned int) 2);
+      this->Connect();
+    }
+
   return param[0];
 }
 uint32_t lydaq::HVCaenInterface::GetStatus(uint32_t channel)
 {
 
+  return this->GetIntValue("Status",BoardSlot(channel),BoardChannel(channel));
+}
+
+void lydaq::HVCaenInterface::SetFloatValue(std::string name,uint32_t slot,uint32_t channel,float val)
+{
+  
+  float param[1];
+  param[0] = val;
+
+  uint16_t ChNum=1,ChList[1];
+  ChList[0]=channel;
+
+
+  //printf("%d %d %d %f \n",channel,slot,ChList[0],v0);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,slot,name.c_str(), ChNum, ChList,param);
+  //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK  )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      
+    }
+
+}
+void lydaq::HVCaenInterface::SetIntValue(std::string name,uint32_t slot,uint32_t channel,int32_t val)
+{
+  
+  int32_t param[1];
+  param[0] = val;
+
+  uint16_t ChNum=1,ChList[1];
+  ChList[0]=channel;
+
+
+  //printf("%d %d %d %f \n",channel,slot,ChList[0],v0);
+  CAENHVRESULT ret=CAENHV_SetChParam(theHandle_,slot,name.c_str(), ChNum, ChList,param);
+  //printf("CAENHV_SetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret);
+  if( ret != CAENHV_OK  )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+      
+    }
+
+}
+
+
+float lydaq::HVCaenInterface::GetFloatValue(std::string name,uint32_t slot,uint32_t channel)
+{
+  float param[1];
+  uint16_t ChNum=1,ChList[1];
+  ChList[0]=channel;
+
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,slot,name.c_str(), ChNum, ChList,param);
+  //printf("CAENHV_GetChParam: %s (num. %d)\n %f %d %d \n", CAENHV_GetError(theHandle_), ret,param[0],slot,channel) ;
+  //printf("CAENHV_GetChParam: %s (num. %d)\n %f\n", CAENHV_GetError(theHandle_), ret,param[0]) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+    }
+
+  return param[0];
+}
+int32_t lydaq::HVCaenInterface::GetIntValue(std::string name,uint32_t slot,uint32_t channel)
+{
+  int32_t param[1];
+  uint16_t ChNum=1,ChList[1];
+  ChList[0]=channel;
+
+  CAENHVRESULT ret=CAENHV_GetChParam(theHandle_,slot,name.c_str(), ChNum, ChList,param);
+  //printf("CAENHV_GetChParam: %s (num. %d)\n %d %d %d \n", CAENHV_GetError(theHandle_), ret,param[0],slot,channel) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+    }
+
+  return param[0];
+}
+
+std::string lydaq::HVCaenInterface::GetStringValue(std::string name,uint32_t slot,uint32_t channel)
+{
   char ParName[16];
-  sprintf(ParName,"%s","Status");
-  uint32_t param[1];
+  sprintf(ParName,"%s",name.c_str());
+  char param[1][MAX_CH_NAME];
   
 
-  uint16_t slot=channel/6;
-  uint16_t ChNum=1,ChList[1];
-  ChList[0]=channel%6;
 
-  int32_t ret=CAENHV_GetChParam(theHandle_,slot,ParName, ChNum, ChList,param);
-  //printf("CAENHV_GetChParam: %s (num. %d)\n\n", CAENHV_GetError(theHandle_), ret) ;
-  return param[0];
+  uint16_t ChNum=1,ChList[1];
+  ChList[0]=channel;
+
+  CAENHVRESULT ret=  CAENHV_GetChName(theHandle_,slot,ChNum, ChList,param); 
+  //printf("CAENHV_GetChParam: %s (num. %d)\n %f\n", CAENHV_GetError(theHandle_), ret,param[0]) ;
+    if( ret != CAENHV_OK )
+    {
+      printf("\nCAENHV access: %s (num. %d) handle %d \n\n", CAENHV_GetError(theHandle_), ret,theHandle_); 
+    
+    }
+
+  return std::string(param[0]);
+}
+
+Json::Value  lydaq::HVCaenInterface::ChannelInfo(uint32_t slot,uint32_t channel)
+{
+  Json::Value rep;
+  rep["name"]=GetStringValue("Name",slot,channel);
+  rep["vset"]=GetFloatValue("V0Set",slot,channel);
+  rep["iset"]=GetFloatValue("I0Set",slot,channel);
+  rep["vmon"]=GetFloatValue("VMon",slot,channel);
+  rep["imon"]=GetFloatValue("IMon",slot,channel);
+  rep["rup"]=GetFloatValue("RUp",slot,channel);
+  rep["status"]=GetIntValue("Status",slot,channel);
+  return rep;
 }

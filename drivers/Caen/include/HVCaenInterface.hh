@@ -1,7 +1,7 @@
 #ifndef HVCAENINTERFACE_H
 #define HVCAENINTERFACE_H
 #include <string>
-
+#include <json/json.h>
 
 namespace lydaq
 {
@@ -25,6 +25,14 @@ namespace lydaq
     virtual std::string GetName(uint32_t channel);
     virtual uint32_t GetStatus(uint32_t channel);
     bool isConnected(){ return connected_;}
+    inline int32_t BoardSlot(uint32_t ch){return (ch/6);}
+    inline int32_t BoardChannel(uint32_t ch){return ch%6;}
+    float GetFloatValue(std::string name, uint32_t slot,uint32_t channel);
+    int32_t GetIntValue(std::string name, uint32_t slot,uint32_t channel);
+    std::string GetStringValue(std::string name, uint32_t slot,uint32_t channel);
+    void SetFloatValue(std::string name, uint32_t slot,uint32_t channel,float v);
+    void SetIntValue(std::string name, uint32_t slot,uint32_t channel,int32_t v);
+    Json::Value ChannelInfo(uint32_t slot,uint32_t channel);
   private:
     std::string theHost_,theUser_,thePassword_,theIp_;
     int32_t theID_;
