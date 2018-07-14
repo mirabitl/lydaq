@@ -1426,9 +1426,10 @@ void FullDaq::startSurvey()
     }
     
   if (!this->parameters().isMember("location"))
-    this->parameters()["location"]="/HOME";        
-  g_survey.create_thread(boost::bind(&lydaq::FullDaq::survey, this));
+    this->parameters()["location"]="/HOME";
   _survey=true;
+  g_survey.create_thread(boost::bind(&lydaq::FullDaq::survey, this));
+
     
 
 }
@@ -1442,6 +1443,7 @@ void FullDaq::stopSurvey()
 void FullDaq::survey()
 {
   Json::FastWriter fastWriter;
+  ::sleep(1);
   while (_survey)
     {
     
