@@ -46,6 +46,7 @@ void lydaq::LCaenServer::open(zdaq::fsmmessage* m)
     { 
       this->parameters()["last"]=m->content()["last"];
     }
+  //  _hv->Connect();
 }
 void lydaq::LCaenServer::close(zdaq::fsmmessage* m)
 {
@@ -55,7 +56,7 @@ void lydaq::LCaenServer::close(zdaq::fsmmessage* m)
        LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
        return;
     }
-  // _hv->Disconnect();
+  _hv->Disconnect();
   delete _hv;
   _hv=NULL;
 }
@@ -70,13 +71,15 @@ Json::Value lydaq::LCaenServer::channelStatus(uint32_t channel)
       LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaenInterface opened");
        return r;
     }
+   r["name"]=_hv->GetName(channel);
+   r["slot"]=_hv->BoardSlot(channel);
+   r["channel"]=_hv->BoardChannel(channel);
    r["vset"]=_hv->GetVoltageSet(channel);
    r["iset"]=_hv->GetCurrentSet(channel);
    r["rampup"]=_hv->GetVoltageRampUp(channel);
    r["iout"]=_hv->GetCurrentRead(channel);
    r["vout"]=_hv->GetVoltageRead(channel);
    r["status"]=_hv->GetStatus(channel);
-   _hv->Disconnect();
    return r;
 }
 Json::Value lydaq::LCaenServer::status()
@@ -174,8 +177,7 @@ void lydaq::LCaenServer::c_on(Mongoose::Request &request, Mongoose::JsonResponse
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOn(i);
-  _hv->Disconnect();
-  ::sleep(2);
+
   response["STATUS"]=this->status();
 }
 void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -199,8 +201,7 @@ void lydaq::LCaenServer::c_off(Mongoose::Request &request, Mongoose::JsonRespons
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOff(i);
-  _hv->Disconnect();
-  ::sleep(2);
+
   response["STATUS"]=this->status();
 }
 void lydaq::LCaenServer::c_clearalarm(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -227,6 +228,32 @@ void lydaq::LCaenServer::c_clearalarm(Mongoose::Request &request, Mongoose::Json
   // ::sleep(2);
   response["STATUS"]=this->status(first,last);
 }
+void lydaq::LCaenServer::c_reconnect(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  if (_hv==NULL)
+  {
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"No HVCaen opened");
+    response["STATUS"]=Json::Value::null;
+    return;
+  }
+  uint32_t first=atol(request.get("first","9999").c_str());
+  if (first==9999 && this->parameters().isMember("first")) first=this->parameters()["first"].asUInt();
+  uint32_t last=atol(request.get("last","9999").c_str());
+  if (last==9999 && this->parameters().isMember("last")) last=this->parameters()["last"].asUInt();
+  if (first==9999 || last==9999)
+  {
+    LOG4CXX_ERROR(_logCAEN,__PRETTY_FUNCTION__<<"First and last channels should be specified");
+    response["STATUS"]=Json::Value::null;
+    return;
+  }
+  // for (uint32_t i=first;i<=last;i++)
+  //   _hv->setOutputSwitch(i/8,i%8,10);
+  _hv->Disconnect();
+  
+  ::sleep(2);
+  _hv->Connect();
+  response["STATUS"]=this->status(first,last);
+}
 
 void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -250,8 +277,7 @@ void lydaq::LCaenServer::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltage(i,vset);
-  _hv->Disconnect();
-  ::sleep(2);
+
   response["STATUS"]=this->status();
 }
 void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -276,8 +302,7 @@ void lydaq::LCaenServer::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetCurrent(i,iset);
-  _hv->Disconnect();
-  ::sleep(2);
+
   response["STATUS"]=this->status();
 }
 void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -302,8 +327,7 @@ void lydaq::LCaenServer::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltageRampUp(i,rup);
-  _hv->Disconnect();
-  ::sleep(2);
+
   response["STATUS"]=this->status();
 }
 
@@ -329,6 +353,7 @@ lydaq::LCaenServer::LCaenServer(std::string name) : zdaq::monitorApplication(nam
  _fsm->addCommand("ISET",boost::bind(&lydaq::LCaenServer::c_iset,this,_1,_2));
  _fsm->addCommand("RAMPUP",boost::bind(&lydaq::LCaenServer::c_rampup,this,_1,_2));
  _fsm->addCommand("CLEARALARM",boost::bind(&lydaq::LCaenServer::c_clearalarm,this,_1,_2));
+  _fsm->addCommand("RECONNECT",boost::bind(&lydaq::LCaenServer::c_reconnect,this,_1,_2));
 
 
  

@@ -40,6 +40,7 @@ namespace lydaq
     void c_on(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_off(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_clearalarm(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_reconnect(Mongoose::Request &request, Mongoose::JsonResponse &response);
     
   private:
     //zdaq::fsm* _fsm;
