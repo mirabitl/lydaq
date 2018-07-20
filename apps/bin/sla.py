@@ -19,7 +19,11 @@ class sla:
       self.curs=None
       self.runlist={}
       self.run=0
+      self.graphs={}
       self.connect(name)
+      self.canvas=TCanvas('csla', 'Slow Control display', 200, 110, 700, 700 )
+      self.canvas.Draw()
+      self.canvas.Update()
   def connect(self,name):
     self.conn = sqlite3.connect('slowdb.sqlite')
     self.conn.text_factory = str
@@ -150,6 +154,8 @@ class sla:
       g2=self.buildTGraph('GIF++ Temperature vs t (s)',x_t,z_t,'t(s)','T(C)')
       c1.cd(1);g1.Draw('APC');c1.Update();
       c1.cd(2);g2.Draw('APC');c1.Update();
+      self.graphs["BMP-Pressure"]=g1
+      self.graphs["BMP-Temperature"]=g2
       plt.subplot(221)
       plt.plot(x_t,y_p,color='r')
       plt.ylabel('Pressure (mbar)')
@@ -179,24 +185,28 @@ class sla:
       g4=self.buildTGraph('Humidity 1 vs t (s)',x_t,z_t,'t(s)','H(%)')
       c1.cd(3);g3.Draw('APC');c1.Update();
       c1.cd(4);g4.Draw('APC');c1.Update();
+      self.graphs["HIH-Inlet"]=g3
+      self.graphs["HIH-Outlet"]=g4
 
       
-      plt.subplot(223)
-      plt.plot(x_t,y_p,color='r')
-      plt.ylabel('Humidity Inlet (%)')
-      plt.xlabel('time (s)')
+      #plt.subplot(223)
+      #plt.plot(x_t,y_p,color='r')
+      #plt.ylabel('Humidity Inlet (%)')
+      #plt.xlabel('time (s)')
 
-      plt.subplot(224)
-      plt.plot(x_t,z_t)
-      plt.ylabel('Humidity Outlet (%)')
-      plt.xlabel('time (s)')
+      #plt.subplot(224)
+      #plt.plot(x_t,z_t)
+      #plt.ylabel('Humidity Outlet (%)')
+      #plt.xlabel('time (s)')
       #plt.show()
       if (self.run==0):
-          plt.savefig('SlowControl_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
+          #plt.savefig('SlowControl_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
+        c1.SaveAs('SlowControl_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
       else:
-          plt.savefig('SlowControl_%d.png' % self.run)
-      plt.gcf().clear()
-      fig=plt.figure(num=None, figsize=(21, 12), dpi=60, facecolor='w', edgecolor='k')
+          #plt.savefig('SlowControl_%d.png' % self.run)
+        c1.SaveAs('SlowControl_%d.png' % self.run)
+      #plt.gcf().clear()
+      #fig=plt.figure(num=None, figsize=(21, 12), dpi=60, facecolor='w', edgecolor='k')
 
       c2 = TCanvas( 'c2', 'HV studies', 200, 10, 1200, 1200 )
 
@@ -231,34 +241,49 @@ class sla:
               
             #print ch,x
             chname=x[1]['channels'][ch]['name']
-          print chname
+          #print chname
           tgr.append(self.buildTGraph('V set vs t (h) %s' % chname,x_t,y_vs,'t(h)','V set (V)'))
           tgr.append(self.buildTGraph('V Mon vs t (h) %s' % chname,x_t,z_vm,'t(h)','V mon (V)'))
           tgr.append(self.buildTGraph('I Mon vs t (h) %s' % chname,x_t,w_im,'t(h)','I mon ([m]A)'))
-        
-          plt.subplot(gs[idx,0])
-          plt.plot(x_t,y_vs,color='r')
-          plt.ylabel('HV set (V) Channel %d' % ch)
-          plt.xlabel('time (h)')
-          plt.subplot(gs[idx,1])
-          plt.plot(x_t,z_vm,color='r')
-          plt.ylabel('HV Applied (V) Channel %d' % ch)
-          plt.xlabel('time (h)')
-          plt.subplot(gs[idx,2])
-          plt.plot(x_t,w_im,color='r')
-          plt.ylabel('I out (microA) Channel %d' % ch)
-          plt.xlabel('time (h)')
+          self.graphs["SY127-vset-%s" % chname]=self.buildTGraph('V set vs t (h) %s' % chname,x_t,y_vs,'t(h)','V set (V)')
+          self.graphs["SY127-vmon-%s" % chname]=self.buildTGraph('V Mon vs t (h) %s' % chname,x_t,z_vm,'t(h)','V mon (V)')
+          self.graphs["SY127-imon-%s" % chname]=self.buildTGraph('I Mon vs t (h) %s' % chname,x_t,w_im,'t(h)','I mon ([m]A)')
+            
+
+
+          
+          #plt.subplot(gs[idx,0])
+          #plt.plot(x_t,y_vs,color='r')
+          #plt.ylabel('HV set (V) Channel %d' % ch)
+          #plt.xlabel('time (h)')
+          #plt.subplot(gs[idx,1])
+          #plt.plot(x_t,z_vm,color='r')
+          #plt.ylabel('HV Applied (V) Channel %d' % ch)
+          #plt.xlabel('time (h)')
+          #plt.subplot(gs[idx,2])
+          #plt.plot(x_t,w_im,color='r')
+          #plt.ylabel('I out (microA) Channel %d' % ch)
+          #plt.xlabel('time (h)')
           idx=idx+1
       for idx in range(len(tgr)):
         c2.cd(idx+1);tgr[idx].Draw('APC');c2.Update()
       #plt.show()
       if (self.run==0):
-          plt.savefig('Caen_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
-      else:
-          plt.savefig('Caen_%d.png' % self.run)
-
           #plt.savefig('Caen_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
-      val=raw_input()
-      return [c1,c2]
+        c2.SaveAs('Caen_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
+      else:
+          #plt.savefig('Caen_%d.png' % self.run)
+        c2.SaveAs('Caen_%d.png' % self.run)
+          #plt.savefig('Caen_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
+      #val=raw_input()
       
 
+      return [c1,c2]
+  def List(self):
+    for x,y in self.graphs.iteritems():
+        print x
+  def Draw(self,name):
+    self.canvas.Clear()
+    self.canvas.cd()
+    self.graphs[name].Draw()
+    self.canvas.Update()
