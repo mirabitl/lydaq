@@ -31,6 +31,23 @@ class TdcAccess:
         self.ldas=[]
         self.dccs=[]
 
+    def ChangeLatch(self,Latch,idif=0,iasic=0):
+        """
+        change thresholds B0,B1,B2 on DIF idif and asic iasic.
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asics:
+            if (idif !=0 and a.getInt("DIF_ID") != idif ):
+                continue;
+            if (iasic !=0 and a.getInt("HEADER") != iasic):
+                continue;
+            try:
+                a.setInt("LATCH",Latch);
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
     def ChangeVthTime(self,VthTime,idif=0,iasic=0):
         """
         change thresholds B0,B1,B2 on DIF idif and asic iasic.
