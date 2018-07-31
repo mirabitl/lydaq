@@ -230,6 +230,7 @@ class sla:
           y_vs=[]
           z_vm=[]
           w_im=[]
+          g_g=[]
           chname=""
           for x in v:
             if (x[1]['channels'][ch]['rampup']==0):
@@ -238,7 +239,7 @@ class sla:
             y_vs.append(x[1]['channels'][ch]['vset'])
             z_vm.append(x[1]['channels'][ch]['vout'])
             w_im.append(x[1]['channels'][ch]['iout'])
-              
+            g_g.append( x[1]['channels'][ch]['iout']/ x[1]['channels'][ch]['vout'])
             #print ch,x
             chname=x[1]['channels'][ch]['name']
           #print chname
@@ -248,6 +249,9 @@ class sla:
           self.graphs["SY127-vset-%s" % chname]=self.buildTGraph('V set vs t (h) %s' % chname,x_t,y_vs,'t(h)','V set (V)')
           self.graphs["SY127-vmon-%s" % chname]=self.buildTGraph('V Mon vs t (h) %s' % chname,x_t,z_vm,'t(h)','V mon (V)')
           self.graphs["SY127-imon-%s" % chname]=self.buildTGraph('I Mon vs t (h) %s' % chname,x_t,w_im,'t(h)','I mon ([m]A)')
+          self.graphs["SY127-imon-%s" % chname]=self.buildTGraph('I Mon vs t (h) %s' % chname,x_t,w_im,'t(h)','I mon ([m]A)')
+          self.graphs["SY127-gmon-%s" % chname]=self.buildTGraph('G Mon vs t (h) %s' % chname,x_t,g_g,'t(h)','I mon ([m]A)')
+          self.graphs["SY127-gain-%s" % chname]=self.buildTGraph('Gain vs t (h) %s' % chname,z_vm,w_im,'V( HV)','I mon ([m]A)')
             
 
 
@@ -275,7 +279,7 @@ class sla:
           #plt.savefig('Caen_%d.png' % self.run)
         c2.SaveAs('Caen_%d.png' % self.run)
           #plt.savefig('Caen_%s.png' % time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(first)))
-      #val=raw_input()
+      val=raw_input()
       
 
       return [c1,c2]
