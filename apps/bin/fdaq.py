@@ -23,7 +23,7 @@ def parseReturn(command,sr,res=None):
             if (x['DAQ']=='Y'):
                 print "%6d %15s %25s %20s" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
     if (command=="hvStatus"):
-        sj=json.loads(sr)
+        sj=json.loads(sr.decode('latin-1').encode("utf-8"))
         device=sj["answer"]["STATUS"]["name"]
         ssj=sj["answer"]["STATUS"]["channels"]
         #print ssj
