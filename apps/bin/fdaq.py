@@ -540,6 +540,14 @@ class fdaqClient:
       lcgi["value"]=mode
       
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETTDCMODE",lcgi)
+      print sr
+      
+  def daq_settdcdelays(self,active,dead):
+      lcgi={}
+      lcgi["active"]=active
+      lcgi["dead"]=dead
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETTDCDELAYS",lcgi)
       print sr    
 
       
@@ -1005,6 +1013,7 @@ grp_action.add_argument('--daq-setthreshold',action='store_true',help='change th
 grp_action.add_argument('--daq-setvth',action='store_true',help='change the gain and reconfigure chips with -vth=xxx')
 grp_action.add_argument('--daq-setmask',action='store_true',help='change the gain and reconfigure chips with -mask=xxx')
 grp_action.add_argument('--daq-settdcmode',action='store_true',help='change the trigger mode before starting the run with --value=1/0')
+grp_action.add_argument('--daq-settdcdelays',action='store_true',help='change the petiroc mode before starting the run with --active=1-255, --dead=1-255 ')
 
 
 
@@ -1107,7 +1116,8 @@ parser.add_argument('--jobname', action='store', dest='jobname',default=None,hel
 parser.add_argument('--jobpid', action='store', type=int,dest='jobpid',default=None,help='job pid')
 parser.add_argument('--value', action='store', type=int,dest='value',default=None,help='value to pass')
 parser.add_argument('--address', action='store', type=int,dest='address',default=None,help='address to pass')
-
+parser.add_argument('--active', action='store', type=int,dest='active',default=None,help='active time of Petiroc')
+parser.add_argument('--dead', action='store', type=int,dest='dead',default=None,help='dead time of Petiroc')
 
 parser.add_argument('-v','--verbose',action='store_true',default=False,help='Raw Json output')
 
@@ -1351,6 +1361,17 @@ elif(results.daq_settdcmode):
         exit(0)
     fdc.daq_settdcmode(results.value)
     exit(0)
+    
+elif(results.daq_settdcdelays):
+    r_cmd='SETTDCDELAYS'
+    if (results.active==None):
+        print 'Please specify the active time --active=XX'
+        exit(0)
+    if (results.dead==None):
+        print 'Please specify the dead time --dead=XX'
+        exit(0)
+    fdc.daq_settdcdelays(results.active,results.dead)
+    exit(0)
 
 elif(results.daq_startrun):
     r_cmd='start'
@@ -1399,7 +1420,7 @@ elif(results.daq_scurve):
     if (results.spilloff!=None):
         spilloff=results.spilloff
 
-    print chan,first,last,step
+    print chan,first,last,step,spillon,spilloff
     val = raw_input()
 
     fdc.daq_fullscurve(chan,spillon,spilloff,first,last,step)
