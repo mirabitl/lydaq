@@ -67,6 +67,7 @@ public:
   void tdcSet6bDac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetVthTime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetMode(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void tdcSetDelays(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void setRunHeader(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcstatus(Mongoose::Request &request, Mongoose::JsonResponse &response);

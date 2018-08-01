@@ -77,6 +77,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _fsm->addCommand("SET6BDAC",boost::bind(&FullDaq::tdcSet6bDac,this,_1,_2));
     _fsm->addCommand("SETVTHTIME",boost::bind(&FullDaq::tdcSetVthTime,this,_1,_2));
     _fsm->addCommand("SETTDCMODE",boost::bind(&FullDaq::tdcSetMode,this,_1,_2));
+    _fsm->addCommand("SETTDCDELAYS",boost::bind(&FullDaq::tdcSetDelays,this,_1,_2));
     _fsm->addCommand("SETMASK",boost::bind(&FullDaq::tdcSetMask,this,_1,_2));
     _fsm->addCommand("SETRUNHEADER",boost::bind(&FullDaq::setRunHeader,this,_1,_2));
 
@@ -1315,6 +1316,23 @@ void FullDaq::tdcSetMode(Mongoose::Request &request, Mongoose::JsonResponse &res
       tdc->sendCommand("SETMODE",sp.str());
     }
   response["TDCMODE"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::tdcSetDelays(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+
+  uint32_t active=atoi(request.get("active","3").c_str());
+  uint32_t dead=atoi(request.get("dead","5").c_str());
+  for (auto tdc:_tdcClients)
+    {
+      std::stringstream sp;sp<<"&value="<<active;
+      tdc->sendCommand("SETTDCDELAY",sp.str());
+      std::stringstream sp1;sp1<<"&value="<<dead;
+      tdc->sendCommand("SETTDCDURATION",sp1.str());
+    }
+  response["ACTIVE"]=active;
+  response["DEAD"]=dead;
   response["STATUS"]="DONE";
   return;
 }
