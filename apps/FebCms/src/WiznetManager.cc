@@ -52,6 +52,8 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::WiznetManager::c_downloadDB,this,_1,_2));
 
   _fsm->addCommand("SETMODE",boost::bind(&lydaq::WiznetManager::c_setMode,this,_1,_2));
+  _fsm->addCommand("SETDELAY",boost::bind(&lydaq::WiznetManager::c_setDelay,this,_1,_2));
+  _fsm->addCommand("SETDURATION",boost::bind(&lydaq::WiznetManager::c_setDuration,this,_1,_2));
 
   
   
@@ -148,6 +150,31 @@ sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
   this->setMask(nc);
   response["MASK"]=nc;
 }
+void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
+  response["STATUS"]="DONE";
+
+
+   uint8_t delay=atol(request.get("value","255").c_str());
+   _delay=delay;
+   this->setDelay();
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetDelay called with"<<delay<<" "<<_delay );
+  response["MODE"]=_delay;
+}
+void lydaq::WiznetManager::c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
+  response["STATUS"]="DONE";
+
+
+   uint8_t duration=atol(request.get("value","255").c_str());
+   _duration=duration;
+   this->setDuration();
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Setduration called with"<<duration<<" "<<_duration );
+  response["MODE"]=_duration;
+}
+
 void lydaq::WiznetManager::c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
@@ -393,6 +420,22 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
 
 
 
+void lydaq::WiznetManager::setDelay()
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Setting delays "<<_delay);
+  for (auto x:_wiznet->controlSockets())
+    {
+      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x222,_delay); 
+    }
+}
+void lydaq::WiznetManager::setDuration()
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Setting duration "<<_duration);
+  for (auto x:_wiznet->controlSockets())
+    {
+      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x223,_duration); 
+    }
+}
 void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());

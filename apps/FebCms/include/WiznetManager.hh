@@ -31,6 +31,8 @@ public:
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   
@@ -40,6 +42,8 @@ public:
   void setMask(uint32_t mask);
   void sendTrigger(uint32_t nt);
   void setVthTime(uint32_t dac);
+  void setDelay();
+  void setDuration();
 private:
   lydaq::TdcConfigAccess* _tca;
   lydaq::WiznetInterface* _wiznet;
@@ -49,7 +53,8 @@ private:
 
   zdaq::fsmweb* _fsm;
   uint32_t _run,_type;
-
+  uint8_t _delay;
+  uint8_t _duration;
 
   zmq::context_t* _context;
 };
