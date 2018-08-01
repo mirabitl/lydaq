@@ -718,10 +718,12 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_scurve(self,ntrg,ncon,thmin,thmax,mask,step=5):
+  def daq_scurve(self,ntrg,ncon,ncoff,thmin,thmax,mask,step=5):
       self.trig_pause()
       self.trig_spillon(ncon)
-      self.trig_spilloff(20000)
+      print "ncon=",ncon
+      print "ncoff=",ncoff
+      self.trig_spilloff(ncoff)
       self.trig_spillregister(4)
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
@@ -736,7 +738,7 @@ class fdaqClient:
           self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
 
-          #time.sleep(1)
+          time.sleep(1)
          
           #self.tdc_setmask(mask)
           #self.daq_setrunheader(2,(thmax-vth*step))
@@ -746,7 +748,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          time.sleep(1)
+          #time.sleep(1)
           
           self.trig_reloadcalib()
           self.trig_resume()
@@ -766,7 +768,7 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_fullscurve(self,ch,beg,las,step=2):
+  def daq_fullscurve(self,ch,spillon,spilloff,beg,las,step=2):
       ### petiroc to scan
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
       firmware2=[0,1,2,3,4,5,6,7,8,9,10,19,20,21,22,23,24,25,26,27,28,29,30,31]
@@ -779,7 +781,7 @@ class fdaqClient:
           self.tdc_setmask(0XFFFFFFFF)
           #self.tdc_setmask(0Xf7fffffb)
           #self.tdc_setmask(1073741832)
-          self.daq_scurve(100,2000,beg,las,4294967295,step)
+          self.daq_scurve(100,spillon,spilloff,beg,las,4294967295,step)
           self.daq_stop()
           return
       if (ch==1023):
@@ -790,7 +792,7 @@ class fdaqClient:
           #    self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
           for ist in firmware:
               self.tdc_setmask((1<<ist))
-              self.daq_scurve(100,200,beg,las,(1<<ist),step)
+              self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_stop()
           return
       ipr=0
@@ -800,7 +802,7 @@ class fdaqClient:
           ipr=(31-ch/2)
       ipr=ch
       self.tdc_setmask((1<<ipr))
-      self.daq_scurve(100,50,beg,las,(1<<ipr),step)
+      self.daq_scurve(100,50,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_stop()
       return
       # channel 1
@@ -1095,6 +1097,9 @@ parser.add_argument('--ramp', action='store',type=float, default=None,dest='ramp
 parser.add_argument('--account', action='store', default=None,dest='account',help='set the Slow Control mysql account')
 parser.add_argument('--period', action='store',type=int, default=None,dest='period',help='set the temporistaion period (s)')
 
+parser.add_argument('--spillon', action='store',type=float, default=None,dest='spillon',help='spill on')
+parser.add_argument('--spilloff', action='store',type=float, default=None,dest='spilloff',help='spilloff')
+
 # Job
 parser.add_argument('--lines', action='store',type=int, default=None,dest='lines',help='set the number of lines to be dump')
 parser.add_argument('--host', action='store', dest='host',default=None,help='host for log')
@@ -1379,6 +1384,8 @@ elif(results.daq_scurve):
     last=600
     chan=255
     step=2
+    spillon=200
+    spilloff=1000
     if (results.first!=None):
         first=results.first
     if (results.last!=None):
@@ -1387,11 +1394,15 @@ elif(results.daq_scurve):
         chan=results.channel
     if (results.step!=None):
         step=results.step
+    if (results.spillon!=None):
+        spillon=results.spillon
+    if (results.spilloff!=None):
+        spilloff=results.spilloff
 
     print chan,first,last,step
     val = raw_input()
 
-    fdc.daq_fullscurve(chan,first,last,step)
+    fdc.daq_fullscurve(chan,spillon,spilloff,first,last,step)
     #fdc.daq_scurve(50,50,250,450,4294967295)
     exit(0)
 elif(results.daq_downloaddb):
