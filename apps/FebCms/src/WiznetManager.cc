@@ -48,6 +48,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("DIFLIST",boost::bind(&lydaq::WiznetManager::c_diflist,this,_1,_2));
   _fsm->addCommand("SET6BDAC",boost::bind(&lydaq::WiznetManager::c_set6bdac,this,_1,_2));
   _fsm->addCommand("SETVTHTIME",boost::bind(&lydaq::WiznetManager::c_setvthtime,this,_1,_2));
+  _fsm->addCommand("SETONEVTHTIME",boost::bind(&lydaq::WiznetManager::c_set1vthtime,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::WiznetManager::c_setMask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::WiznetManager::c_downloadDB,this,_1,_2));
 
@@ -135,6 +136,22 @@ void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::Js
   this->setVthTime(nc);
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Completed "<<nc);
   response["VTHTIME"]=nc;
+}
+void lydaq::WiznetManager::c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"set VThTime called ");
+  response["STATUS"]="DONE";
+
+  
+  uint32_t vth=atol(request.get("vth","550").c_str());
+  uint32_t feb=atol(request.get("feb","5").c_str());
+  uint32_t asic=atol(request.get("asic","1").c_str());
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Value set "<<vth<<" "<<feb<<" "<<asic);
+  this->setSingleVthTime(vth,feb,asic);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Completed "<<vth<<" "<<feb<<" "<<asic);
+  response["VTH"]=vth;
+  response["FEB"]=feb;
+  response["ASIC"]=asic;
 }
 void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -416,6 +433,31 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
 
     }
     LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Fin ");
+}
+
+void lydaq::WiznetManager::setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic)
+{
+  std::stringstream ip;
+  ip<<"192.168.10."<<feb;
+
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
+  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+    {
+      uint64_t eid=(((uint64_t) lydaq::WiznetMessageHandler::convertIP(ip.str()))<<32) | asic;
+      if (eid!=it->first) continue;
+      it->second.setVthTime(vth);
+    }
+
+  // Now loop on slowcontrol socket
+  for (auto x:_wiznet->controlSockets())
+    {
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data send to "<<x.second->hostTo());      
+      _tca->prepareSlowControl(x.second->hostTo());
+      
+      _wiznet->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
+      
+    }
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Fin ");
 }
 
 

@@ -34,6 +34,7 @@ public:
   void c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   
   // FEB access
@@ -42,6 +43,7 @@ public:
   void setMask(uint32_t mask);
   void sendTrigger(uint32_t nt);
   void setVthTime(uint32_t dac);
+  void setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic);
   void setDelay();
   void setDuration();
 private:
