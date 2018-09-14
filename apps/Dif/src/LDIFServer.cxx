@@ -599,6 +599,7 @@ void lydaq::LDIFServer::destroy(zdaq::fsmmessage* m)
 
 lydaq::LDIFServer::LDIFServer(std::string name)  : zdaq::baseApplication(name)
 {
+  _dbcacheRunning=false;
 
   //_fsm=new zdaq::fsm(name);
   _fsm=this->fsm();
