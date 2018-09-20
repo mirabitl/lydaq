@@ -4,20 +4,7 @@
 #include <netlink/socket.h>
 #include <netlink/socket_group.h>
 #include <string>
-#undef DEBUG_PRINT_ENABLED 
-
-#if DEBUG_PRINT_ENABLED
-#define DEBUG printf
-#else
-#define DEBUG(format, args...) ((void)0)
-#endif
-#define INFO_PRINT_ENABLED 0
-
-#if INFO_PRINT_ENABLED
-#define INFO printf
-#else
-#define INFO(format, args...) ((void)0)
-#endif
+#include "debug.hh"
 namespace lytdc {
 class MessageHandler
 {
