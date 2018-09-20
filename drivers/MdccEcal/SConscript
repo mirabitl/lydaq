@@ -1,0 +1,112 @@
+import sys,os,commands
+import  os
+import re
+import sys
+
+
+#print "----------------------------------------------"
+Decider('MD5-timestamp')
+ZDAQROOT="/opt/zdaq"
+
+fres=os.popen('uname -r')
+kl=fres.readline().split(".")
+
+platform="UBUNTU"
+if (kl[len(kl)-1][0:3] == 'el5'):
+    platform="SLC5"
+
+if (kl[len(kl)-2][0:3] == 'el6'):
+    platform="SLC6"
+print kl[len(kl)-2][0:3]
+fres=os.popen('uname -p')
+kp=fres.readline()
+osv=kp[0:len(kp)-1]
+
+print platform,osv
+
+Bit64=False
+Bit64=os.uname()[4]=='x86_64'
+
+kl=os.uname()[2].split(".")
+platform="UBUNTU"
+if (kl[len(kl)-1][0:3] == 'el5'):
+    platform="SLC5"
+
+if (kl[len(kl)-2][0:3] == 'el6'):
+    platform="SLC6"
+
+Arm=os.uname()[4]=='armv7l'
+
+if Arm or platform=="UBUNTU":
+  boostsystem='boost_system'
+  boostthread='boost_thread'
+else:
+  boostsystem='boost_system-mt'
+  boostthread='boost_thread-mt'
+
+
+package=os.path.basename(os.getcwd())
+ftdidir="../Ftdi"
+commondir="../common"  
+
+if (not os.path.exists(ftdidir)):
+    print "No Ftdi exting"
+    exit(0)
+Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
+
+# includes
+INCLUDES=['include',"/usr/include/boost141/","/usr/include/jsoncpp"]
+INCLUDES.append(commondir+"/include")
+INCLUDES.append(ftdidir+"/include")
+
+CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp']
+LIBRARIES.append("lydaq_Ftdi")
+
+#Library path XDAQ,DHCAL and ROOT + Python
+if (Bit64):
+  LIBRARY_PATHS=["/usr/lib64","/usr/local/lib","/opt/dhcal/levbdim/lib"]
+else:
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib"]
+
+LIBRARY_PATHS.append(ftdidir+"/lib")
+if (Use_Mongoose):
+  LIBRARY_PATHS.append('/usr/local/lib')
+  LIBRARIES.append('mongoose')
+  INCLUDES.append('/usr/local/include/')
+  INCLUDES.append('/usr/local/include/mongoose')
+ 
+  
+#link flags
+LDFLAGS=["-fPIC","-dynamiclib"]
+
+
+# Create the Environment
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+
+#print "CC is:",env.subst('$CPPPATH')
+
+
+# Library source
+LIBRARY_SOURCES=Glob("#src/*.cxx")
+
+#print LIBRARY_SOURCES
+#Shared library
+lyname="#lib/lydaq_"+package
+print "building ",lyname
+lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
+
+
+#env.Install(DHCAL_ROOT+"/opt/dhcal/lib",levbdimdaq)
+env.Install("../lib",lypack)
+
+#env.Install(DHCAL_ROOT+"/opt/dhcal/bin",plist)
+###env.Install("/opt/dhcal/lib",levbdimdaq)
+###env.Install("/opt/dhcal/include/readout",myinc)
+
+#env.Alias('install', [DHCAL_ROOT+"/opt/dhcal/lib",DHCAL_ROOT+"/opt/dhcal/bin"])
+
+
+INCLUDE_FILES=Glob("./include/*.hh")
+env.Install("../include",INCLUDE_FILES)
+env.Alias('install', ["../lib","../include"])
