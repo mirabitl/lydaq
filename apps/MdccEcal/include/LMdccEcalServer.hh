@@ -43,6 +43,7 @@ namespace lydaq
     void c_spilloff(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_setregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_getregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_beamon(Mongoose::Request &request, Mongoose::JsonResponse &response);
     
   private:
     //zdaq::fsm* _fsm;

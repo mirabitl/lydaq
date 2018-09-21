@@ -4,6 +4,18 @@
 using namespace zdaq;
 using namespace lydaq;
 
+void lydaq::LMdccEcalServer::c_beamon(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logMDCC,__PRETTY_FUNCTION__<<" beam on time called ");
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t nc=atol(request.get("nclock","5000000").c_str());
+  _mdcc->setBeam(nc);
+
+  response["STATUS"]="DONE";
+  response["NCLOCK"]=nc;
+
+}
+
 void lydaq::LMdccEcalServer::open(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logMDCC,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
@@ -254,6 +266,7 @@ void lydaq::LMdccEcalServer::c_status(Mongoose::Request &request, Mongoose::Json
   rc["spilloff"]=_mdcc->spillOff();
   rc["ecalmask"]=_mdcc->ecalmask();
   rc["calib"]=_mdcc->calibCount();
+  rc["beam"]=_mdcc->beam();
   response["COUNTERS"]=rc;
   response["STATUS"]="DONE";
 
@@ -306,7 +319,7 @@ lydaq::LMdccEcalServer::LMdccEcalServer(std::string name) : zdaq::baseApplicatio
  _fsm->addCommand("SETREG",boost::bind(&lydaq::LMdccEcalServer::c_setregister,this,_1,_2));
  _fsm->addCommand("GETREG",boost::bind(&lydaq::LMdccEcalServer::c_getregister,this,_1,_2));
 
- 
+ _fsm->addCommand("BEAMON",boost::bind(&lydaq::LMdccEcalServer::c_beamon,this,_1,_2)); 
   
 
   char* wp=getenv("WEBPORT");

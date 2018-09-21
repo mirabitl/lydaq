@@ -42,8 +42,8 @@ public:
 
   
   void chipConfigure();
-  //void configure(uint32_t ctrl,uint32_t l1=0x4e,uint32_t l2=0x3e6,uint32_t l3=0x4e,uint32_t l4=0x4e,uint32_t l5=0x4e);
-  void configure(uint32_t ctrl,uint32_t l1=0,uint32_t l2=0,uint32_t l3=0,uint32_t l4=0,uint32_t l5=0);
+  void configure(uint32_t ctrl,uint32_t l1=0x4e,uint32_t l2=0x3e6,uint32_t l3=0x4e,uint32_t l4=0x4e,uint32_t l5=0x4e);
+  //void configure(uint32_t ctrl,uint32_t l1=0,uint32_t l2=0,uint32_t l3=0,uint32_t l4=0,uint32_t l5=0);
   // Start Stop
   void start();
   void readout();
