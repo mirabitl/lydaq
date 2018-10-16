@@ -102,7 +102,7 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket) throw (std:
   // build id
 
   uint64_t id=( (uint64_t) lydaq::WiznetMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
-  //std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
+  std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
 
   if (itsock==_sockMap.end())

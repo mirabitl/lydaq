@@ -161,8 +161,8 @@ bool lydaq::TdcWiznet::processPacket()
      _event++;
      _lastGTC=gtc;
      _lastABCID=abcid;
-     DEBUG_PRINT(" New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
-
+    INFO_PRINT(" New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n",_event,_nProcessed,gtc,abcid,_idx);
+#define DEBUGPACKET
 #ifdef DEBUGPACKET
      printf("\n==> ");
      for (int i=0;i<_idx;i++)

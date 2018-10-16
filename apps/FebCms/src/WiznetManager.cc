@@ -280,13 +280,19 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
         LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
        return;
      }
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_tca->asicMap().size() );
    // Initialise the network
+   std::vector<uint32_t> vint;
+   vint.clear();
    for (auto x:_tca->asicMap())
      {
        uint32_t eip= ((x.first)>>32)&0XFFFFFFFF;
        std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
        if (idif==diflist.end()) continue;
+       if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
 
+       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New DIF "<<eip);
+       vint.push_back(eip);
        lydaq::TdcWiznet* _tdc=new lydaq::TdcWiznet(eip);
        // Slow control
        _wiznet->addCommunication(idif->second,10001);
@@ -299,6 +305,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
        _wiznet->registerDataHandler(idif->second,10002,boost::bind(&lydaq::TdcWiznet::processBuffer, _tdc,_1,_2,_3));
 
        _vTdc.push_back(_tdc);
+       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
      }
    //std::string network=
   // Connect to the event builder
@@ -321,7 +328,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
   // Listen All Wiznet sockets
   _wiznet->listen();
 
-  
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
 void lydaq::WiznetManager::writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val)
@@ -420,8 +427,10 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
 
     LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
     for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+      {
       it->second.setVthTime(vth);
-
+      // 1 seul ASIC break;
+      }
 
   // Now loop on slowcontrol socket
     for (auto x:_wiznet->controlSockets())
