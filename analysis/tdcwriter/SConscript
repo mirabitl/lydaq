@@ -115,7 +115,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/*.cc")
+LIBRARY_SOURCES=Glob("#src/bin25.cc")
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/LMdccServer.cxx']
