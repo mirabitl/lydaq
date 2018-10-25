@@ -16,7 +16,7 @@ public:
   virtual  void processRunHeader(std::vector<uint32_t> header);
   virtual void loadParameters(Json::Value params);
   void store(uint32_t detid,uint32_t sourceid,uint32_t eventid,uint64_t bxid,void* ptr,uint32_t size,std::string destdir);
-  void ls(std::string sourcedir,std::vector<std::string>& res);
+  static void ls(std::string sourcedir,std::vector<std::string>& res);
 
  private:
   std::string _filepath;

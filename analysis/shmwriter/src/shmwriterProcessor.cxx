@@ -74,7 +74,7 @@ void shmwriterProcessor::processEvent(uint32_t gtc,std::vector<zdaq::buffer*> vb
   std::vector<std::string> vnames;
   
   // list files in shm directory
-  this->ls(_filepath,vnames);
+  shmwriterProcessor::ls(_filepath,vnames);
   //if (vnames.size()>20*theNumberOfDIF) return;
 
   if (gtc%100==0) 
