@@ -104,6 +104,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBTdcStatus.clicked.connect(self.action_tdc_status)
 
         # Analysis
+        self.PBMonitor.clicked.connect(self.action_monitor_start)
         self.PBProcStart.clicked.connect(self.action_proc_start)
         self.PBProcStop.clicked.connect(self.action_proc_stop)
         self.PBProcStatus.clicked.connect(self.action_proc_status)
@@ -351,6 +352,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
     def action_proc_start(self):
         r=self.daq.analysis_process(self.SBRun.value())
         print r
+    def action_monitor_start(self):
+        r=self.daq.analysis_monitor(self.SBRun.value())
+        print r
+    
     def action_proc_stop(self):
         r=self.daq.analysis_stop(self.SBRun.value())
         print r

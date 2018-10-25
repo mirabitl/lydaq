@@ -1107,6 +1107,13 @@ class fdaqClient:
       lcgi["run"]=run
       sr=executeFSM(self.anhost,self.anport,"RB","PROCESS",lcgi)
       return sr
+  def analysis_monitor(self,run):
+      if (self.anhost==None):
+          return "NO Analysis"
+      lcgi={}
+      lcgi["run"]=run
+      sr=executeFSM(self.anhost,self.anport,"RB","MONITOR",lcgi)
+      return sr
   def analysis_stop(self,run):
       if (self.anhost==None):
           return "NO Analysis"
