@@ -89,7 +89,7 @@ public:
   void monitor(Mongoose::Request &request, Mongoose::JsonResponse &response);
 private:
   zdaq::fsmweb* _fsm;
-  fsmwebCaller* _dbClient,*_zupClient,*_cccClient,*_mdccClient,*_builderClient,*_gpioClient;
+  fsmwebCaller* _dbClient,*_zupClient,*_cccClient,*_mdccClient,*_builderClient,*_gpioClient,*_anClient;
   std::vector<fsmwebCaller*> _DIFClients;
   std::vector<fsmwebCaller*> _tdcClients;
  

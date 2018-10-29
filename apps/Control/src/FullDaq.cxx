@@ -312,6 +312,20 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 	      if (!p_param.empty()) this->parameters()["zup"]=p_param;
 	      //printf("ZUP client %x \n",_zupClient);
 	    }
+	  if (p_name.compare("ANALYZER")==0)
+	    {
+	      _anClient= new fsmwebCaller(host,port);
+	      std::string state=_anClient->queryState();
+	      printf("ANALYZER client %x  %s \n",_anClient,state.c_str());
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  _anClient->sendTransition("CREATE",_jConfigContent);
+		  _anClient->sendTransition("CONFIGURE");
+		}
+	      if (!p_param.empty()) this->parameters()["analysis"]=p_param;
+	      //printf("ZUP client %x \n",_zupClient);
+	    }
+
 	  if (p_name.compare("GPIOSERVER")==0)
 	    {
 	      _gpioClient= new fsmwebCaller(host,port);
@@ -1327,9 +1341,10 @@ void FullDaq::tdcSetDelays(Mongoose::Request &request, Mongoose::JsonResponse &r
   for (auto tdc:_tdcClients)
     {
       std::stringstream sp;sp<<"&value="<<active;
-      tdc->sendCommand("SETTDCDELAY",sp.str());
+      tdc->sendCommand("SETDELAY",sp.str());
+      std::cout<<"Sending SETTDCDELAY"<<sp.str()<<std::endl;
       std::stringstream sp1;sp1<<"&value="<<dead;
-      tdc->sendCommand("SETTDCDURATION",sp1.str());
+      tdc->sendCommand("SETDURATION",sp1.str());
     }
   response["ACTIVE"]=active;
   response["DEAD"]=dead;
@@ -1423,7 +1438,8 @@ void FullDaq::setGain(Mongoose::Request &request, Mongoose::JsonResponse &respon
 }
 void FullDaq::startSurvey()
 {
-     
+  if (!this->parameters().isMember("TCPPort")) return;
+      
   if (!this->parameters().isMember("period"))
     {
       std::cout<<"Please define Reading period"<<std::endl;
@@ -1453,6 +1469,7 @@ void FullDaq::startSurvey()
 }
 void FullDaq::stopSurvey()
 {
+  if (!this->parameters().isMember("TCPPort")) return;
   //
   _survey=false;
   g_survey.join_all();
