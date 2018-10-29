@@ -233,6 +233,7 @@ class fdaqClient:
       self.anport=None
       self.daq_par={}
       self.slow_par={}
+      self.scurve_running=False
       #print self.daqhost,self.daqport,self.daq_par
       #print self.slowhost,self.slowport
 
@@ -521,12 +522,18 @@ class fdaqClient:
 
 
   def daq_stop(self):
-      lcgi={}
-      sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
-      rep=json.loads(sr)
+      if (self.scurve_running):
+          self.scurve_running=False;
+          rep={}
+          rep["SCURVE"]="STOPPED"
+          
+      else:    
+          lcgi={}
+          sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
+          rep=json.loads(sr)
 
-      lcgi["value"]=0
-      srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
+          lcgi["value"]=0
+          srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
       #print srm
       return json.dumps(rep)
 
@@ -858,6 +865,9 @@ class fdaqClient:
       #self.tdc_setmask(mask)
       thrange=(thmax-thmin+1)/step
       for vth in range(0,thrange+1):
+          if ( not self.scurve_running):
+              break;
+
           #self.tdc_setvthtime(thmax-vth*step)
           xi=thmin+vth*step
           xa=thmax-vth*step
@@ -904,6 +914,7 @@ class fdaqClient:
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
       firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,12]
+      self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
       if (mode=="COAX"):
@@ -931,6 +942,8 @@ class fdaqClient:
           #    self.tdc_setmask((1<<(31-ist)))
           #    self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
           for ist in firmware:
+              if ( not self.scurve_running):
+                  break;
               self.tdc_setmask((1<<ist))
               self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_stop()
@@ -943,7 +956,7 @@ class fdaqClient:
       ipr=ch
       self.tdc_setmask((1<<ipr))
       self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
-      self.daq_stop()
+      #self.daq_stop()
       return
       # channel 1
       #self.tdc_setmask((1<<0))

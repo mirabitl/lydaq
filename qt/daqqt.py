@@ -86,6 +86,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBStop.clicked.connect(self.action_daq_stop)
         self.PBDestroy.clicked.connect(self.action_daq_destroy)
         self.PBDaqStatus.clicked.connect(self.action_daq_status)
+        self.PBSetTdc.clicked.connect(self.action_daq_settdc)
         #DB 
         self.PBDownload.clicked.connect(self.action_daq_download)
         # SCurve
@@ -225,6 +226,15 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
             self.allstatus.stop=False
             self.allstatus.start()
 
+    def action_daq_settdc(self):
+        if (self.CBTrigExt.isChecked()):
+            self.daq.daq_settdcmode(1)
+        else:
+            self.daq.daq_settdcmode(0)
+        self.daq.daq_settdcdelays(self.SBActive.value(),self.SBDead.value())
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)
+        
     def action_daq_start(self):
         r1=self.daq.daq_start()
         sr=json.loads(r1)

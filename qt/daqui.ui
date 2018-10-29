@@ -279,7 +279,7 @@
           <item row="2" column="2" colspan="2">
            <widget class="QLineEdit" name="LEDBState">
             <property name="text">
-             <string>FEBv2_1</string>
+             <string>FEBv2_2</string>
             </property>
            </widget>
           </item>
@@ -357,6 +357,26 @@
             </property>
             <property name="value">
              <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_10">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>456</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="PBSetTdc">
+            <property name="text">
+             <string>Set</string>
             </property>
            </widget>
           </item>
