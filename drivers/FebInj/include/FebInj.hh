@@ -75,8 +75,8 @@ namespace lydaq {
     FebInj();
     ~FebInj();
     
-    void myAnalogWrite (struct wiringPiNodeStruct *node, int addr, int value);
-    int myAnalogRead (struct wiringPiNodeStruct *node, int addr);
+    static void myAnalogWrite (struct wiringPiNodeStruct *node, int addr, int value);
+    static int myAnalogRead (struct wiringPiNodeStruct *node, int addr);
     void setMask(uint32_t mask,uint32_t hr);
     void setTriggerSource(uint32_t source);
     void softwareTrigger();
@@ -89,7 +89,7 @@ namespace lydaq {
   private:
     struct wiringPiNodeStruct *node ;
 	
-    unsigned char spiData [2] ;
+
 
   };
 };

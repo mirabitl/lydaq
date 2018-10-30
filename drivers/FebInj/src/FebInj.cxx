@@ -4,7 +4,7 @@ using namespace lydaq;
 lydaq::FebInj::FebInj()
 {
   if (wiringPiSPISetup (0, 10000) < 0)	// 10MHz Max
-    return -1 ;
+    exit(0);
 
   node = wiringPiNewNode (64, 2) ;
 
@@ -23,7 +23,7 @@ lydaq::FebInj::~FebInj()
 void lydaq::FebInj::myAnalogWrite (struct wiringPiNodeStruct *node, int addr, int value)
 {
 
-
+unsigned char spiData [2] ;
 
   spiData [0] = (addr&0x7f) ;
   spiData [1] = value&0xff ;
@@ -47,7 +47,7 @@ void lydaq::FebInj::setMask(uint32_t mask,uint32_t hr)
 {
 
   uint8_t c[3];
-  for (int i=0;i<3)
+  for (int i=0;i<3;i++)
     {
       c[i]=(mask>>(i*8))&0xFF;
       if (!hr)
@@ -79,7 +79,7 @@ void lydaq::FebInj::setNumberOfTrigger(uint32_t n)
 {
 
   uint8_t c[4];
-  for (int i=0;i<4)
+  for (int i=0;i<4;i++)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0x8,c[i]);
@@ -90,7 +90,7 @@ void lydaq::FebInj::setDelay(uint32_t n)
 {
 
   uint8_t c[4];
-  for (int i=0;i<4)
+  for (int i=0;i<4;i++)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0xc,c[i]);
@@ -101,7 +101,7 @@ void lydaq::FebInj::setDuration(uint32_t n)
 {
 
   uint8_t c[4];
-  for (int i=0;i<4)
+  for (int i=0;i<4;i++)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0x10,c[i]);
@@ -112,8 +112,8 @@ void lydaq::FebInj::setPulseHeight(uint32_t n)
 {
 
   uint8_t c=n&0x7f+128;
-  myAnalogWrite(node,0x14,c[i]);
-    }
+  myAnalogWrite(node,0x14,c);
+    
   
 }
 
