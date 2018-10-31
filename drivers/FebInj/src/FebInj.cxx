@@ -16,6 +16,7 @@ lydaq::FebInj::FebInj()
  
 lydaq::FebInj::~FebInj()
 {
+  delete node;
 }
 
 
@@ -54,6 +55,7 @@ void lydaq::FebInj::setMask(uint32_t mask,uint32_t hr)
 	myAnalogWrite(node,i,c[i]);
       else
 	myAnalogWrite(node,i+3,c[i]);
+      usleep(1);
     }
 }
 void lydaq::FebInj::setTriggerSource(uint32_t source)
@@ -63,6 +65,12 @@ void lydaq::FebInj::setTriggerSource(uint32_t source)
 void lydaq::FebInj::softwareTrigger()
 {
   myAnalogWrite(node,7,1);
+  usleep(100);
+  myAnalogWrite(node,7,0);
+}
+void lydaq::FebInj::internalTrigger()
+{
+  myAnalogWrite(node,7,2);
   usleep(100);
   myAnalogWrite(node,7,0);
 }
@@ -83,6 +91,7 @@ void lydaq::FebInj::setNumberOfTrigger(uint32_t n)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0x8,c[i]);
+      usleep(1);
     }
   
 }
@@ -94,6 +103,7 @@ void lydaq::FebInj::setDelay(uint32_t n)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0xc,c[i]);
+      usleep(1);
     }
   
 }
@@ -105,6 +115,7 @@ void lydaq::FebInj::setDuration(uint32_t n)
     {
       c[i]=(n>>(i*8))&0xFF;
       myAnalogWrite(node,i+0x10,c[i]);
+      usleep(1);
     }
   
 }

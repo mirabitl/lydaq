@@ -80,6 +80,7 @@ namespace lydaq {
     void setMask(uint32_t mask,uint32_t hr);
     void setTriggerSource(uint32_t source);
     void softwareTrigger();
+    void internalTrigger();
     void pauseExternalTrigger();
     void resumeExternalTrigger();
     void setNumberOfTrigger(uint32_t n);
