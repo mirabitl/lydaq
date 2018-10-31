@@ -27,6 +27,7 @@ namespace lydaq
     void c_set_mask(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_set_trigger_source(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_software_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_internal_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_pause_external_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_resume_external_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_set_number_of_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response);

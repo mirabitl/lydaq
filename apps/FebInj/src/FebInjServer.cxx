@@ -8,13 +8,6 @@ void lydaq::FebInjServer::configure(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
 
   std::cout<<"calling open "<<std::endl;
-  if (_inj!=NULL)
-    delete _inj;
-  
-  
-  
-  _inj= new lydaq::FebInj();
-
 
   //Settings
 
@@ -100,8 +93,7 @@ void lydaq::FebInjServer::destroy(zdaq::fsmmessage* m)
        LOG4CXX_ERROR(_logLdaq,"No FebInj opened");
        return;
     }
-  delete _inj;
-  _inj=NULL;
+
 }
 void lydaq::FebInjServer::c_set_mask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -164,6 +156,18 @@ void lydaq::FebInjServer::c_software_trigger(Mongoose::Request &request, Mongoos
   _inj->softwareTrigger();
   response["STATUS"]="DONE";
 }
+void lydaq::FebInjServer::c_internal_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  if (_inj==NULL)
+  {
+    LOG4CXX_ERROR(_logLdaq,"Please open FebInj first");
+    response["STATUS"]="Please open FebInj first";
+    return;
+  }
+
+  _inj->internalTrigger();
+  response["STATUS"]="DONE";
+}
 void lydaq::FebInjServer::c_set_number_of_trigger(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   if (_inj==NULL)
@@ -217,11 +221,11 @@ lydaq::FebInjServer::FebInjServer(std::string name) : zdaq::baseApplication(name
 {
 
   
- 
+  _inj= new lydaq::FebInj(); 
 
   //_fsm=new zdaq::fsm(name);
   _fsm=this->fsm();
-
+  _fsm->setState("VOID");
 
   _fsm->addState("CONFIGURED");
 
@@ -236,6 +240,7 @@ lydaq::FebInjServer::FebInjServer(std::string name) : zdaq::baseApplication(name
  _fsm->addCommand("MASK",boost::bind(&lydaq::FebInjServer::c_set_mask,this,_1,_2));
  _fsm->addCommand("TRIGGERSOURCE",boost::bind(&lydaq::FebInjServer::c_set_trigger_source,this,_1,_2));
  _fsm->addCommand("TRIGGERSOFT",boost::bind(&lydaq::FebInjServer::c_software_trigger,this,_1,_2));
+ _fsm->addCommand("TRIGGERINT",boost::bind(&lydaq::FebInjServer::c_internal_trigger,this,_1,_2));
  _fsm->addCommand("PAUSE",boost::bind(&lydaq::FebInjServer::c_pause_external_trigger,this,_1,_2));
  _fsm->addCommand("RESUME",boost::bind(&lydaq::FebInjServer::c_resume_external_trigger,this,_1,_2));
  _fsm->addCommand("TRIGGERMAX",boost::bind(&lydaq::FebInjServer::c_set_number_of_trigger,this,_1,_2));
