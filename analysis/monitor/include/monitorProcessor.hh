@@ -20,7 +20,7 @@ public:
 
  private:
   std::string _filepath;
-  uint32_t _run;
+  uint32_t _run,_nheader;
   bool _started;
 };
 #endif

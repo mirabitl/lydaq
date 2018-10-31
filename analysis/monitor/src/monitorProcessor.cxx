@@ -41,6 +41,7 @@ void monitorProcessor::start(uint32_t run)//,std::string dir,std::string setup)
 {
 
   _run=run;
+  _nheader=0;
   _started=true;
 }
 void monitorProcessor::processRunHeader(std::vector<uint32_t> header)
@@ -52,13 +53,16 @@ void monitorProcessor::processRunHeader(std::vector<uint32_t> header)
  // Construct one zdaq buffer with header content
  zdaq::buffer b(128+header.size());
  b.setDetectorId(255);
- b.setDataSourceId(1);
- b.setEventId(0);
- b.setBxId(0);
+ b.setDataSourceId(_run);
+ b.setEventId(_nheader++);
+ b.setBxId(_run);
  b.setPayload(ibuf,header.size()*sizeof(uint32_t));
  unsigned char* cdata=(unsigned char*) b.ptr();
  int32_t* idata=(int32_t*) cdata;
  int difsize=b.size();
+
+ this->store(b.detectorId(),b.dataSourceId(),
+	     b.eventId(),b.bxId(),b.ptr(),b.size(),_filepath);
 
 }
  
