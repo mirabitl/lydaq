@@ -1577,7 +1577,8 @@ void FullDaq::monitor(Mongoose::Request &request, Mongoose::JsonResponse &respon
   if (nc!=0 && !_survey)
     startSurvey();
   else
-    stopSurvey();
+    if (_survey)
+      stopSurvey();
   response["MODE"]=nc;
 
   response["STATUS"]="DONE";

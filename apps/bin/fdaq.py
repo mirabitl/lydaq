@@ -490,6 +490,11 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
       #print sr
       return sr
+  def daq_resettdc(self):
+      lcgi={}
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETTDC",lcgi)
+      #print sr
+      return sr
       
   def daq_evbstatus(self):
       lcgi={}
@@ -810,7 +815,7 @@ class fdaqClient:
           ipr=(31-ch/2)
       ipr=ch
       self.tdc_setmask((1<<ipr))
-      self.daq_scurve(100,50,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_stop()
       return
       # channel 1
@@ -996,6 +1001,7 @@ grp_action.add_argument('--daq-initialise',action='store_true',help=' initialise
 grp_action.add_argument('--daq-configure',action='store_true',help=' configure the DAQ')
 grp_action.add_argument('--daq-status',action='store_true',help=' display DAQ status of all DIF')
 grp_action.add_argument('--daq-tdcstatus',action='store_true',help=' display DAQ status of all TDC')
+grp_action.add_argument('--daq-resettdc',action='store_true',help=' Send REset to all TDC')
 grp_action.add_argument('--daq-state',action='store_true',help=' display DAQ state')
 grp_action.add_argument('--daq-evbstatus',action='store_true',help=' display event builder status')
 grp_action.add_argument('--daq-startrun',action='store_true',help=' start the run')
@@ -1310,6 +1316,11 @@ elif(results.daq_tdcstatus):
         print sr
     else:
         parseReturn(r_cmd,sr)
+    exit(0)
+elif(results.daq_resettdc):
+    r_cmd='tdcstatus'
+    sr=fdc.daq_resettdc()
+    print sr
     exit(0)
 elif(results.daq_evbstatus):
     r_cmd='shmStatus'
