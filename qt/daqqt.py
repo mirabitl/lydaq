@@ -40,7 +40,7 @@ class AllStatus(QtCore.QThread):
 
             if (self.stop):
                 break
-            time.sleep(5)
+            time.sleep(30)
 
 
 class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
@@ -191,6 +191,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.LADAQState.setText(l)
 
     def action_daq_initialise(self):
+        self.daq.daq_resettdc()
         r1=self.daq.daq_initialise()
        
         srp=json.loads(r1)

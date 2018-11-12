@@ -552,7 +552,13 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
       #print sr
       return sr
-      
+  def daq_resettdc(self):
+      lcgi={}
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETTDC",lcgi)
+      #print sr
+      rep=json.loads(sr)
+      return json.dumps(sr)
+
   def daq_evbstatus(self):
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","EVBSTATUS",lcgi)
@@ -913,7 +919,7 @@ class fdaqClient:
       # Return chamber FEB0
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
-      firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,12]
+      firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
       self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
@@ -932,7 +938,10 @@ class fdaqClient:
           self.tdc_setmask(0XFFFFFFFF)
           #self.tdc_setmask(0Xf7fffffb)
           #self.tdc_setmask(1073741832)
-          self.daq_scurve(100,spillon,spilloff,beg,las,4294967295,step)
+          mask=0
+          for i in firmware:
+              mask=mask|(1<<i)
+          self.daq_scurve(100,spillon,spilloff,beg,las,mask,step)
           self.daq_stop()
           return
       if (ch==1023):
