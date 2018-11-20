@@ -406,6 +406,67 @@ class fdaqClient:
                   print surl,e
                   p_rep={}
               
+  def daq_info(self,apname):
+      lcgi={}
+      rep=""
+      if (self.daq_url!=None):
+          lcgi["url"]=self.daq_url
+      else:
+          if (self.daq_file!=None):
+              lcgi["file"]=self.daq_file
+      for x,y in self.p_conf["HOSTS"].iteritems():
+          print "HOST ",x
+          rep=rep+" Host %s \n" % x
+          print "\033[1m %12s %12s %8s %8s %20s \033[0m" % ('NAME','INSTANCE','PORT','PID','STATE')
+          rep=rep+"\033[1m %12s %12s %8s %8s %20s \033[0m\n" % ('NAME','INSTANCE','PORT','PID','STATE')
+          for p in y:
+              #print x,p["NAME"]," process found"
+              port=0
+              for e in p["ENV"]:
+                  if (e.split("=")[0]=="WEBPORT"):
+                      port=int(e.split("=")[1])
+              if (port==0):
+                  continue
+              p_rep={}
+              surl="http://%s:%d/" % (x,port)
+              req=urllib2.Request(surl)
+              try:
+                  r1=urllib2.urlopen(req)
+                  p_rep=json.loads(r1.read())
+                  if (p["NAME"]!=apname):
+                      continue
+                  print "%12s %12s %8d %8d %20s" % (p["NAME"],p_rep["PREFIX"],port,p_rep["PID"],p_rep["STATE"])
+                  #print json.dumps(p_rep,sort_keys=True,indent=4, separators=(',', ': '))
+                  trl=" "
+                  for tr in p_rep["FSM"]:
+                      trl =trl+tr["name"]+" "
+                  tra=" "
+                  for tr in p_rep["ALLOWED"]:
+                      tra =tra+tr["name"]+" "
+                  trc=" "
+                  for tr in p_rep["CMD"]:
+                      trc =trc+tr["name"]+" "
+                  print trl
+                  print tra
+                  print trc
+                  
+                  rep =rep +"%12s %12s %8d %8d %20s\n" % (p["NAME"],p_rep["PREFIX"],port,p_rep["PID"],p_rep["STATE"])
+                  
+                  surl1="http://%s:%d/%s/CMD?name=GETPARAM" % (x,port, p_rep['PREFIX'])
+                  req1=urllib2.Request(surl1)
+                  r2=urllib2.urlopen(req1)
+                  app_info=json.loads(r2.read())
+                  if ('answer' in app_info.keys()):
+                      if (app_info['answer']['STATUS']!='DONE'):
+                          print app_info['answer']['STATUS']
+                      else:
+                          print json.dumps(app_info['answer']['PARAMETER'],sort_keys=True,indent=4, separators=(',', ': '))
+                      
+              except URLError, e:
+                  print surl,e
+                  p_rep={}
+      return rep
+              
               
   def daq_discover(self):
       lcgi={}
@@ -980,6 +1041,7 @@ parser = argparse.ArgumentParser()
 grp_action = parser.add_mutually_exclusive_group()
 # JOB Control
 grp_action.add_argument('--available',action='store_true',help='Check availability of daq,jobcontrol and slowcontrol')
+grp_action.add_argument('--app-info',action='store_true',help='Check availability of daq,jobcontrol and slowcontrol')
 grp_action.add_argument('--webstatus',action='store_true',help='Check availability of daq,jobcontrol,slowcontrol and Ecal web servers')
 grp_action.add_argument('--jc-create',action='store_true',help='Create the DimJobControlInterface object to control processes')
 grp_action.add_argument('--jc-kill',action='store_true',help='kill all controled processes')
@@ -1118,6 +1180,7 @@ parser.add_argument('--spilloff', action='store',type=float, default=None,dest='
 # Job
 parser.add_argument('--lines', action='store',type=int, default=None,dest='lines',help='set the number of lines to be dump')
 parser.add_argument('--host', action='store', dest='host',default=None,help='host for log')
+parser.add_argument('--name', action='store', dest='name',default=None,help='application name')
 parser.add_argument('--jobname', action='store', dest='jobname',default=None,help='job name')
 parser.add_argument('--jobpid', action='store', type=int,dest='jobpid',default=None,help='job pid')
 parser.add_argument('--value', action='store', type=int,dest='value',default=None,help='value to pass')
@@ -1191,6 +1254,34 @@ elif (results.webstatus):
 elif(results.available):
     r_cmd='available'
     fdc.daq_list()
+
+    #srd=executeCMD(conf.daqhost,conf.daqport,"WDAQ",None,None)
+    #if (results.verbose):
+        #print srd
+    #else:
+        #print ">>>>>>>>>>>>>>>> DAQ <<<<<<<<<<<<<<<<<<"
+        #parseReturn("state",srd)
+    #srs=executeCMD(conf.slowhost,conf.slowport,"WSLOW",None,None)
+    #if (results.verbose):
+        #print srs
+    #else:
+        #print ">>>>>>>>>>>>>>>> SLOWCONTROL <<<<<<<<<<<<<<<<<<"
+        #parseReturn("state",srs)
+    #srj=executeCMD(conf.jobhost,conf.jobport,"WJOB",None,None)
+    #if (results.verbose):
+        #print srj
+    #else:
+        #print ">>>>>>>>>>>>>>>> JOB CONTROL <<<<<<<<<<<<<<<<<<"
+        #parseReturn("state",srj)
+    #fdc.daq_process()
+    exit(0)
+elif(results.app_info):
+    r_cmd='available'
+    if (results.name!=None):
+        fdc.daq_info(results.name)
+    else:
+        print 'Please specify the name --name=name'
+
 
     #srd=executeCMD(conf.daqhost,conf.daqport,"WDAQ",None,None)
     #if (results.verbose):
