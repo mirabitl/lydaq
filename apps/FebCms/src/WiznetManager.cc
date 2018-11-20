@@ -386,16 +386,27 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
   ::sleep(1);
 
 }
+#undef PERASIC
 void lydaq::WiznetManager::setMask(uint32_t mask)
 {
 
   ::sleep(1);
     // Change all Asics VthTime
+  uint32_t umask;
   for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
+#ifdef PERASIC
+      int iasic=it->first&0xFF;
+      if (iasic == 2)
+	umask=0;
+      else
+	umask=mask;
+#else
+      umask=mask;
+#endif
       for (int i=0;i<32;i++)
 	{
-	  if ((mask>>i)&1)
+	  if ((umask>>i)&1)
 	    {
 	      it->second.setMaskDiscriTime(i,0);
 	    }
