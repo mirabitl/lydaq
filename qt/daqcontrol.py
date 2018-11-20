@@ -450,6 +450,43 @@ class fdaqClient:
                   p_rep={}
       return rep
               
+  def daq_info(self,name):
+      lcgi={}
+      rep=""
+      if (self.daq_url!=None):
+          lcgi["url"]=self.daq_url
+      else:
+          if (self.daq_file!=None):
+              lcgi["file"]=self.daq_file
+      for x,y in self.p_conf["HOSTS"].iteritems():
+          print "HOST ",x
+          rep=rep+" Host %s \n" % x
+          print "\033[1m %12s %12s %8s %8s %20s \033[0m" % ('NAME','INSTANCE','PORT','PID','STATE')
+          rep=rep+"\033[1m %12s %12s %8s %8s %20s \033[0m\n" % ('NAME','INSTANCE','PORT','PID','STATE')
+          for p in y:
+              #print x,p["NAME"]," process found"
+              port=0
+              for e in p["ENV"]:
+                  if (e.split("=")[0]=="WEBPORT"):
+                      port=int(e.split("=")[1])
+              if (port==0):
+                  continue
+              p_rep={}
+              surl="http://%s:%d/" % (x,port)
+              req=urllib2.Request(surl)
+              try:
+                  r1=urllib2.urlopen(req)
+                  p_rep=json.loads(r1.read())
+                  if (p["NAME"]!=name):
+                      continue
+                  print p
+                  print "%12s %12s %8d %8d %20s" % (p["NAME"],p_rep["PREFIX"],port,p_rep["PID"],p_rep["STATE"])
+                  rep =rep +"%12s %12s %8d %8d %20s\n" % (p["NAME"],p_rep["PREFIX"],port,p_rep["PID"],p_rep["STATE"])
+              except URLError, e:
+                  print surl,e
+                  p_rep={}
+      return rep
+              
   def daq_discover(self):
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","DISCOVER",lcgi)
@@ -518,9 +555,17 @@ class fdaqClient:
       lcgi["value"]=1
       srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
       #print srm
+      self.daq_setrunheader(0,0)
       return json.dumps(rep)
 
+  def daq_normalstop(self):
+      lcgi={}
+      sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
+      rep=json.loads(sr)
 
+      lcgi["value"]=0
+      srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
+      return json.dumps(rep)
   def daq_stop(self):
       if (self.scurve_running):
           self.scurve_running=False;
@@ -528,12 +573,7 @@ class fdaqClient:
           rep["SCURVE"]="STOPPED"
           
       else:    
-          lcgi={}
-          sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
-          rep=json.loads(sr)
-
-          lcgi["value"]=0
-          srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
+         return self.daq_normalstop()
       #print srm
       return json.dumps(rep)
 
@@ -878,6 +918,7 @@ class fdaqClient:
           xi=thmin+vth*step
           xa=thmax-vth*step
           xi=xa
+          self.trig_pause()
           self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
           self.curvth=xi
@@ -891,7 +932,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          #time.sleep(1)
+          time.sleep(1)
           
           self.trig_reloadcalib()
           self.trig_resume()
@@ -942,7 +983,7 @@ class fdaqClient:
           for i in firmware:
               mask=mask|(1<<i)
           self.daq_scurve(100,spillon,spilloff,beg,las,mask,step)
-          self.daq_stop()
+          self.daq_normalstop()
           return
       if (ch==1023):
           #for ist in range(0,12):
@@ -955,7 +996,7 @@ class fdaqClient:
                   break;
               self.tdc_setmask((1<<ist))
               self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
-          self.daq_stop()
+          self.daq_normalstop()
           return
       ipr=0
       if (ch%2==1):
@@ -965,7 +1006,7 @@ class fdaqClient:
       ipr=ch
       self.tdc_setmask((1<<ipr))
       self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
-      #self.daq_stop()
+      self.daq_normalstop()
       return
       # channel 1
       #self.tdc_setmask((1<<0))

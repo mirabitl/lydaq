@@ -87,6 +87,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBDestroy.clicked.connect(self.action_daq_destroy)
         self.PBDaqStatus.clicked.connect(self.action_daq_status)
         self.PBSetTdc.clicked.connect(self.action_daq_settdc)
+        self.PBThreshold.clicked.connect(self.action_daq_setvth)
         #DB 
         self.PBDownload.clicked.connect(self.action_daq_download)
         # SCurve
@@ -235,7 +236,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.daq.daq_settdcdelays(self.SBActive.value(),self.SBDead.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)
-        
+    def action_daq_setvth(self):
+        self.daq.tdc_setvthtime(self.SBThreshold.value())
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)        
     def action_daq_start(self):
         r1=self.daq.daq_start()
         sr=json.loads(r1)
