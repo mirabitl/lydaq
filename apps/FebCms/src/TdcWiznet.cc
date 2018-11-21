@@ -28,7 +28,6 @@ int16_t lydaq::TdcWiznet::checkBuffer(uint8_t* b,uint32_t maxidx)
 {
   uint32_t* _lBuf= (uint32_t*) b;
   uint16_t* _sBuf= (uint16_t*) b;
-
   uint32_t elen=0;
  if (ntohl(_lBuf[0])!=0xcafedade && ntohl(_lBuf[0])!=0xcafebabe)
    return 0;
