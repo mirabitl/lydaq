@@ -1060,6 +1060,7 @@ void  FullDaq::builderStatus(Mongoose::Request &request, Mongoose::JsonResponse 
 	
 	  response["run"]=_builderClient->answer()["answer"]["answer"]["run"];
 	  response["event"]=_builderClient->answer()["answer"]["answer"]["event"];
+	  response["builder"]=_builderClient->answer();
 	
     }
   response["STATUS"]="DONE";
