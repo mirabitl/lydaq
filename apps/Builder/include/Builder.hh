@@ -1,12 +1,15 @@
 #ifndef __LYDAQ_BUILDER_
 #define __LYDAQ_BUILDER_
 #include "zmMerger.hh"
-#include "fsmweb.hh"
+
+#include "baseApplication.hh"
+
 #include "zhelpers.hpp"
 #include "ReadoutLogger.hh"
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 namespace lydaq{ 
-  class dsBuilder {
+  class dsBuilder  : public zdaq::baseApplication
+  {
   public:
     dsBuilder(std::string name);
     void configure(zdaq::fsmmessage* m);

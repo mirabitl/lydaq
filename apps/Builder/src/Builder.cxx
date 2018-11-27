@@ -2,9 +2,11 @@
 using namespace lydaq;
 using namespace zdaq;
 
-lydaq::dsBuilder::dsBuilder(std::string name) : _running(false),_merger(NULL)
+lydaq::dsBuilder::dsBuilder(std::string name) : zdaq::baseApplication(name),_running(false),_merger(NULL)
 {
-  _fsm=new zdaq::fsmweb(name);
+
+   _fsm=this->fsm();
+  _fsm->setState("VOID");
   _context = new zmq::context_t (1);
   _merger= new zdaq::zmMerger(_context);
   // Register state
