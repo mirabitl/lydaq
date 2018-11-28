@@ -80,6 +80,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBCreate.clicked.connect(self.action_daq_create)
         self.PBDiscover.clicked.connect(self.action_daq_discover)
         self.PBService.clicked.connect(self.action_daq_service)
+        self.PBStartup.clicked.connect(self.action_daq_startup)
         self.PBInitialise.clicked.connect(self.action_daq_initialise)
         self.PBConfigure.clicked.connect(self.action_daq_configure)
         self.PBStart.clicked.connect(self.action_daq_start)
@@ -190,7 +191,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         l= self.daq.daq_state()
         self.state=l
         self.LADAQState.setText(l)
-
+    def action_daq_startup(self):
+        self.action_daq_create()
+        self.action_daq_discover()
+        self.action_daq_service()
     def action_daq_initialise(self):
         self.daq.daq_resettdc()
         r1=self.daq.daq_initialise()
