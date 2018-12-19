@@ -57,7 +57,7 @@ protected:
 	struct ftdi_context theFtdi;
 	uint32_t timeOut;
 	uint32_t theProduct_;
-        char theName[12];
+        char theName[8];
 };
 };
 #endif

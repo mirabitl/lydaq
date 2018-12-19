@@ -75,7 +75,7 @@ start:
 		//_exit(1);
 	}
 
-
+	memset(theName,0,8);
         memcpy(theName,deviceIdentifier,8);
 	uint32_t regctrl=0;
 	

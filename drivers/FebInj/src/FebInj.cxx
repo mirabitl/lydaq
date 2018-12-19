@@ -51,11 +51,17 @@ void lydaq::FebInj::setMask(uint32_t mask,uint32_t hr)
   for (int i=0;i<3;i++)
     {
       c[i]=(mask>>(i*8))&0xFF;
-      if (!hr)
+      if (hr==0)
+	{
 	myAnalogWrite(node,i,c[i]);
+	fprintf(stderr," HR = %d MASK= %x Byte %d ByteMask %x \n",hr,mask,i,c[i]);
+	}
       else
+	{
 	myAnalogWrite(node,i+3,c[i]);
-      usleep(1);
+      	fprintf(stderr," HR = %d MASK= %x Byte %d ByteMask %x \n",hr,mask,i+3,c[i]);
+	}
+      usleep(1000);
     }
 }
 void lydaq::FebInj::setTriggerSource(uint32_t source)
