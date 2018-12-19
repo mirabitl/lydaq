@@ -66,17 +66,24 @@ start:
 		return;
 		//_exit(1);
 	}
+	memset(theName_,0,12);
+        memcpy(theName_,deviceIdentifier,8);
 
-	if ((ret = ftdi_usb_open_desc(&theFtdi, 0x0403,theProduct_,NULL,deviceIdentifier)) < 0)
+
+	std::stringstream sn("");
+	sn<<deviceIdentifier;
+	//memcpy(theName_,deviceIdentifier,8);
+
+	if ((ret = ftdi_usb_open_desc(&theFtdi, 0x0403,theProduct_,NULL,sn.str().c_str())) < 0)
 	{
 		fprintf(stderr, "unable to open ftdi device: %d (%s)\n", ret, ftdi_get_error_string(&theFtdi));
-		LOG4CXX_FATAL(_logFTDI,"unable to open device "<<deviceIdentifier);
+		LOG4CXX_FATAL(_logFTDI,"unable to open device "<<deviceIdentifier<<" Name:"<<sn.str().c_str()<<"| Product:"<<std::hex<<theProduct_<<std::dec);
 		return;
 		//_exit(1);
 	}
 
-	memset(theName,0,8);
-        memcpy(theName,deviceIdentifier,8);
+	memset(theName_,0,12);
+        memcpy(theName_,deviceIdentifier,8);
 	uint32_t regctrl=0;
 	
 	//ret=UsbRegisterWrite(2,0x1234567);
@@ -151,7 +158,7 @@ void lydaq::FtdiUsbDriver::checkReadWrite(uint32_t start,uint32_t count)   throw
 	    {
 	      printf(" Error Reading  \n");
 	      std::string errorMessage( "Cannot Read test register from FT245" );
-	      LOG4CXX_FATAL(_logFTDI,"Cannot Read test register from FT245"<<theName);
+	      LOG4CXX_FATAL(_logFTDI,"Cannot Read test register from FT245"<<theName_);
 	      throw (LocalHardwareException( "FT245" ,errorMessage, __FILE__, __LINE__, __FUNCTION__ ) );   
 	    }
 	}
@@ -166,7 +173,7 @@ lydaq::FtdiUsbDriver::~FtdiUsbDriver()     throw (LocalHardwareException)
 	if ((ret = ftdi_usb_close(&theFtdi)) < 0)
 	{
 		fprintf(stderr, "unable to close ftdi device: %d (%s)\n", ret, ftdi_get_error_string(&theFtdi));
-		LOG4CXX_ERROR(_logFTDI,"unable to close ftdi device: "<<theName);
+		LOG4CXX_ERROR(_logFTDI,"unable to close ftdi device: "<<theName_);
 		ftdi_deinit(&theFtdi);
 
 		std::stringstream errorMessage;
@@ -222,7 +229,7 @@ throw( LocalHardwareException )
 	if( ret<0)
 	{
 		char errorMessage [100];
-		sprintf (errorMessage,"%s %d usb_bulk_read error = %d",theName,ret);
+		sprintf (errorMessage,"%s %d usb_bulk_read error = %d",theName_,ret);
 		resultPtr=0;
 		throw (LocalHardwareException( "FT245" ,errorMessage, __FILE__, __LINE__, __FUNCTION__ ) );    
 	}
