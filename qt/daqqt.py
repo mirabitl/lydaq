@@ -99,6 +99,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBMdccResetTdc.clicked.connect(self.action_mdcc_reset_tdc)
         self.PBMdccPause.clicked.connect(self.action_mdcc_pause)
         self.PBMdccResume.clicked.connect(self.action_mdcc_resume)
+        self.PBMdccPhysic.clicked.connect(self.action_mdcc_physic)
 
         # Status
         self.PBTrigStatus.clicked.connect(self.action_trig_status)
@@ -349,6 +350,13 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.daq.trig_spilloff(int(self.LESpillOff.text()))
         self.daq.trig_beam(int(self.LEBeamOn.text()))
         self.daq.trig_spillregister(int(self.SBWindowMode.value()))
+        self.daq.trig_setregister(32,int(self.SBBusy.value()))
+        self.action_trig_status()
+    def action_mdcc_physic(self):
+        self.daq.trig_spillon(20000)
+        self.daq.trig_spilloff(4000000)
+        self.daq.trig_beam(int(self.LEBeamOn.text()))
+        self.daq.trig_spillregister(64)
         self.daq.trig_setregister(32,int(self.SBBusy.value()))
         self.action_trig_status()
         

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
+    <width>1062</width>
     <height>717</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="Processus">
       <attribute name="title">
@@ -94,7 +94,7 @@
           <item row="0" column="1">
            <widget class="QLineEdit" name="LEConfiguration">
             <property name="text">
-             <string>testv2_5</string>
+             <string>testv2_8</string>
             </property>
            </widget>
           </item>
@@ -286,7 +286,7 @@
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="LEDBState">
             <property name="text">
-             <string>FEBv2_8</string>
+             <string>FEBv2_12</string>
             </property>
            </widget>
           </item>
@@ -662,6 +662,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="PBMdccPhysic">
+               <property name="text">
+                <string>Physic</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="verticalSpacer_3">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -724,10 +731,10 @@
                    <number>1</number>
                   </property>
                   <property name="maximum">
-                   <number>47</number>
+                   <number>256</number>
                   </property>
                   <property name="value">
-                   <number>32</number>
+                   <number>64</number>
                   </property>
                  </widget>
                 </item>
