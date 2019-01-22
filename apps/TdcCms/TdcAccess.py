@@ -65,6 +65,63 @@ class TdcAccess:
             except Exception, e:
                 print e.getMessage()
 
+    def ChangeDacDelay(self,delay,idif=0,iasic=0):
+        """
+        change thresholds B0,B1,B2 on DIF idif and asic iasic.
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asics:
+            if (idif !=0 and a.getInt("DIF_ID") != idif ):
+                continue;
+            if (iasic !=0 and a.getInt("HEADER") != iasic):
+                continue;
+            try:
+                a.setInt("DACDELAY",delay);
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
+    def ChangeAllEnabled(self,idif=0,iasic=0):
+        """
+        change thresholds B0,B1,B2 on DIF idif and asic iasic.
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asics:
+            if (idif !=0 and a.getInt("DIF_ID") != idif ):
+                continue;
+            if (iasic !=0 and a.getInt("HEADER") != iasic):
+                continue;
+            try:
+
+
+                a.setInt('EN_BIAS_DISCRI',1)
+                a.setInt('EN_BIAS_PA',1)
+                a.setInt('EN_BIAS_DISCRI_CHARGE',1)
+                a.setInt('EN_DOUT_OC',1)
+                a.setInt('EN_BIAS_DAC_DELAY',1)
+                a.setInt('EN10BDAC',1)
+                a.setInt('EN_BIAS_DISCRI_ADC_CHARGE',1)
+                a.setInt('EN_BIAS_SCA',1)
+                a.setInt('EN_BIAS_6BIT_DAC',1)
+                a.setInt('EN_TRANSMIT',1)
+                a.setInt('EN_BIAS_RAMP_DELAY',1)
+                a.setInt('EN_BIAS_CHARGE',1)
+                a.setInt('EN_FAST_LVDS_REC',1)
+                a.setInt('EN_TRANSMITTER',1)
+                a.setInt('EN_ADC',1)
+                a.setInt('EN_NOR32_CHARGE',1)
+                a.setInt('EN_80M',1)
+                a.setInt('EN_DISCRI_DELAY',1)
+                a.setInt('EN_BIAS_DISCRI_ADC_TIME',1)
+                a.setInt('EN_NOR32_TIME',1)
+                a.setInt('EN_TEMP_SENSOR',1)
+
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
     def Change6BDac(self,idif,iasic,ich,dac):
         """
         Modify gain of all asics by a factor gain1/gain0 on HR2
