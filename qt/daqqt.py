@@ -293,7 +293,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.state=l
         self.LADAQState.setText(l)
     def action_daq_scurve(self):
-        self.scurve=Scurve(self.daq,self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
+        self.scurve=Scurve(self.daq,self.SBChannel.value(),self.SBWindow.value(),100000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
         self.scurve.start()
         if (self.allstatus.stop):
             self.allstatus.stop=False
