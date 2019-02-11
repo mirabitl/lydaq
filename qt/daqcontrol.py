@@ -231,6 +231,8 @@ class fdaqClient:
       self.slowport=None
       self.anhost=None
       self.anport=None
+      self.injhost=None
+      self.injport=None
       self.daq_par={}
       self.slow_par={}
       self.scurve_running=False
@@ -267,6 +269,9 @@ class fdaqClient:
               if (p["NAME"]=="ANALYZER"):
                   self.anhost=x
                   self.anport=port
+              if (p["NAME"]=="FEBINJ"):
+                  self.injhost=x
+                  self.injport=port
 
               if (p["NAME"]=="DBSERVER"):
                   if ("PARAMETER" in p):
@@ -1208,3 +1213,85 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(rep)
 
+  def injection_configure(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeFSM(self.injhost,self.injport,"FebInj-0","CONFIGURE",lcgi)
+      return sr
+  def injection_destroy(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeFSM(self.injhost,self.injport,"FebInj-0","DESTROY",lcgi)
+      return sr
+  def injection_mask(self,side,mask):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["mask"]=mask
+      lcgi["side"]=side
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","MASK",lcgi)
+      return sr
+  def injection_source(self,source):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["value"]=source
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOURCE",lcgi)
+      return sr
+  def injection_number(self,nb):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["value"]=nb
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERMAX",lcgi)
+      return sr
+  def injection_delay(self,nb):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["value"]=nb
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","DELAY",lcgi)
+      return sr
+  def injection_duration(self,nb):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["value"]=nb
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","DURATION",lcgi)
+      return sr
+  def injection_height(self,nb):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      lcgi["value"]=nb
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","PULSEHEIGHT",lcgi)
+      return sr
+  def injection_soft(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOFT",lcgi)
+      return sr
+  def injection_internal(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERINT",lcgi)
+      return sr
+  def injection_pause(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","PAUSE",lcgi)
+      return sr
+  def injection_resume(self):
+      if (self.injhost==None):
+          return "No Injection board"
+      lcgi={}
+      sr=executeCMD(self.injhost,self.injport,"FebInj-0","RESUME",lcgi)
+      return sr
+
+
+  
