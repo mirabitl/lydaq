@@ -197,7 +197,8 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.action_daq_discover()
         self.action_daq_service()
     def action_daq_initialise(self):
-        self.daq.daq_resettdc()
+        #self.daq.daq_resettdc()
+        time.sleep(2)
         r1=self.daq.daq_initialise()
        
         srp=json.loads(r1)
