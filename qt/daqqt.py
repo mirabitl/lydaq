@@ -470,8 +470,8 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
     def action_injection_mask(self):
         mhr=int(str(self.LEInjectionHR.text()),16)
         mlr=int(str(self.LEInjectionLR.text()),16)
-        print self.daq.injection_mask(0,mhr)
-        print self.daq.injection_mask(1,mlr)
+        print self.daq.injection_mask(1,mhr)
+        print self.daq.injection_mask(0,mlr)
     def action_injection_number(self):
         print self.daq.injection_number(self.SBInjectionNumber.value())
     def action_injection_delay(self):
