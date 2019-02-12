@@ -113,6 +113,26 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBProcStop.clicked.connect(self.action_proc_stop)
         self.PBProcStatus.clicked.connect(self.action_proc_status)
         self.PBHistoList.clicked.connect(self.action_proc_histolist)
+
+        #Injection
+        self.PBInjectionConfigure.clicked.connect(self.action_injection_configure)
+        self.PBInjectionDestroy.clicked.connect(self.action_injection_destroy)
+        self.PBInjectionSoft.clicked.connect(self.action_injection_soft)
+        self.PBInjectionInternal.clicked.connect(self.action_injection_internal)
+        self.PBInjectionPause.clicked.connect(self.action_injection_pause)
+        self.PBInjectionResume.clicked.connect(self.action_injection_resume)
+        self.PBInjectionMask.clicked.connect(self.action_injection_mask)
+        self.PBInjectionNumber.clicked.connect(self.action_injection_number)
+        self.PBInjectionDelay.clicked.connect(self.action_injection_delay)
+        self.PBInjectionDuration.clicked.connect(self.action_injection_duration)
+        self.PBInjectionHeight.clicked.connect(self.action_injection_height)
+
+        self.RBInjectionInternalSingle.clicked.connect(self.action_injection_source)
+        self.RBInjectionInternalMultiple.clicked.connect(self.action_injection_source)
+        self.RBInjectionExternalSingle.clicked.connect(self.action_injection_source)
+        self.RBInjectionExternalMultiple.clicked.connect(self.action_injection_source)
+        self.RBInjectionSoft.clicked.connect(self.action_injection_source)
+        
         
     def onChange(self,i):
         if (self.login == None):
@@ -415,7 +435,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
             self.LVHmodel.appendRow(item)
         #print flat
         self.LVHisto.setModel(self.LVHmodel)
-        
+
     def on_LVHmodel_changed(self,index):
         # If the changed item is not checked, don't bother checking others
         print index.row(),self.LVHmodel.item(index.row()).text()
@@ -433,6 +453,62 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         #self.canvas.Draw()
         self.canvas.Modified()
         self.canvas.Update()
+#Injection
+
+    def action_injection_configure(self):
+        print self.daq.injection_configure()
+    def action_injection_destroy(self):
+        print self.daq.injection_destroy()
+    def action_injection_soft(self):
+        print self.daq.injection_soft()
+    def action_injection_internal(self):
+        print self.daq.injection_internal()
+    def action_injection_pause(self):
+        print self.daq.injection_pause()
+    def action_injection_resume(self):
+        print self.daq.injection_resume()
+    def action_injection_mask(self):
+        mhr=int(str(self.LEInjectionHR.text()),16)
+        mlr=int(str(self.LEInjectionLR.text()),16)
+        print self.daq.injection_mask(0,mhr)
+        print self.daq.injection_mask(1,mlr)
+    def action_injection_number(self):
+        print self.daq.injection_number(self.SBInjectionNumber.value())
+    def action_injection_delay(self):
+        print self.daq.injection_delay(self.SBInjectionDelay.value())
+    def action_injection_duration(self):
+        print self.daq.injection_duration(self.SBInjectionDuration.value())
+    def action_injection_height(self):
+        print self.daq.injection_height(self.SBInjectionHeight.value())
+    def action_injection_source(self):
+        s=0
+        if (self.RBInjectionInternalSingle.isChecked()):
+            s=1
+        if (self.RBInjectionInternalMultiple.isChecked()):
+            s=2
+        if (self.RBInjectionExternalSingle.isChecked()):
+            s=4
+        if (self.RBInjectionExternalMultiple.isChecked()):
+            s=8
+        if (self.RBInjectionSoft.isChecked()):
+            s=16
+
+        print self.daq.injection_source(s)
+
+
+
+
+
+
+
+        
+#self.RBInjectionInternalSingle.checked.connect(self.action_injection_source)
+#self.RBInjectionInternalMultiple.checked.connect(self.action_injection_source)
+#self.RBInjectionExternalSingle.checked.connect(self.action_injection_source)
+#self.RBInjectionExternalMultiple.checked.connect(self.action_injection_source)
+#self.RBInjectionSoft.checked.connect(self.action_injection_source)
+
+        
     def main(self):
         #gApplication.Run(0)
         gROOT.SetBatch(0)
