@@ -12,7 +12,7 @@ using namespace zdaq;
 using namespace lydaq;
 FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
   {
-    _builderClient=0;_dbClient=0;_cccClient=0;_mdccClient=0;_zupClient=0;_gpioClient=0;
+    _builderClient=0;_dbClient=0;_cccClient=0;_mdccClient=0;_zupClient=0;_gpioClient=0,_anClient=0,_finjClient=0;
     _context=NULL;
     _publisher=NULL;
     _survey=false;
@@ -323,6 +323,18 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 		  _anClient->sendTransition("CONFIGURE");
 		}
 	      if (!p_param.empty()) this->parameters()["analysis"]=p_param;
+	      //printf("ZUP client %x \n",_zupClient);
+	    }
+	  if (p_name.compare("FEBINJ")==0)
+	    {
+	      _finjClient= new fsmwebCaller(host,port);
+	      std::string state=_finjClient->queryState();
+	      printf("FEBINJ client %x  %s \n",_finjClient,state.c_str());
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  _finjClient->sendTransition("CREATE",_jConfigContent);
+		}
+	      if (!p_param.empty()) this->parameters()["febinj"]=p_param;
 	      //printf("ZUP client %x \n",_zupClient);
 	    }
 
