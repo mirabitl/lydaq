@@ -8,14 +8,14 @@
 #include <unistd.h>
 #include <sys/dir.h>  
 #include <sys/param.h>  
-#include "ftdi.hpp"
+//#include "ftdi.hpp"
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
 #include <cstring>
 #include <string.h>
 
-using namespace Ftdi;
+//using namespace Ftdi;
 using namespace lydaq;
 using namespace zdaq;
 
