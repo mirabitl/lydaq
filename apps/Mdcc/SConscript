@@ -71,7 +71,7 @@ if (Use_Mongoose):
   INCLUDES.append('/usr/local/include/mongoose')
 
 Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
-
+Use_Oracle=False
 if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
 
