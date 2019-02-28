@@ -37,7 +37,12 @@ if (kl[len(kl)-2][0:3] == 'el6'):
     platform="SLC6"
 
 Arm=os.uname()[4]=='armv7l'
-Arm=True
+
+fgcc=os.popen("gcc --version | grep ^gcc | sed 's/^.* //g'")
+kl=fgcc.readline().split(".")
+
+NOOCCI=(int(kl[0])>4)
+
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'
   boostthread='boost_thread'
@@ -55,7 +60,7 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O4","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
-if (Arm):
+if (Arm or NOOCCI):
     CPPFLAGS.append("-DNO_DB")
 LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','netlink','cslm','zdaq','z','log4cxx']
 
@@ -77,10 +82,11 @@ Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
 if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
   INCLUDES.append("/usr/include/ILCConfDB/occi11")
-
+  
+OCCIACCESS= not NOOCCI
 if (Use_Oracle):
   LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
-  if (not Arm):
+  if (not Arm and OCCIACCESS):
       LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
 
 #link flags
