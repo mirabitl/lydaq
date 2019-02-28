@@ -40,7 +40,7 @@ public:
   // FEB access
   void writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val);
   void set6bDac(uint8_t dac);
-  void setMask(uint32_t mask);
+  void setMask(uint32_t mask,uint8_t asic=255);
   void sendTrigger(uint32_t nt);
   void setVthTime(uint32_t dac);
   void setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic);

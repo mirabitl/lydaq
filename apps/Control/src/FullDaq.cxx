@@ -1371,9 +1371,10 @@ void FullDaq::tdcSetMask(Mongoose::Request &request, Mongoose::JsonResponse &res
 {
 
   uint32_t nc=atoi(request.get("value","31").c_str());
+  uint32_t asic=atoi(request.get("asic","255").c_str());
   for (auto tdc:_tdcClients)
     {
-      std::stringstream sp;sp<<"&value="<<nc;
+      std::stringstream sp;sp<<"&value="<<nc<<"&asic="<<asic;
       tdc->sendCommand("SETMASK",sp.str());
     }
   response["MASK"]=nc;

@@ -156,6 +156,9 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName,std::string mode)
     {
       try
 	{
+	  LOG4CXX_INFO(_logLdaq,"  Web access"<<stateName);
+	  char* wp=getenv("CONFDB_WEB");
+	  LOG4CXX_INFO(_logLdaq,"  Web access->"<<wp);
 	  _state = State::getState_WebServer(stateName);
 	}
       catch (ILCException::Exception e)

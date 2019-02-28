@@ -162,9 +162,11 @@ void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonR
   //uint32_t nc=atol(request.get("value","4294967295").c_str());
 uint32_t nc;
 sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
-  
+
+uint8_t asic=atol(request.get("asic","255").c_str());
+ 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
-  this->setMask(nc);
+  this->setMask(nc,asic);
   response["MASK"]=nc;
 }
 void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -387,16 +389,20 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
 
 }
 #undef PERASIC
-void lydaq::WiznetManager::setMask(uint32_t mask)
+void lydaq::WiznetManager::setMask(uint32_t mask,uint8_t asic)
 {
 
   ::sleep(1);
     // Change all Asics VthTime
   uint32_t umask;
+  uint32_t asica=asic;
   for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
+      uint32_t iasic=it->first&0xFF;
+      fprintf(stderr,"ASIC in map %d ASIC asked %d \n",iasic,asica);
+      if ((iasic&asica)==0) continue;
 #ifdef PERASIC
-      int iasic=it->first&0xFF;
+      //int iasic=it->first&0xFF;
       if (iasic == 2)
 	umask=0;
       else
@@ -415,8 +421,8 @@ void lydaq::WiznetManager::setMask(uint32_t mask)
 	      it->second.setMaskDiscriTime(i,1);
 	    }
 	}
-      
-
+      std::cout<<"ASIC "<<(int) iasic<<"=========================="<<std::endl;
+      it->second.Print();
     }
 
   // Now loop on slowcontrol socket
@@ -439,7 +445,10 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
     LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
     for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
       {
+	int iasic=it->first&0xFF;
+
       it->second.setVthTime(vth);
+      //it->second.Print();
       // 1 seul ASIC break;
       }
 
