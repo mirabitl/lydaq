@@ -38,6 +38,12 @@ if (kl[len(kl)-2][0:3] == 'el6'):
 
 Arm=os.uname()[4]=='armv7l'
 
+
+fgcc=os.popen("gcc --version | grep ^gcc | sed 's/^.* //g'")
+kl=fgcc.readline().split(".")
+
+NOOCCI=(int(kl[0])>4)
+
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'
   boostthread='boost_thread'
@@ -77,7 +83,7 @@ if (Use_Oracle):
 
 if (Use_Oracle):
   LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
-  if (not Arm):
+  if (not Arm and (not NOOCCI)):
       LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
 
 # Tomuvol patch
