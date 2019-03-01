@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import os
+os.system("mkdir -p /var/log/pi")
+os.system("rm /var/log/pi/ftdi_devices")
 os.environ["PATH"] = os.environ["PATH"] +":/sbin"
 f=os.popen("sudo lsusb -v -d 0x403: | sed 's/^[ \t]*//;s/[ \t]*$//'")
 lines=f.readlines()
