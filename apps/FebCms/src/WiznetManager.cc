@@ -303,7 +303,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage* m)
        
    
 	 // TDC
-       _wiznet->addCommunication(idif->second,10002);
+       _wiznet->addDataTransfer(idif->second,10002);
        _wiznet->registerDataHandler(idif->second,10002,boost::bind(&lydaq::TdcWiznet::processBuffer, _tdc,_1,_2,_3));
 
        _vTdc.push_back(_tdc);
