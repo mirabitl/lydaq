@@ -14,6 +14,7 @@ namespace lydaq
 {
   class MpiMessage {
   public:
+    enum  command { STARTACQ=0,STOPACQ=1,RESET=2,READSC=3,LOADSC=4,STORESC=5,LASTABCID=6,LASTGTC=7};
     MpiMessage(): _address(0),_length(2) {;}
     inline uint64_t address(){return _address;}
     inline uint16_t length(){return _length;}
@@ -30,6 +31,7 @@ namespace lydaq
 class MpiInterface 
 {
 public:
+
   MpiInterface();
   ~MpiInterface(){;}
   void initialise();

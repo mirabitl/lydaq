@@ -73,8 +73,8 @@ lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),
   
  
   // Initialise NetLink
-  _gric= new lydaq::GricInterface();
-  _msg=new lydaq::GricMessage();
+  _mpi= new lydaq::MpiInterface();
+  _msg=new lydaq::MpiMessage();
 }
 void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -243,7 +243,7 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        return;
      }
    // Now create the Message handler
-   _gric->initialise();
+   _mpi->initialise();
 
    
    Json::Value jGRIC=this->parameters()["gric"];
@@ -295,16 +295,16 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        vint.push_back(eip);
        lydaq::GricMpi* _gric=new lydaq::GricMpi(eip);
        // Slow control
-       _gric->addCommunication(idif->second,9760);
-       _gric->registerDataHandler(idif->second,10001,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addCommunication(idif->second,9760);
+       _mpi->registerDataHandler(idif->second,9760,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
        
 	 // GRIC
-       _gric->addCommunication(idif->second,9761);
-       _gric->registerDataHandler(idif->second,9761,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addDataTransfer(idif->second,9761);
+       _mpi->registerDataHandler(idif->second,9761,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
 
        // Gric Sensor
-       _gric->addCommunication(idif->second,9762);
-       _gric->registerDataHandler(idif->second,9762,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addDataTransfer(idif->second,9762);
+       _mpi->registerDataHandler(idif->second,9762,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
 
        _vGric.push_back(_gric);
        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
@@ -328,20 +328,52 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
     x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All Gric sockets
-  _gric->listen();
+  _mpi->listen();
 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
-void lydaq::GricManager::writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val)
+void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command)
 {
-  _msg->_address=( (uint64_t) lydaq::GricMessageHandler::convertIP(host)<<32)|port;
-  _msg->_length =4;
-  _msg->_buf[0]=htons(0xFF00);
-  _msg->_buf[1]=htons(1);
-  _msg->_buf[2]=htons(addr);
-  _msg->_buf[3]=htons(val);
-  _gric->sendMessage(_msg);
+  _msg->setAddress(( (uint64_t) lydaq::GricMessageHandler::convertIP(host)<<32)|port);
+  _msg->setLength(6);
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
+  _msg->ptr()[0]='(';
+  sp[0]=htons(6);
+  _msg->ptr()[4]=command;
+  _msg->ptr()[5]=')';    
+  _mpi->sendMessage(_msg);
+}
+void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
+{
+  _msg->setAddress(( (uint64_t) lydaq::GricMessageHandler::convertIP(host)<<32)|port);
+  _msg->setLength(115);
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
+  _msg->ptr()[0]='(';
+  sp[0]=htons(115);
+  _msg->ptr()[4]=lydaq::MpiMessage::command::STORESC;
+  mcpy(&(_msg->ptr()[5]),slc,109);
+  _msg->ptr()[115]=')';    
+  _mpi->sendMessage(_msg);
+}
+void lydaq::GricManager::configureHR2()
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" COnfigure the chips ");
+
+   // Now loop on slowcontrol socket
+
+
+  for (auto x:_mpi->controlSockets())
+    {
+
+      
+      _hca->prepareSlowControl(x.second->hostTo());
+
+      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
+
+    }
+
 }
 void lydaq::GricManager::configure(zdaq::fsmmessage* m)
 {
@@ -350,86 +382,66 @@ void lydaq::GricManager::configure(zdaq::fsmmessage* m)
    // Now loop on slowcontrol socket
 
 
-  for (auto x:_gric->controlSockets())
-    {
-      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x220,0); //Stop acquisition
-      
-      _tca->prepareSlowControl(x.second->hostTo());
-
-      _gric->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
-
-    }
+  this->configureHR2();
 
 }
 
-void lydaq::GricManager::set6bDac(uint8_t dac)
+void lydaq::GricManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2)
 {
 
-  ::sleep(1);
-
- 
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changin thresholds: "<<b0<<","<<b1<<","<<b2);
   for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
-      for (int i=0;i<32;i++)
-	{
-	  it->second.set6bDac(i,dac);
-	}      
+      it->second.setB0(b0);
+      it->second.setB1(b1);
+      it->second.setB2(b2);
     }
   // Now loop on slowcontrol socket
-    for (auto x:_gric->controlSockets())
+  this->configureHR2();
+  ::sleep(1);
+
+}
+void lydaq::GricManager::setGain(uint16_t gain)
+{
+
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Gain: "<<gain);
+  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+    {
+      for (int i=0;i<64;i++)
+	it->second.setPAGAIN(i,gain);
+    }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+  ::sleep(1);
+
+}
+
+void lydaq::GricManager::setMask(uint32_t level,uint64_t mask)
+{
+LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
+  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
       
-      _tca->prepareSlowControl(x.second->hostTo());
-
-      _gric->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
-
+	it->second.setMask(level,mask);
     }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+
 
   ::sleep(1);
 
 }
-#undef PERASIC
-void lydaq::GricManager::setMask(uint32_t mask)
+void lydaq::GricManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t val)
 {
-
-  ::sleep(1);
-    // Change all Asics VthTime
-  uint32_t umask;
+LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
   for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
     {
-#ifdef PERASIC
-      int iasic=it->first&0xFF;
-      if (iasic == 2)
-	umask=0;
-      else
-	umask=mask;
-#else
-      umask=mask;
-#endif
-      for (int i=0;i<32;i++)
-	{
-	  if ((umask>>i)&1)
-	    {
-	      it->second.setMaskDiscriTime(i,0);
-	    }
-	  else
-	    {
-	      it->second.setMaskDiscriTime(i,1);
-	    }
-	}
       
-
+	it->second.setMaks(level,mask);
     }
-
   // Now loop on slowcontrol socket
-    for (auto x:_gric->controlSockets())
-    {
-      
-      _tca->prepareSlowControl(x.second->hostTo());
+  this->configureHR2();
 
-      _gric->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
-
-    }
 
   ::sleep(1);
 
