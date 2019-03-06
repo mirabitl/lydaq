@@ -446,7 +446,7 @@ class GricAccess:
             for ih in range(nb_asic):
                 header=ih+1
 
-                thePR2=self.initPR2(dif_num,header)
+                thePR2=self.initAsic(dif_num,header,128)
                 self.asiclist.append(thePR2)
                 self.asicConf.add(thePR2) 
 
