@@ -845,9 +845,10 @@ class fdaqClient:
       return json.dumps(rep)
 
 
-  def tdc_setmask(self,value):
+  def tdc_setmask(self,value,asic):
       lcgi={}
       lcgi["value"]=value
+      lcgi["asic"]=asic
       
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETMASK",lcgi)
       rep =json.loads(sr)
@@ -965,7 +966,8 @@ class fdaqClient:
       # Return chamber FEB0
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
-      firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
+      # Buggy firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
+      firmwaret1=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28]
       self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
@@ -981,7 +983,7 @@ class fdaqClient:
       self.daq_start()
       #### commenter en dessous
       if (ch==255):
-          self.tdc_setmask(0XFFFFFFFF)
+          self.tdc_setmask(0XFFFFFFFF,255)
           #self.tdc_setmask(0Xf7fffffb)
           #self.tdc_setmask(1073741832)
           mask=0
@@ -999,7 +1001,7 @@ class fdaqClient:
           for ist in firmware:
               if ( not self.scurve_running):
                   break;
-              self.tdc_setmask((1<<ist))
+              self.tdc_setmask((1<<ist),255)
               self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
@@ -1009,7 +1011,7 @@ class fdaqClient:
       else:
           ipr=(31-ch/2)
       ipr=ch
-      self.tdc_setmask((1<<ipr))
+      self.tdc_setmask((1<<ipr),255)
       self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
@@ -1231,6 +1233,7 @@ class fdaqClient:
       lcgi={}
       lcgi["mask"]=mask
       lcgi["side"]=side
+      print "Injection ",side," Mask ",mask
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","MASK",lcgi)
       return sr
   def injection_source(self,source):
