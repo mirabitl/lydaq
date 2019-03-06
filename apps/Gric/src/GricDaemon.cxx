@@ -1,4 +1,4 @@
-#include "WiznetManager.hh"
+#include "GricManager.hh"
 #include <unistd.h>
 #include <stdint.h>
 #include <log4cxx/logger.h>
@@ -17,11 +17,11 @@ LOG4CXX_INFO (_logLdaq, "this is a info message, after parsing configuration fil
   uint32_t instance=0;
   char* wp=getenv("INSTANCE");
   if (wp!=NULL)      instance=atoi(wp);
-  s0<<"TDC-"<<instance;
+  s0<<"GRIC-"<<instance;
   std::cout<<"Starting  "<<s0.str()<<std::endl;
 
 
-  lydaq::WiznetManager* s=new lydaq::WiznetManager(s0.str());
+  lydaq::GricManager* s=new lydaq::GricManager(s0.str());
 
   while (true)
     sleep((unsigned int) 3);
