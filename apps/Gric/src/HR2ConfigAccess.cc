@@ -1,4 +1,6 @@
 #include "HR2ConfigAccess.hh"
+#include "fsmwebCaller.hh"
+#include "MpiMessageHandler.hh"
 #include <unistd.h>
 #include <sys/dir.h>  
 #include <sys/param.h>  
@@ -67,7 +69,7 @@ void lydaq::HR2ConfigAccess::parseJson()
 	  const Json::Value& asic = *ita;
 	  uint8_t header=asic["HEADER"].asUInt();
 	  lydaq::HR2Slow prs;prs.setJson(asic);
-	  uint64_t eid=((uint64_t) lydaq::WiznetMessageHandler::convertIP(ipadr))<<32|header;
+	  uint64_t eid=((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32|header;
 	  _asicMap.insert(std::pair<uint64_t,lydaq::HR2Slow>(eid,prs));
 	}
     }
@@ -90,7 +92,7 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
 {
   // Initialise
   _slcBytes=0;
-  uint64_t eid=((uint64_t) lydaq::WiznetMessageHandler::convertIP(ipadr))<<32;
+  uint64_t eid=((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32;
   // Loop on 4 Asic maximum
   for (int ias=24;ias>=1;ias--)
     {
@@ -191,7 +193,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
 	  //      std::cout<<"DIF found "<<itDIF->getInt("ID")<<std::endl;
 	  if (itDIF->getInt("ID")!=difid) continue;
 	  string ipadr = itDIF->getString("IP_ADDRESS");
-	  eid=(((uint64_t) lydaq::WiznetMessageHandler::convertIP(ipadr))<<32) |itMR->getInt("HEADER");
+	  eid=(((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32) |itMR->getInt("HEADER");
 	  break;
 	}
 

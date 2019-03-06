@@ -123,6 +123,8 @@ bool lydaq::GricMpi::processPacket()
 	 this->processCommandGric();
 	 
        }
+   }
+
      
 #define DEBUGPACKET
 #ifdef DEBUGPACKET

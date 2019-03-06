@@ -11,7 +11,7 @@
 using namespace std;
 namespace lydaq {
 
-class Gricmpi
+class GricMpi
 {
 public:
   GricMpi(uint32_t adr);

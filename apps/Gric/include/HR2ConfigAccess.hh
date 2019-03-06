@@ -24,6 +24,8 @@ public:
   void dumpMap();
   void parseDb(std::string state,std::string mode);
   void  prepareSlowControl(std::string ipadr);
+  uint8_t* slcBuffer();
+  uint32_t slcBytes();
 private:
   std::map<uint64_t,lydaq::HR2Slow> _asicMap;
   Json::Value _jall,_jasic;

@@ -90,22 +90,22 @@ void lydaq::MpiInterface::addDataTransfer(std::string address,uint16_t port)
 
 void lydaq::MpiInterface::sendMessage(MpiMessage* m)
 {
-  std::map<uint64_t,NL::Socket*>::iterator itsock=_vsCtrl.find(m->_address);
+  std::map<uint64_t,NL::Socket*>::iterator itsock=_vsCtrl.find(m->address());
   if (itsock == _vsCtrl.end())
     {
-      printf("Address %x on port %d not found \n", (m->_address>>32)&0xFFFFFFFF,m->_address&0XFFFF);
+      printf("Address %x on port %d not found \n", (m->address()>>32)&0xFFFFFFFF,m->address()&0XFFFF);
     }
   // Send the Buffer
   try
   {
-    m->ptr[3]=(_transaction++)%255;
+    m->ptr()[3]=(_transaction++)%255;
     itsock->second->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
   }
   catch (NL::Exception e)
   {
     throw e.msg();
   }
-  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->_length,(m->_address>>32)&0xFFFFFFF,m->_address&0XFFFF);
+  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
 }
 
 void lydaq::MpiInterface::registerDataHandler(std::string  address,uint16_t port,FEBFunctor f)

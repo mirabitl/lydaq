@@ -318,7 +318,7 @@ namespace lydaq {
       for (int i=0;i<10;i++)
 	setBitState(818+i,r&(1<<i));
     }
-    uint8_t getHEADER{return getByte(810);}
+    uint8_t getHEADER(){return getByte(810);}
     void setHEADER(uint8_t val){setByte(810,val,8);}
 
     uint64_t getMASK(uint8_t level)
@@ -334,7 +334,7 @@ namespace lydaq {
     {
       for (int i=0;i<63;i++)
 	{
-	  setBit(618+i*3+level, (mask&(1<<i))==1)
+	  setBitState(618+i*3+level, (mask&(1<<i))==1);
 	    }
     }
     bool getMASKChannel(uint8_t level,int ch)
@@ -344,7 +344,7 @@ namespace lydaq {
     void setMASKChannel(uint8_t level,int ch,bool on)
     {
       int i=ch&63;
-      setBit(618+i*3+level,on)
+      setBitState(618+i*3+level,on);
 	}
 
 

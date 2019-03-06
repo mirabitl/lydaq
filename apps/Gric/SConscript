@@ -109,7 +109,8 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 #LIBRARY_SOURCES=Glob("#src/*.cc")
 
 #print LIBRARY_SOURCES
-LIBRARY_SOURCES=['src/MessageHandler.cc','src/WiznetMessageHandler.cc','src/WiznetInterface.cc','src/WiznetTest.cc','src/TdcConfigAccess.cc','src/TdcWiznet.cc','src/WiznetManager.cc']
+#LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc','src/WiznetManager.cc']
+LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc']
 
 print LIBRARY_SOURCES
 
@@ -130,9 +131,9 @@ EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
 
 #testtdc=env.Program("bin/lydaq_testtdc",source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
-tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/FebDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+#tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/FebDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 
-plist.append(tdcd)
+#plist.append(tdcd)
 myinc=[]
 for x in Glob("#include/*.hh"):
   myinc.append("include/"+x.name)
