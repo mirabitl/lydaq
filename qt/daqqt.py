@@ -89,6 +89,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBDaqStatus.clicked.connect(self.action_daq_status)
         self.PBSetTdc.clicked.connect(self.action_daq_settdc)
         self.PBThreshold.clicked.connect(self.action_daq_setvth)
+        self.PBMask.clicked.connect(self.action_daq_setmask)
         #DB 
         self.PBDownload.clicked.connect(self.action_daq_download)
         # SCurve
@@ -132,6 +133,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.RBInjectionExternalSingle.clicked.connect(self.action_injection_source)
         self.RBInjectionExternalMultiple.clicked.connect(self.action_injection_source)
         self.RBInjectionSoft.clicked.connect(self.action_injection_source)
+        self.RBInjectionByPass.clicked.connect(self.action_injection_source)
         
         
     def onChange(self,i):
@@ -264,6 +266,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PTEDaq.document().setPlainText(r)
     def action_daq_setvth(self):
         self.daq.tdc_setvthtime(self.SBThreshold.value())
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)        
+    def action_daq_setmask(self):
+        self.daq.tdc_setmask(int(str(self.LEMask.text()),16),self.SBAsic.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)        
     def action_daq_start(self):
@@ -492,6 +498,8 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
             s=8
         if (self.RBInjectionSoft.isChecked()):
             s=16
+        if (self.RBInjectionByPass.isChecked()):
+            s=32
 
         print self.daq.injection_source(s)
 
