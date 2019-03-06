@@ -355,6 +355,19 @@ void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t*
   mcpy(&(_msg->ptr()[5]),slc,109);
   _msg->ptr()[115]=')';    
   _mpi->sendMessage(_msg);
+
+  // store send message
+  fprintf(stderr,"\n Slow Control \n==> ");
+  for (int i=0;i<109;i++)
+    {
+      fprintf(stderr,"%.2x ",(slc[i]));
+      
+      if (i%16==15)
+	{
+	  fprintf(stderr,"\n==> ");
+	}
+    }
+  fprintf(stderr,"\n");
 }
 void lydaq::GricManager::configureHR2()
 {
