@@ -196,85 +196,53 @@ void lydaq::GricManager::c_setthresholds(Mongoose::Request &request, Mongoose::J
   response["THRESHOLD1"]=b1;
   response["THRESHOLD2"]=b2;
 }
-void lydaq::GricManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::GricManager::c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"set VThTime called ");
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Set6bdac called ");
   response["STATUS"]="DONE";
 
   
-  uint32_t nc=atol(request.get("value","380").c_str());
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Value set "<<nc);
-  this->setVthTime(nc);
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Completed "<<nc);
-  response["VTHTIME"]=nc;
-}
-void lydaq::GricManager::c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"set VThTime called ");
-  response["STATUS"]="DONE";
+  uint32_t gain=atol(request.get("gain","128").c_str());
+  this->setGain(gain);
+  response["GAIN"]=gain;
 
-  
-  uint32_t vth=atol(request.get("vth","550").c_str());
-  uint32_t feb=atol(request.get("feb","5").c_str());
-  uint32_t asic=atol(request.get("asic","1").c_str());
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Value set "<<vth<<" "<<feb<<" "<<asic);
-  this->setSingleVthTime(vth,feb,asic);
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Completed "<<vth<<" "<<feb<<" "<<asic);
-  response["VTH"]=vth;
-  response["FEB"]=feb;
-  response["ASIC"]=asic;
 }
-void lydaq::GricManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
+
+void lydaq::GricManager::c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called ");
   response["STATUS"]="DONE";
 
   
   //uint32_t nc=atol(request.get("value","4294967295").c_str());
-uint32_t nc;
-sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
+  uint64_t mask;
+  sscanf(request.get("mask","0XFFFFFFFFFFFFFFFF").c_str(),"%x",&mask);
+  uint32_t level=atol(request.get("level","0").c_str());
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
+  this->setMask(level,mask);
+  response["MASK"]=mask;
+  response["LEVEL"]=level;
+}
+
+
+
+void lydaq::GricManager::c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called ");
+  response["STATUS"]="DONE";
+
   
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
-  this->setMask(nc);
-  response["MASK"]=nc;
-}
-void lydaq::GricManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
-  response["STATUS"]="DONE";
-
-
-   uint8_t delay=atol(request.get("value","255").c_str());
-   _delay=delay;
-   this->setDelay();
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetDelay called with"<<delay<<" "<<_delay );
-  response["MODE"]=_delay;
-}
-void lydaq::GricManager::c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
-  response["STATUS"]="DONE";
-
-
-   uint8_t duration=atol(request.get("value","255").c_str());
-   _duration=duration;
-   this->setDuration();
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Setduration called with"<<duration<<" "<<_duration );
-  response["MODE"]=_duration;
+  //uint32_t nc=atol(request.get("value","4294967295").c_str());
+  uint32_t level=atol(request.get("level","0").c_str());
+  uint32_t channel=atol(request.get("channel","0").c_str());
+  bool on=atol(request.get("value","1").c_str())==1;
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
+  this->setChannelMask(level,channel,on);
+  response["CHANNEL"]=channel;
+  response["LEVEL"]=level;
+  response["ON"]=on;
 }
 
-void lydaq::GricManager::c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
-  response["STATUS"]="DONE";
-
-
-   uint32_t mode=atol(request.get("value","2").c_str());
-   if (mode!=2)
-     _type=mode;
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called with"<<mode<<" "<<_type );
-  response["MODE"]=_type;
-}
 void lydaq::GricManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"downloadDB called ");
@@ -287,8 +255,8 @@ void lydaq::GricManager::c_downloadDB(Mongoose::Request &request, Mongoose::Json
    if (jTDC.isMember("db"))
      {
        Json::Value jTDCdb=jTDC["db"];
-       _tca->clear();
-       _tca->parseDb(dbstate,jTDCdb["mode"].asString());
+       _hca->clear();
+       _hca->parseDb(dbstate,jTDCdb["mode"].asString());
      }
   response["DBSTATE"]=dbstate;
 }
