@@ -45,20 +45,21 @@ lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),
   
   //_fsm->addCommand("JOBLOG",boost::bind(&lydaq::GricManager::c_joblog,this,_1,_2));
   _fsm->addCommand("STATUS",boost::bind(&lydaq::GricManager::c_status,this,_1,_2));
-  _fsm->addCommand("DIFLIST",boost::bind(&lydaq::GricManager::c_diflist,this,_1,_2));
-  _fsm->addCommand("SET6BDAC",boost::bind(&lydaq::GricManager::c_set6bdac,this,_1,_2));
-  _fsm->addCommand("SETVTHTIME",boost::bind(&lydaq::GricManager::c_setvthtime,this,_1,_2));
-  _fsm->addCommand("SETONEVTHTIME",boost::bind(&lydaq::GricManager::c_set1vthtime,this,_1,_2));
-  _fsm->addCommand("SETMASK",boost::bind(&lydaq::GricManager::c_setMask,this,_1,_2));
+  _fsm->addCommand("STARTACQ",boost::bind(&lydaq::GricManager::c_startacq,this,_1,_2));
+  _fsm->addCommand("STOPACQ",boost::bind(&lydaq::GricManager::c_stopacq,this,_1,_2));
+  _fsm->addCommand("RESET",boost::bind(&lydaq::GricManager::c_reset,this,_1,_2));
+  _fsm->addCommand("STORESC",boost::bind(&lydaq::GricManager::c_storesc,this,_1,_2));
+  _fsm->addCommand("LOADSC",boost::bind(&lydaq::GricManager::c_loadsc,this,_1,_2));
+  _fsm->addCommand("READSC",boost::bind(&lydaq::GricManager::c_readsc,this,_1,_2));
+  _fsm->addCommand("LASTABCID",boost::bind(&lydaq::GricManager::c_lastabcid,this,_1,_2));
+  _fsm->addCommand("LASTGTC",boost::bind(&lydaq::GricManager::c_lastgtc,this,_1,_2));
+  
+  _fsm->addCommand("SETTHRESHOLDS",boost::bind(&lydaq::GricManager::c_setthresholds,this,_1,_2));
+  _fsm->addCommand("SETPAGAIN",boost::bind(&lydaq::GricManager::c_setpagain,this,_1,_2));
+  _fsm->addCommand("SETMASK",boost::bind(&lydaq::GricManager::c_setmask,this,_1,_2));
+  _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::GricManager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::GricManager::c_downloadDB,this,_1,_2));
 
-  _fsm->addCommand("SETMODE",boost::bind(&lydaq::GricManager::c_setMode,this,_1,_2));
-  _fsm->addCommand("SETDELAY",boost::bind(&lydaq::GricManager::c_setDelay,this,_1,_2));
-  _fsm->addCommand("SETDURATION",boost::bind(&lydaq::GricManager::c_setDuration,this,_1,_2));
-
-  
-  
- 
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
   char* wp=getenv("WEBPORT");
@@ -82,7 +83,7 @@ void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResp
   response["STATUS"]="DONE";
 
   Json::Value jl;
-  for (auto x:_vTdc)
+  for (auto x:_vGric)
     {
 
       Json::Value jt;
@@ -94,36 +95,106 @@ void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResp
       jt["triggers"]=x->triggers();
       jl.append(jt);
     }
-  response["TDCSTATUS"]=jl;
+  response["GRICSTATUS"]=jl;
 }
-void lydaq::GricManager::c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response)
+
+void lydaq::GricManager::c_startacq(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Diflist CMD called ");
-  response["STATUS"]="DONE";
-  response["DIFLIST"]="EMPTY";
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"STARTACQ CMD called ");
 
-  Json::Value jl;
-  for (auto x:_vTdc)
+ for (auto x:_mpi->controlSockets())
     {
-      if (x==NULL) continue;
-      Json::Value jt;
-      jt["detid"]=x->detectorId();
-      jt["sourceid"]=x->difId();
-      jl.append(jt);
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STARTACQ);
     }
-  response["DIFLIST"]=jl;
+  response["STATUS"]="DONE";
 }
 
-void lydaq::GricManager::c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::GricManager::c_stopacq(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"STOPACQ CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STOPACQ);
+    }
+  response["STATUS"]="DONE";  
+}
+
+void lydaq::GricManager::c_reset(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"RESET CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::RESET);
+    }
+  response["STATUS"]="DONE"; 
+}
+
+void lydaq::GricManager::c_storesc(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"STORESC CMD called ");
+
+  for (auto x:_mpi->controlSockets())
+    {
+      _hca->prepareSlowControl(x.second->hostTo());
+      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+    }
+  response["STATUS"]="DONE";
+}
+
+void lydaq::GricManager::c_loadsc(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
+    }
+  response["STATUS"]="DONE";
+}
+
+void lydaq::GricManager::c_readsc(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"READSC CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::READSC);
+    }
+  response["STATUS"]="DONE";
+}
+
+void lydaq::GricManager::c_lastabcid(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LASTABCID);
+    }
+  response["STATUS"]="DONE";
+}
+
+void lydaq::GricManager::c_lastgtc(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LASTGTC);
+    }
+  response["STATUS"]="DONE";
+}
+
+void lydaq::GricManager::c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Set6bdac called ");
   response["STATUS"]="DONE";
 
   
-  uint32_t nc=atol(request.get("value","31").c_str());
+  uint32_t bo=atol(request.get("B0","250").c_str());
+  uint32_t b1=atol(request.get("B1","250").c_str());
+  uint32_t b2=atol(request.get("B2","250").c_str());
   
-  this->set6bDac(nc&0xFF);
-  response["6BDAC"]=nc;
+  this->setThresholds(b0,b1,b2);
+  response["THRESHOLD0"]=b0;
+  response["THRESHOLD1"]=b1;
+  response["THRESHOLD2"]=b2;
 }
 void lydaq::GricManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -383,7 +454,7 @@ void lydaq::GricManager::configureHR2()
       _hca->prepareSlowControl(x.second->hostTo());
 
       this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
-      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
 
     }
 
