@@ -50,7 +50,7 @@ private:
   uint32_t _nProcessed;
   zdaq::zmPusher* _dsData;
   uint8_t _triggerId;
-
+  uint8_t _b[0x1000000];
 };
 };
 

@@ -380,28 +380,33 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
 
 void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command)
 {
+  uint16_t len=6;
   _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
-  _msg->setLength(6);
+  _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(6);
   _msg->ptr()[4]=command;
-  _msg->ptr()[5]=')';    
+  _msg->ptr()[len-1]=')';    
   _mpi->sendMessage(_msg);
 }
 void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
+  uint16_t len=115;
   _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
-  _msg->setLength(115);
+  
+  _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(115);
   _msg->ptr()[4]=lydaq::MpiMessage::command::STORESC;
   memcpy(&(_msg->ptr()[5]),slc,109);
-  _msg->ptr()[115]=')';    
+  _msg->ptr()[len-1]=')';    
   _mpi->sendMessage(_msg);
 
   // store send message
+#define DUMPSC
+#ifdef DUMPSC
   fprintf(stderr,"\n Slow Control \n==> ");
   for (int i=0;i<109;i++)
     {
@@ -413,6 +418,7 @@ void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t*
 	}
     }
   fprintf(stderr,"\n");
+#endif
 }
 void lydaq::GricManager::configureHR2()
 {

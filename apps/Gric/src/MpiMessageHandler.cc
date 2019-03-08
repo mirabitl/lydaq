@@ -174,8 +174,8 @@ void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) throw (std::st
     if (ier<0)
       break;
     _npacket++;
-    if (_npacket%1000 ==1)
-      printf("Packet %d Receive %d bytes from %lx \n",_npacket,ier,id);
+    // if (_npacket%1000 ==1)
+    fprintf(stderr,"%s Packet %d Receive %d bytes from %lx \n",__PRETTY_FUNCTION__,_npacket,ier,id);
     break;
     size_remain -=ier;
     

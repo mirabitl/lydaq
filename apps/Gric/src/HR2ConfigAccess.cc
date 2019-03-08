@@ -302,8 +302,8 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
       prs.setDISCRI0(itMR->getInt("DISCRI0"));
       printf("%d\n",__LINE__);
       prs.setB0(itMR->getInt("B0"));
-      prs.setB0(itMR->getInt("B1"));
-      prs.setB0(itMR->getInt("B2"));
+      prs.setB1(itMR->getInt("B1"));
+      prs.setB2(itMR->getInt("B2"));
        LOG4CXX_INFO(_logLdaq," HR2Slow 1/2 filled");
     
       std::vector<int> PAGAIN=itMR->getIntVector("PAGAIN");
