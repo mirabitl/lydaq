@@ -148,6 +148,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
     }
   if (mode.compare("WEB")==0)
     {
+      LOG4CXX_INFO(_logLdaq,"Downloading "<<stateName);
       try
 	{
 	  _state = State::getState_WebServer(stateName);
@@ -157,7 +158,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
 	  LOG4CXX_ERROR(_logLdaq," Error in Web access"<<e.getMessage());
 	  return;
 	}
-
+      LOG4CXX_INFO(_logLdaq,"WEB Downloading done "<<stateName);
     }
   if (mode.compare("FILE")==0)
     {
@@ -179,7 +180,9 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
     }
   // Loop on Asic and create asicMap
   std::vector<ConfigObject*> dim=_state->getDifConfiguration()->getVector();
+  LOG4CXX_INFO(_logLdaq," DIF size "<<dim.size());
   std::vector<ConfigObject*> asic_vector_=_state->getAsicConfiguration()->getVector();
+  LOG4CXX_INFO(_logLdaq," ASIC size "<<asic_vector_.size());
   for (std::vector<ConfigObject*>::iterator itMRp=asic_vector_.begin();itMRp!=asic_vector_.end();itMRp++)
     {
       Asic* itMR=(Asic*) (*itMRp);
@@ -190,58 +193,81 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
 	{
 	  Dif* itDIF= (Dif*) (*itDIFp);
 
-	  //      std::cout<<"DIF found "<<itDIF->getInt("ID")<<std::endl;
+	  std::cout<<"DIF found "<<itDIF->getInt("ID")<<std::endl;
 	  if (itDIF->getInt("ID")!=difid) continue;
 	  string ipadr = itDIF->getString("IP_ADDRESS");
 	  eid=(((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32) |itMR->getInt("HEADER");
+	  std::cout<<"HEADER found "<<eid<<std::endl;
 	  break;
 	}
 
 
       if (_asicMap.find(eid)!=_asicMap.end()) continue;
       lydaq::HR2Slow prs;
+       LOG4CXX_INFO(_logLdaq," HR2Slow created");
       // Fill it
 
 
       prs.setEN_OTAQ(itMR->getInt("EN_OTAQ"));
+      printf("%d\n",__LINE__);
       prs.setDACSW(itMR->getInt("DACSW"));
       prs.setSEL0(itMR->getInt("SEL0"));
       prs.setCMDB2FSB2(itMR->getInt("CMDB2FSB2"));
       prs.setCMDB0FSB2(itMR->getInt("CMDB0FSB2"));
       prs.setENOCTRANSMITON1B(itMR->getInt("ENOCTRANSMITON1B"));
       prs.setSEL1(itMR->getInt("SEL1"));
+      printf("%d\n",__LINE__);
       prs.setCMDB2FSB1(itMR->getInt("CMDB2FSB1"));
+      printf("%d\n",__LINE__);
       prs.setOTABGSW(itMR->getInt("OTABGSW"));
+      printf("%d\n",__LINE__);
       prs.setSW50F0(itMR->getInt("SW50F0"));
-      prs.setSELRAZ1(itMR->getInt("SELRAZ1"));
+      printf("%d\n",__LINE__);
+      printf("%d\n",__LINE__);
       prs.setENOCDOUT2B(itMR->getInt("ENOCDOUT2B"));
+      printf("%d\n",__LINE__);
       prs.setSW50K0(itMR->getInt("SW50K0"));
+      printf("%d\n",__LINE__);
       prs.setSMALLDAC(itMR->getInt("SMALLDAC"));
+      printf("%d\n",__LINE__);
       prs.setSELENDREADOUT(itMR->getInt("SELENDREADOUT"));
       prs.setCMDB3FSB1(itMR->getInt("CMDB3FSB1"));
       prs.setSWSSC(itMR->getInt("SWSSC"));
       prs.setPWRONBUFF(itMR->getInt("PWRONBUFF"));
       prs.setENOCDOUT1B(itMR->getInt("ENOCDOUT1B"));
-      prs.setSELRAZ0(itMR->getInt("SELRAZ0"));
       prs.setSW50K2(itMR->getInt("SW50K2"));
       prs.setCMDB2SS(itMR->getInt("CMDB2SS"));
       prs.setTRIG1B(itMR->getInt("TRIG1B"));
       prs.setCMDB1SS(itMR->getInt("CMDB1SS"));
       prs.setPWRONPA(itMR->getInt("PWRONPA"));
       prs.setPWRONSS(itMR->getInt("PWRONSS"));
+      printf("%d\n",__LINE__);
       prs.setRAZCHNINTVAL(itMR->getInt("RAZCHNINTVAL"));
+      printf("%d\n",__LINE__);
       prs.setSW100K1(itMR->getInt("SW100K1"));
-      prs.setCKMUX(itMR->getInt("CKMUX"));
+      printf("%d\n",__LINE__);
+      prs.setCKMUX(itMR->getInt("CLKMUX"));
+      printf("%d\n",__LINE__);
       prs.setSW50F1(itMR->getInt("SW50F1"));
+      printf("%d\n",__LINE__);
       prs.setPWRONFSB0(itMR->getInt("PWRONFSB0"));
+      printf("%d\n",__LINE__);
       prs.setENOCTRANSMITON2B(itMR->getInt("ENOCTRANSMITON2B"));
+      printf("%d\n",__LINE__);
       prs.setENOCCHIPSATB(itMR->getInt("ENOCCHIPSATB"));
+      printf("%d\n",__LINE__);
       prs.setCMDB3SS(itMR->getInt("CMDB3SS"));
+      printf("%d\n",__LINE__);
       prs.setDISCRI1(itMR->getInt("DISCRI1"));
+      printf("%d\n",__LINE__);
       prs.setSW50F2(itMR->getInt("SW50F2"));
+      printf("%d\n",__LINE__);
       prs.setSW100K0(itMR->getInt("SW100K0"));
+      printf("%d\n",__LINE__);
       prs.setCMDB3FSB2(itMR->getInt("CMDB3FSB2"));
+      printf("%d\n",__LINE__);
       prs.setSCON(itMR->getInt("SCON"));
+      printf("%d\n",__LINE__);
       prs.setTRIG2B(itMR->getInt("TRIG2B"));
       prs.setSW100K2(itMR->getInt("SW100K2"));
       prs.setSW100F1(itMR->getInt("SW100F1"));
@@ -254,36 +280,56 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
       prs.setPWRONW(itMR->getInt("PWRONW"));
       prs.setRAZCHNEXTVAL(itMR->getInt("RAZCHNEXTVAL"));
       prs.setDISCRI2(itMR->getInt("DISCRI2"));
+      printf("%d\n",__LINE__);
       prs.setSELSTARTREADOUT(itMR->getInt("SELSTARTREADOUT"));
       prs.setSW50K1(itMR->getInt("SW50K1"));
       prs.setCMDB1FSB1(itMR->getInt("CMDB1FSB1"));
+      printf("%d\n",__LINE__);
       prs.setENTRIGOUT(itMR->getInt("ENTRIGOUT"));
+      printf("%d\n",__LINE__);
       prs.setCMDB0SS(itMR->getInt("CMDB0SS"));
+      printf("%d\n",__LINE__);
       prs.setSW100F0(itMR->getInt("SW100F0"));
+      printf("%d\n",__LINE__);
       prs.setCMDB1FSB2(itMR->getInt("CMDB1FSB2"));
+      printf("%d\n",__LINE__);
       prs.setOTAQ_PWRADC(itMR->getInt("OTAQ_PWRADC"));
+      printf("%d\n",__LINE__);
       prs.setCMDB0FSB1(itMR->getInt("CMDB0FSB1"));
-      prs.setDISCOROR(itMR->getInt("DISCOROR"));
+      printf("%d\n",__LINE__);
+      prs.setDISCOROR(itMR->getInt("DISCROROR"));
+      printf("%d\n",__LINE__);
       prs.setDISCRI0(itMR->getInt("DISCRI0"));
+      printf("%d\n",__LINE__);
       prs.setB0(itMR->getInt("B0"));
       prs.setB0(itMR->getInt("B1"));
       prs.setB0(itMR->getInt("B2"));
-
+       LOG4CXX_INFO(_logLdaq," HR2Slow 1/2 filled");
+    
       std::vector<int> PAGAIN=itMR->getIntVector("PAGAIN");
-      std::vector<int> CTEST=itMR->getIntVector("CTEST");
-      std::vector<int> M0=itMR->getIntVector("MASK0");
-      std::vector<int> M1=itMR->getIntVector("MASK1");
-      std::vector<int> M2=itMR->getIntVector("MASK2");
+      //std::vector<int> CTEST=itMR->getIntVector("CTEST");
+      unsigned long long tmask0;
+      unsigned long long tmask1;
+      unsigned long long tmask2;
+      sscanf(itMR->getString("MASK0").c_str(),"%llx\n",&tmask0);   
+      sscanf(itMR->getString("MASK1").c_str(),"%llx\n",&tmask1);   
+      sscanf(itMR->getString("MASK2").c_str(),"%llx\n",&tmask2);
+      unsigned long long tctest;
+      sscanf(itMR->getString("CTEST").c_str(),"%llx\n",&tctest);
 
+      
+      
       for (uint8_t ch=0;ch<64;ch++)
 	{
 	  prs.setPAGAIN(ch,PAGAIN[ch]);
-	  prs.setCTEST(ch,CTEST[ch]==1);
-	  prs.setMASKChannel(0,ch,M0[ch]==1);
-	  prs.setMASKChannel(1,ch,M1[ch]==1);
-	  prs.setMASKChannel(2,ch,M2[ch]==1);
+	  prs.setCTEST(ch,(tctest>>ch)&1);
+	  prs.setMASKChannel(0,ch,(tmask0>>ch)&1);
+	  prs.setMASKChannel(1,ch,(tmask1>>ch)&1);
+	  prs.setMASKChannel(2,ch,(tmask2>>ch)&1);
 
 	}
+      LOG4CXX_INFO(_logLdaq," HR2Slow filled");
+
       prs.toJson();
       // Update map
       _asicMap.insert(std::pair<uint64_t,lydaq::HR2Slow>(eid,prs));

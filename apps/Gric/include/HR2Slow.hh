@@ -56,7 +56,6 @@ namespace lydaq {
       _jasic["CMDB2FSB1"]=getCMDB2FSB1();
       _jasic["OTABGSW"]=getOTABGSW();
       _jasic["SW50F0"]=getSW50F0();
-      _jasic["SELRAZ1"]=getSELRAZ1();
       _jasic["ENOCDOUT2B"]=getENOCDOUT2B();
       _jasic["SW50K0"]=getSW50K0();
       _jasic["SMALLDAC"]=getSMALLDAC();
@@ -64,7 +63,6 @@ namespace lydaq {
       _jasic["CMDB3FSB1"]=getCMDB3FSB1();
       _jasic["PWRONBUFF"]=getPWRONBUFF();
       _jasic["ENOCDOUT1B"]=getENOCDOUT1B();
-      _jasic["SELRAZ0"]=getSELRAZ0();
       _jasic["SW50K2"]=getSW50K2();
       _jasic["CMDB2SS"]=getCMDB2SS();
       _jasic["TRIG1B"]=getTRIG1B();
@@ -214,7 +212,6 @@ namespace lydaq {
       setCMDB2FSB1(_jasic["CMDB2FSB1"].asUInt());
       setOTABGSW(_jasic["OTABGSW"].asUInt());
       setSW50F0(_jasic["SW50F0"].asUInt());
-      setSELRAZ1(_jasic["SELRAZ1"].asUInt());
       setENOCDOUT2B(_jasic["ENOCDOUT2B"].asUInt());
       setSW50K0(_jasic["SW50K0"].asUInt());
       setSMALLDAC(_jasic["SMALLDAC"].asUInt());
@@ -223,7 +220,6 @@ namespace lydaq {
       setSWSSC(_jasic["SWSSC"].asUInt());
       setPWRONBUFF(_jasic["PWRONBUFF"].asUInt());
       setENOCDOUT1B(_jasic["ENOCDOUT1B"].asUInt());
-      setSELRAZ0(_jasic["SELRAZ0"].asUInt());
       setSW50K2(_jasic["SW50K2"].asUInt());
       setCMDB2SS(_jasic["CMDB2SS"].asUInt());
       setTRIG1B(_jasic["TRIG1B"].asUInt());
@@ -378,8 +374,6 @@ namespace lydaq {
     void setOTABGSW(bool on){setBitState(850,on);}
     bool getSW50F0(){return getBit(611);}
     void setSW50F0(bool on){setBitState(611,on);}
-    bool getSELRAZ1(){return getBit(861);}
-    void setSELRAZ1(bool on){setBitState(861,on);}
     bool getENOCDOUT2B(){return getBit(870);}
     void setENOCDOUT2B(bool on){setBitState(870,on);}
     bool getSW50K0(){return getBit(608);}
@@ -394,8 +388,6 @@ namespace lydaq {
     void setPWRONBUFF(bool on){setBitState(584,on);}
     bool getENOCDOUT1B(){return getBit(871);}
     void setENOCDOUT1B(bool on){setBitState(871,on);}
-    bool getSELRAZ0(){return getBit(862);}
-    void setSELRAZ0(bool on){setBitState(862,on);}
     bool getSW50K2(){return getBit(591);}
     void setSW50K2(bool on){setBitState(591,on);}
     bool getCMDB2SS(){return getBit(578);}

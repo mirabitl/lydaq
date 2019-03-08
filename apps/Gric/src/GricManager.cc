@@ -187,7 +187,7 @@ void lydaq::GricManager::c_setthresholds(Mongoose::Request &request, Mongoose::J
   response["STATUS"]="DONE";
 
   
-  uint32_t bo=atol(request.get("B0","250").c_str());
+  uint32_t b0=atol(request.get("B0","250").c_str());
   uint32_t b1=atol(request.get("B1","250").c_str());
   uint32_t b2=atol(request.get("B2","250").c_str());
   
@@ -220,7 +220,7 @@ void lydaq::GricManager::c_setmask(Mongoose::Request &request, Mongoose::JsonRes
   uint32_t level=atol(request.get("level","0").c_str());
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
   this->setMask(level,mask);
-  response["MASK"]=mask;
+  response["MASK"]=(Json::UInt64) mask;
   response["LEVEL"]=level;
 }
 
@@ -236,7 +236,7 @@ void lydaq::GricManager::c_setchannelmask(Mongoose::Request &request, Mongoose::
   uint32_t level=atol(request.get("level","0").c_str());
   uint32_t channel=atol(request.get("channel","0").c_str());
   bool on=atol(request.get("value","1").c_str())==1;
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMaskChannel called "<<channel<<std::dec<<" level "<<level);
   this->setChannelMask(level,channel,on);
   response["CHANNEL"]=channel;
   response["LEVEL"]=level;
@@ -286,44 +286,50 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
 
    
    Json::Value jGRIC=this->parameters()["gric"];
-   //_msh =new lydaq::GricMessageHandler("/dev/shm");
+   //_msh =new lydaq::MpiMessageHandler("/dev/shm");
    if (!jGRIC.isMember("network"))
      {
        LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No gric:network tag found ");
        return;
      }
    // Scan the network
-   std::map<uint32_t,std::string> diflist=lydaq::GricMessageHandler::scanNetwork(jGRIC["network"].asString());
+   std::map<uint32_t,std::string> diflist=lydaq::MpiMessageHandler::scanNetwork(jGRIC["network"].asString());
    // Download the configuration
-   _tca=new lydaq::GricConfigAccess();
+   std::cout<< "Create config acccess"<<std::endl;
+   _hca=new lydaq::HR2ConfigAccess();
+
+   std::cout<< " jGRIC "<<jGRIC<<std::endl;
    if (jGRIC.isMember("json"))
      {
        Json::Value jGRICjson=jGRIC["json"];
        if (jGRICjson.isMember("file"))
 	 {
-	   _tca->parseJsonFile(jGRICjson["file"].asString());
+	   _hca->parseJsonFile(jGRICjson["file"].asString());
 	 }
        else
 	 if (jGRICjson.isMember("url"))
 	   {
-	     _tca->parseJsonUrl(jGRICjson["url"].asString());
+	     _hca->parseJsonUrl(jGRICjson["url"].asString());
 	   }
      }
     if (jGRIC.isMember("db"))
      {
-       Json::Value jGRICdb=jGRIC["db"];
-       _tca->parseDb(jGRICdb["state"].asString(),jGRICdb["mode"].asString());
+              Json::Value jGRICdb=jGRIC["db"];
+       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jGRICdb["state"].asString()<<jGRICdb["mode"].asString());
+
+       _hca->parseDb(jGRICdb["state"].asString(),jGRICdb["mode"].asString());
+       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing done:"<<jGRICdb["state"].asString()<<jGRICdb["mode"].asString());
      }
-   if (_tca->asicMap().size()==0)
+   if (_hca->asicMap().size()==0)
      {
         LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
        return;
      }
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_tca->asicMap().size() );
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_hca->asicMap().size() );
    // Initialise the network
    std::vector<uint32_t> vint;
    vint.clear();
-   for (auto x:_tca->asicMap())
+   for (auto x:_hca->asicMap())
      {
        uint32_t eip= ((x.first)>>32)&0XFFFFFFFF;
        std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
@@ -374,7 +380,7 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
 
 void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command)
 {
-  _msg->setAddress(( (uint64_t) lydaq::GricMessageHandler::convertIP(host)<<32)|port);
+  _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
   _msg->setLength(6);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
@@ -385,13 +391,13 @@ void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t comm
 }
 void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
-  _msg->setAddress(( (uint64_t) lydaq::GricMessageHandler::convertIP(host)<<32)|port);
+  _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
   _msg->setLength(115);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(115);
   _msg->ptr()[4]=lydaq::MpiMessage::command::STORESC;
-  mcpy(&(_msg->ptr()[5]),slc,109);
+  memcpy(&(_msg->ptr()[5]),slc,109);
   _msg->ptr()[115]=')';    
   _mpi->sendMessage(_msg);
 
@@ -442,7 +448,7 @@ void lydaq::GricManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2)
 {
 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changin thresholds: "<<b0<<","<<b1<<","<<b2);
-  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       it->second.setB0(b0);
       it->second.setB1(b1);
@@ -457,7 +463,7 @@ void lydaq::GricManager::setGain(uint16_t gain)
 {
 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Gain: "<<gain);
-  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       for (int i=0;i<64;i++)
 	it->second.setPAGAIN(i,gain);
@@ -471,10 +477,10 @@ void lydaq::GricManager::setGain(uint16_t gain)
 void lydaq::GricManager::setMask(uint32_t level,uint64_t mask)
 {
 LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
-  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
-	it->second.setMask(level,mask);
+	it->second.setMASK(level,mask);
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
@@ -485,11 +491,11 @@ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::h
 }
 void lydaq::GricManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t val)
 {
-LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
-  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
+LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<channel<<std::dec);
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
-	it->second.setMaks(level,mask);
+      it->second.setMASKChannel(level,channel,val==1);
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
@@ -499,71 +505,6 @@ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::h
 
 }
 
-void lydaq::GricManager::setVthTime(uint32_t vth)
-{
-
-    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
-    for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
-      {
-      it->second.setVthTime(vth);
-      // 1 seul ASIC break;
-      }
-
-  // Now loop on slowcontrol socket
-    for (auto x:_gric->controlSockets())
-    {
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data send to "<<x.second->hostTo());      
-      _tca->prepareSlowControl(x.second->hostTo());
-
-      _gric->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
-
-    }
-    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Fin ");
-}
-
-void lydaq::GricManager::setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic)
-{
-  std::stringstream ip;
-  ip<<"192.168.10."<<feb;
-
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Debut ");
-  for (auto it=_tca->asicMap().begin();it!=_tca->asicMap().end();it++)
-    {
-      uint64_t eid=(((uint64_t) lydaq::GricMessageHandler::convertIP(ip.str()))<<32) | asic;
-      if (eid!=it->first) continue;
-      it->second.setVthTime(vth);
-    }
-
-  // Now loop on slowcontrol socket
-  for (auto x:_gric->controlSockets())
-    {
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data send to "<<x.second->hostTo());      
-      _tca->prepareSlowControl(x.second->hostTo());
-      
-      _gric->writeRamAvm(x.second,_tca->slcAddr(),_tca->slcBuffer(),_tca->slcBytes());
-      
-    }
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Fin ");
-}
-
-
-
-void lydaq::GricManager::setDelay()
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Setting delays "<<_delay);
-  for (auto x:_gric->controlSockets())
-    {
-      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x222,_delay); 
-    }
-}
-void lydaq::GricManager::setDuration()
-{
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Setting duration "<<_duration);
-  for (auto x:_gric->controlSockets())
-    {
-      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x223,_duration); 
-    }
-}
 void lydaq::GricManager::start(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
@@ -579,43 +520,19 @@ void lydaq::GricManager::start(zdaq::fsmmessage* m)
      }
 
   // Turn run type on
-   
-  switch (_type)
+    for (auto x:_mpi->controlSockets())
     {
-    case 0:		// ilc mode	
-      {
-	LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Starting ILC "<<_type);
-	for (auto x:_gric->controlSockets())
-	  {
-	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x219,0); //ILC Mode
-	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x220,1); //Sart acquisition
-	  }
-      
-      break;
-      }
-    case 1:		// beamtest mode
-      {
-	LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Starting Beamtest "<<_type);
-	for (auto x:_gric->controlSockets())
-	  {
-	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x219,1); // Beam test Mode
-	    this->writeAddress(x.second->hostTo(),x.second->portTo(),0x220,1); //Sart acquisition
-	  }
-      break;
-      }
-     
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STARTACQ);
     }
 }
 void lydaq::GricManager::stop(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
-  for (auto x:_gric->controlSockets())
+ for (auto x:_mpi->controlSockets())
     {
-      
-      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x220,0); // Stop
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STOPACQ);
     }
-
   ::sleep(2);
 
 

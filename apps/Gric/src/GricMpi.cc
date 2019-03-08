@@ -83,6 +83,7 @@ void lydaq::GricMpi::clear()
 
 bool lydaq::GricMpi::isHardrocData(){ return (_buf[4]==0xDD);}
 bool lydaq::GricMpi::isSensorData(){ return (_buf[4]==0xDE);}
+bool lydaq::GricMpi::isCommandData(){ return (_buf[4]!=0xDE)&&(_buf[4]!=0xDD) ;}
 
 bool lydaq::GricMpi::processPacket()
 {
