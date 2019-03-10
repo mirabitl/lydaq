@@ -362,14 +362,14 @@ class fdaqClient:
 
   def jc_status(self):
     lcgi={}
-
+    rep=""
     for x,y in self.p_conf["HOSTS"].iteritems():
         #print "HOST ",x
         sr=executeCMD(x,9999,"LJC-%s" % x,"STATUS",lcgi)
         sj=json.loads(sr)
         print "ON A ",sj
         ssj=sj["answer"]["JOBS"]
-        rep=""
+
         if (ssj != None):
         #print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID','NAME','HOST','STATUS')
             for x in ssj:
@@ -378,7 +378,7 @@ class fdaqClient:
                 rep =rep + "%6d %15s %25s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
         else:
             rep="No Jobs"
-        return rep
+    return rep
   def jc_restart(self,host,jobname,jobpid):
     lcgi={}
     lcgi["processname"]=jobname
