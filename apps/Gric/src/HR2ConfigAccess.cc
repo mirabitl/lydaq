@@ -99,7 +99,7 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
       if (im==_asicMap.end()) continue;
-      printf("DIF %x ,Asic %d Found\n",eid>>32,ias); 
+      printf("DIF %lx ,Asic %d Found\n",eid>>32,ias); 
       memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
       _slcBytes+=109;
     }
@@ -316,7 +316,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
       sscanf(itMR->getString("MASK2").c_str(),"%llx\n",&tmask2);
       unsigned long long tctest;
       sscanf(itMR->getString("CTEST").c_str(),"%llx\n",&tctest);
-
+      
       
       
       for (uint8_t ch=0;ch<64;ch++)

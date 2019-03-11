@@ -59,10 +59,17 @@ int16_t lydaq::GricMpi::checkBuffer(uint8_t* b,uint32_t maxidx)
 
 lydaq::GricMpi::GricMpi(uint32_t adr) : _ntrg(0),_adr(adr),_dsData(NULL),_triggerId(0),_idx(0)
 {
+   // initialise answer storage
+  for (int i=0;i<255;i++)
+    {
+      uint8_t* b=new uint8_t[0x4000];
+      std::pair<uint8_t,uint8_t*> p(i,b);
+      _answ.insert(p);
+    }
   this->clear();
   _id=(adr>>16)&0xFFFF; // Last byte of IP address
   _detid=GRIC_VERSION&0xFF;
-  this->clear();
+  
 
 }
 void lydaq::GricMpi::connect(zmq::context_t* c,std::string dest)
@@ -79,6 +86,12 @@ void lydaq::GricMpi::clear()
   _lastABCID=0;
   _event=0;
   _chlines=0;
+
+
+  for (int i=0;i<255;i++)
+    {
+      memset(_answ[i],0,0x4000);
+    }
 }
 
 
@@ -253,11 +266,14 @@ void lydaq::GricMpi::purgeBuffer()
 {
   uint16_t* _sBuf= (uint16_t*) &_buf[1];
   uint16_t length=ntohs(_sBuf[0]); // Header
-  uint16_t trame=_buf[3];
-  uint16_t command=_buf[4];
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
+  uint8_t trame=_buf[3];
+  uint8_t command=_buf[4];
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<(int) command<<" length="<<length<<" trame id="<<(int) trame<<" buffer length "<<_idx);
+
+  memcpy(_answ[trame%255],_buf,length);
+#ifdef DEBUGCMD
   fprintf(stderr,"\n COMMAND RC ==> ");
-     for (int i=4;i<_idx;i++)
+     for (int i=4;i<_idx-1;i++)
        {
 	 fprintf(stderr,"%.2x ",(_buf[i]));
 	 
@@ -267,6 +283,7 @@ void lydaq::GricMpi::purgeBuffer()
 	   }
        }
      fprintf(stderr,"\n");
+#endif
 }
 void lydaq::GricMpi::processSensorGric()
 {

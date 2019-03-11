@@ -45,7 +45,7 @@ lydaq::MpiInterface::MpiInterface() :  _group(NULL),_transaction(0)
   NL::init();
   _msh =new lydaq::MpiMessageHandler("/dev/shm");
 
-  
+ 
 }
 
 void lydaq::MpiInterface::initialise()
@@ -88,24 +88,26 @@ void lydaq::MpiInterface::addDataTransfer(std::string address,uint16_t port)
   _vsMpi.insert(p1);
 }
 
-void lydaq::MpiInterface::sendMessage(MpiMessage* m)
+uint32_t  lydaq::MpiInterface::sendMessage(MpiMessage* m)
 {
   std::map<uint64_t,NL::Socket*>::iterator itsock=_vsCtrl.find(m->address());
   if (itsock == _vsCtrl.end())
     {
-      printf("Address %x on port %d not found \n", (m->address()>>32)&0xFFFFFFFF,m->address()&0XFFFF);
+      printf("Address %lx on port %ld not found \n", (m->address()>>32)&0xFFFFFFFF,m->address()&0XFFFF);
     }
   // Send the Buffer
   try
   {
     m->ptr()[3]=(_transaction++)%255;
     itsock->second->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
+    return (_transaction-1);
   }
   catch (NL::Exception e)
   {
     throw e.msg();
   }
-  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
+  //  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
+
 }
 
 void lydaq::MpiInterface::registerDataHandler(std::string  address,uint16_t port,FEBFunctor f)
@@ -114,4 +116,19 @@ void lydaq::MpiInterface::registerDataHandler(std::string  address,uint16_t port
   _msh->addHandler(id,f);
 }
 
-
+void lydaq::MpiInterface::close()
+{
+  for (auto x=_vsMpi.begin();x!=_vsMpi.end();x++)
+    {
+      _group->remove(x->second);
+      x->second->disconnect();
+    }
+  _vsMpi.clear();
+  for (auto x=_vsCtrl.begin();x!=_vsCtrl.end();x++)
+    {
+      _group->remove(x->second);
+      x->second->disconnect();
+    }
+  _vsCtrl.clear();
+  
+}

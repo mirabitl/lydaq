@@ -59,9 +59,9 @@ void lytdc::OnDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void*
 
   group->remove(socket);
   cout << "\nClient " << socket->hostTo() << " disconnected...";
-  _msh->removeSocket(socket);
+  //_msh->removeSocket(socket);
   cout.flush();
-  delete socket;
+  //delete socket;
 }
 void lytdc::OnClientDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
 

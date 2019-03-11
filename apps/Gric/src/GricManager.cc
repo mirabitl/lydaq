@@ -59,6 +59,7 @@ lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::GricManager::c_setmask,this,_1,_2));
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::GricManager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::GricManager::c_downloadDB,this,_1,_2));
+  _fsm->addCommand("CLOSE",boost::bind(&lydaq::GricManager::c_close,this,_1,_2));
 
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
@@ -150,6 +151,15 @@ void lydaq::GricManager::c_loadsc(Mongoose::Request &request, Mongoose::JsonResp
     }
   response["STATUS"]="DONE";
 }
+void lydaq::GricManager::c_close(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSCCLOSE CMD called ");
+ for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::CLOSE);
+    }
+  response["STATUS"]="DONE";
+}
 
 void lydaq::GricManager::c_readsc(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -216,7 +226,7 @@ void lydaq::GricManager::c_setmask(Mongoose::Request &request, Mongoose::JsonRes
   
   //uint32_t nc=atol(request.get("value","4294967295").c_str());
   uint64_t mask;
-  sscanf(request.get("mask","0XFFFFFFFFFFFFFFFF").c_str(),"%x",&mask);
+  sscanf(request.get("mask","0XFFFFFFFFFFFFFFFF").c_str(),"%lx",&mask);
   uint32_t level=atol(request.get("level","0").c_str());
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
   this->setMask(level,mask);
@@ -251,7 +261,7 @@ void lydaq::GricManager::c_downloadDB(Mongoose::Request &request, Mongoose::Json
 
   
   std::string dbstate=request.get("state","NONE");
-  Json::Value jTDC=this->parameters()["tdc"];
+  Json::Value jTDC=this->parameters()["gric"];
    if (jTDC.isMember("db"))
      {
        Json::Value jTDCdb=jTDC["db"];
@@ -318,7 +328,7 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jGRICdb["state"].asString()<<jGRICdb["mode"].asString());
 
        _hca->parseDb(jGRICdb["state"].asString(),jGRICdb["mode"].asString());
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing done:"<<jGRICdb["state"].asString()<<jGRICdb["mode"].asString());
+      
      }
    if (_hca->asicMap().size()==0)
      {
@@ -336,20 +346,20 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        if (idif==diflist.end()) continue;
        if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
 
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New DIF "<<eip);
+       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New GRIC found in db "<<std::hex<<eip<<std::dec);
        vint.push_back(eip);
        lydaq::GricMpi* _gric=new lydaq::GricMpi(eip);
        // Slow control
-       _mpi->addCommunication(idif->second,9760);
-       _mpi->registerDataHandler(idif->second,9760,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addCommunication(idif->second,lydaq::MpiInterface::PORT::CTRL);
+       _mpi->registerDataHandler(idif->second,lydaq::MpiInterface::PORT::CTRL,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
        
 	 // GRIC
-       _mpi->addDataTransfer(idif->second,9761);
-       _mpi->registerDataHandler(idif->second,9761,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addDataTransfer(idif->second,lydaq::MpiInterface::PORT::DATA);
+       _mpi->registerDataHandler(idif->second,lydaq::MpiInterface::PORT::DATA,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
 
        // Gric Sensor
-       _mpi->addDataTransfer(idif->second,9762);
-       _mpi->registerDataHandler(idif->second,9762,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
+       _mpi->addDataTransfer(idif->second,lydaq::MpiInterface::PORT::SENSOR);
+       _mpi->registerDataHandler(idif->second,lydaq::MpiInterface::PORT::SENSOR,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
 
        _vGric.push_back(_gric);
        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
@@ -378,22 +388,59 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
+void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
+{
+  uint8_t b[0x4000];
+  for (auto x:_vGric)
+    {
+      if (x->address()!=adr) continue;
+
+      uint8_t* rep=x->answer(tr%255);
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<adr<<" Trame "<<tr<<" Command "<<command<<" "<<rep[0]<<" C "<<rep[4]);
+      while (rep[4]!=command && rep[4]!=8 && rep[4]!=9)
+	{
+	  usleep(1000);
+	}
+      memcpy(b,rep,0x4000);
+      uint16_t* _sBuf= (uint16_t*) &b[1];
+      uint16_t length=ntohs(_sBuf[0]); // Header
+      uint8_t trame=b[3];
+      uint8_t command=b[4];
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
+      
+      fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+      for (int i=4;i<length-1;i++)
+	{
+	  fprintf(stderr,"%.2x ",(b[i]));
+	  
+	  if ((i-4)%16==15)
+	    {
+	      fprintf(stderr,"\n");
+	    }
+	}
+      fprintf(stderr,"\n<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+      break;
+    }
+}
 void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command)
 {
   uint16_t len=6;
-  _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
+  uint32_t adr= lydaq::MpiMessageHandler::convertIP(host);
+  _msg->setAddress(( (uint64_t) adr<<32)|port);
   _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(6);
   _msg->ptr()[4]=command;
   _msg->ptr()[len-1]=')';    
-  _mpi->sendMessage(_msg);
+  uint32_t tr=_mpi->sendMessage(_msg);
+  this->processReply(adr,tr,command);
 }
 void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
   uint16_t len=115;
-  _msg->setAddress(( (uint64_t) lydaq::MpiMessageHandler::convertIP(host)<<32)|port);
+  uint32_t adr= lydaq::MpiMessageHandler::convertIP(host);
+  _msg->setAddress(( (uint64_t) adr<<32)|port);
   
   _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
@@ -402,10 +449,12 @@ void lydaq::GricManager::sendSlowControl(std::string host,uint32_t port,uint8_t*
   _msg->ptr()[4]=lydaq::MpiMessage::command::STORESC;
   memcpy(&(_msg->ptr()[5]),slc,109);
   _msg->ptr()[len-1]=')';    
-  _mpi->sendMessage(_msg);
+  uint32_t tr=_mpi->sendMessage(_msg);
+
+  this->processReply(adr,tr,(uint8_t) lydaq::MpiMessage::command::STORESC);
 
   // store send message
-#define DUMPSC
+#undef DUMPSC
 #ifdef DUMPSC
   fprintf(stderr,"\n Slow Control \n==> ");
   for (int i=0;i<109;i++)
@@ -547,7 +596,7 @@ void lydaq::GricManager::destroy(zdaq::fsmmessage* m)
 {
 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
- 
+  _mpi->close();
   for (auto x:_vGric)
     delete x;
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data sockets deleted");

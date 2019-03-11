@@ -35,6 +35,7 @@ public:
   void c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_close(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void initialise(zdaq::fsmmessage* m);
   void sendCommand(std::string host,uint32_t port,uint8_t command);
   void sendSlowControl(std::string host,uint32_t port,uint8_t* slc);
@@ -48,7 +49,7 @@ public:
   void stop(zdaq::fsmmessage* m);
   void destroy(zdaq::fsmmessage* m);
 
-
+  void processReply(uint32_t adr,uint32_t tr,uint8_t command);
 
 private:
   lydaq::HR2ConfigAccess* _hca;

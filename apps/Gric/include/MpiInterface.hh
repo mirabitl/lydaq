@@ -9,12 +9,12 @@
 #include <zlib.h>
 #include <iostream>
 #include "ReadoutLogger.hh"
-#define MAX_BUFFER_LEN 0x3FFC
+#define MAX_BUFFER_LEN 0x4000
 namespace lydaq
 {
   class MpiMessage {
   public:
-    enum  command { STARTACQ=0,STOPACQ=1,RESET=2,READSC=5,LOADSC=6,STORESC=7,LASTABCID=3,LASTGTC=4};
+    enum  command { STARTACQ=0,STOPACQ=1,RESET=2,READSC=5,LOADSC=6,STORESC=7,LASTABCID=3,LASTGTC=4,CLOSE=10};
     MpiMessage(): _address(0),_length(2) {;}
     inline uint64_t address(){return _address;}
     inline uint16_t length(){return _length;}
@@ -31,17 +31,18 @@ namespace lydaq
 class MpiInterface 
 {
 public:
-
+  enum PORT { CTRL=9760,DATA=9761,SENSOR=9762};
   MpiInterface();
   ~MpiInterface(){;}
   void initialise();
   void addCommunication(std::string address,uint16_t port);
   void addDataTransfer(std::string address,uint16_t port);
   void listen();
-  void sendMessage(MpiMessage* wmsg);
+  uint32_t sendMessage(MpiMessage* wmsg);
   void registerDataHandler(std::string  address,uint16_t port,FEBFunctor f);
   uint32_t transaction() {return _transaction;}
   inline std::map<uint64_t,NL::Socket*>& controlSockets(){ return _vsCtrl;}
+  void close();
 private:
   void dolisten();
   

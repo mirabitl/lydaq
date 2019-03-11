@@ -5,6 +5,7 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <map>
 #include <stdint.h>
 #include "debug.hh"
 #include "ReadoutLogger.hh"
@@ -26,7 +27,7 @@ public:
   bool isHardrocData();
   bool isSensorData();
   bool isCommandData();
-
+  
 
   int16_t checkBuffer(uint8_t* b,uint32_t maxidx);
 
@@ -38,19 +39,26 @@ public:
   inline uint32_t packets(){return _nProcessed;}
   inline uint32_t event(){return _event;}
   inline uint32_t triggers(){return _ntrg;}
+  inline uint8_t* answer(uint8_t tr){return _answ[tr];}
+  inline uint32_t address(){return _adr;}
   void clear();
   void connect(zmq::context_t* c,std::string dest);
 private:
   uint32_t _adr,_idx,_chlines;
   uint8_t _buf[0x1000000];
-  uint8_t _linesbuf[0x1000000];
+  
 
   uint64_t _lastABCID;
   uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
   uint32_t _nProcessed;
   zdaq::zmPusher* _dsData;
   uint8_t _triggerId;
+  // temporary buffer
   uint8_t _b[0x1000000];
+  // Command answers
+  std::map<uint8_t,uint8_t*> _answ;
+
+  
 };
 };
 

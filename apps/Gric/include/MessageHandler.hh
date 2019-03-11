@@ -6,10 +6,19 @@
 #include <string>
 #include "debug.hh"
 namespace lytdc {
+
+struct MpiException : public std::exception
+{
+   std::string s;
+   MpiException(std::string ss) : s(ss) {}
+   ~MpiException() throw () {} // Updated
+   const char* what() const throw() { return s.c_str(); }
+};
+  
 class MessageHandler
 {
 public:
-  virtual void processMessage(NL::Socket* socket) throw (std::string){;}
+  virtual void processMessage(NL::Socket* socket){;} //throw (MpiException){;}
   virtual void removeSocket(NL::Socket* sock){;}
 };
 

@@ -97,7 +97,7 @@ lydaq::MpiMessageHandler::MpiMessageHandler(std::string directory) : _storeDir(d
 
 }
 
-void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) throw (std::string)
+void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (lytdc::MpiException)
 {
   // build id
 
@@ -175,7 +175,7 @@ void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) throw (std::st
       break;
     _npacket++;
     // if (_npacket%1000 ==1)
-    fprintf(stderr,"%s Packet %d Receive %d bytes from %lx \n",__PRETTY_FUNCTION__,_npacket,ier,id);
+    fprintf(stderr,"%s Packet %ld Receive %ld bytes from %lx \n",__PRETTY_FUNCTION__,_npacket,ier,id);
     break;
     size_remain -=ier;
     
