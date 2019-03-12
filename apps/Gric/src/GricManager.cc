@@ -23,7 +23,7 @@ using namespace zdaq;
 using namespace lydaq;
 
 
-lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),_context(NULL)
+lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),_context(NULL),_hca(NULL),_mpi(NULL)
 {
   _fsm=this->fsm();
   // Register state
@@ -75,7 +75,7 @@ lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),
   
  
   // Initialise NetLink
-  _mpi= new lydaq::MpiInterface();
+
   _msg=new lydaq::MpiMessage();
 }
 void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -153,7 +153,7 @@ void lydaq::GricManager::c_loadsc(Mongoose::Request &request, Mongoose::JsonResp
 }
 void lydaq::GricManager::c_close(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSCCLOSE CMD called ");
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CLOSE CMD called ");
  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::CLOSE);
@@ -292,6 +292,8 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        return;
      }
    // Now create the Message handler
+   if (_mpi==NULL)
+     _mpi= new lydaq::MpiInterface();
    _mpi->initialise();
 
    
@@ -305,9 +307,12 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
    // Scan the network
    std::map<uint32_t,std::string> diflist=lydaq::MpiMessageHandler::scanNetwork(jGRIC["network"].asString());
    // Download the configuration
-   std::cout<< "Create config acccess"<<std::endl;
-   _hca=new lydaq::HR2ConfigAccess();
-
+   if (_hca==NULL)
+     {
+       std::cout<< "Create config acccess"<<std::endl;
+       _hca=new lydaq::HR2ConfigAccess();
+       _hca->clear();
+     }
    std::cout<< " jGRIC "<<jGRIC<<std::endl;
    if (jGRIC.isMember("json"))
      {
@@ -397,9 +402,16 @@ void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
 
       uint8_t* rep=x->answer(tr%255);
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<adr<<" Trame "<<tr<<" Command "<<command<<" "<<rep[0]<<" C "<<rep[4]);
+      int cnt=0;
       while (rep[4]!=command && rep[4]!=8 && rep[4]!=9)
 	{
 	  usleep(1000);
+	  cnt++;
+	  if (cnt>4000)
+	    {
+	      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" no return after "<<cnt);
+	      return;
+	    }
 	}
       memcpy(b,rep,0x4000);
       uint16_t* _sBuf= (uint16_t*) &b[1];
@@ -594,9 +606,16 @@ void lydaq::GricManager::stop(zdaq::fsmmessage* m)
 }
 void lydaq::GricManager::destroy(zdaq::fsmmessage* m)
 {
-
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CLOSE called ");
+  for (auto x:_mpi->controlSockets())
+    {
+      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::CLOSE);
+    }
+
   _mpi->close();
+  delete _mpi;
+  _mpi=0;
   for (auto x:_vGric)
     delete x;
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data sockets deleted");

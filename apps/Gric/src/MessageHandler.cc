@@ -54,18 +54,23 @@ void lytdc::OnRead::exec(NL::Socket* socket, NL::SocketGroup* group, void* refer
   */
 }
 
-lytdc::OnDisconnect::OnDisconnect(MessageHandler* msh) : _msh(msh) {}
+lytdc::OnDisconnect::OnDisconnect(MessageHandler* msh) : _msh(msh),_disconnect(false) {}
 void lytdc::OnDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
 
   group->remove(socket);
   cout << "\nClient " << socket->hostTo() << " disconnected...";
   //_msh->removeSocket(socket);
   cout.flush();
+  _disconnect=true;
   //delete socket;
 }
+
+lytdc::OnClientDisconnect::OnClientDisconnect() : _disconnect(false) {}
 void lytdc::OnClientDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
 
-  cout << "\nClient " << socket->hostTo() << " disconnected..."<<std::flush;
-  uint32_t* i =(uint32_t*) reference;
-  (*i)=0xDEAD;
+  if (!_disconnect)
+    cout <<__PRETTY_FUNCTION__<< "\nClient " << socket->hostTo() << " disconnected..."<<std::flush;
+  _disconnect=true;
+  //uint32_t* i =(uint32_t*) reference;
+  //(*i)=0xDEAD;
 }

@@ -22,10 +22,10 @@ using namespace lydaq;
 void lydaq::MpiInterface::dolisten()
 {
  
-       while(true) {
+  while(!_onClientDisconnect->disconnected()) {
 
-                if(!_group->listen(2000))
-		  std::cout << "\nNo msg recieved during the last 2 seconds";
+                if(!_group->listen(4000))
+		  std::cout << "\nNo msg recieved during the last 4 seconds";
         }
 
     

@@ -51,15 +51,22 @@ class OnDisconnect: public NL::SocketGroupCmd
  public:
   OnDisconnect(MessageHandler* msh);
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+  bool disconnected(){return _disconnect;}
 private:
   MessageHandler* _msh;
+  bool _disconnect;
 };
 
 
 
 class OnClientDisconnect: public NL::SocketGroupCmd 
 {
+public:
+  OnClientDisconnect();
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+  bool disconnected(){return _disconnect;}
+private:
+  bool _disconnect;
 };
 };
 #endif
