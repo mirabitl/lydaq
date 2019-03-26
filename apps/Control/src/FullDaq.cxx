@@ -17,6 +17,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _publisher=NULL;
     _survey=false;
     _DIFClients.clear();
+    _GRICClients.clear();
     
     _fsm=this->fsm();
     
@@ -200,6 +201,13 @@ void FullDaq::listProcess(Mongoose::Request &request, Mongoose::JsonResponse &re
 	      Json::Value jstat=dc.queryWebStatus();Json::Value jres;jres["NAME"]=p_name;jres["HOST"]=host;jres["PORT"]=port;jres["PID"]=jstat["PID"];jres["STATE"]=jstat["STATE"];rep.append(jres);
 
 	    }
+	   if (p_name.compare("GRICSERVER")==0)
+	    {
+	      fsmwebCaller dc(host,port);
+	      //printf("DIF client %x \n",dc);
+	      Json::Value jstat=dc.queryWebStatus();Json::Value jres;jres["NAME"]=p_name;jres["HOST"]=host;jres["PORT"]=port;jres["PID"]=jstat["PID"];jres["STATE"]=jstat["STATE"];rep.append(jres);
+
+	    }
 	   if (p_name.compare("TDCSERVER")==0)
 	    {
 	      fsmwebCaller tdc(host,port);
@@ -220,6 +228,7 @@ void FullDaq::listProcess(Mongoose::Request &request, Mongoose::JsonResponse &re
 void FullDaq::discover(zdaq::fsmmessage* m)
 {
   _DIFClients.clear();
+  _GRICClients.clear();
   Json::Value cjs=this->configuration()["HOSTS"];
   //  std::cout<<cjs<<std::endl;
   std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
@@ -368,6 +377,19 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 		}
 
 	      _DIFClients.push_back(dc);
+	    }
+	   if (p_name.compare("GRICSERVER")==0)
+	    {
+	      fsmwebCaller* dc= new fsmwebCaller(host,port);
+	      //printf("DIF client %x \n",dc);
+	      std::string state=dc->queryState();
+	      printf("GRIC client %x  %s \n",dc,state.c_str());
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  dc->sendTransition("CREATE",_jConfigContent);
+		}
+
+	      _GRICClients.push_back(dc);
 	    }
 	   if (p_name.compare("TDCSERVER")==0)
 	    {
@@ -602,6 +624,12 @@ void FullDaq::initialise(zdaq::fsmmessage* m)
       tdc->sendTransition("INITIALISE");
       fprintf(stderr,"End  of transition to TDC \n");
     }
+  for (auto tdc:_GRICClients)
+    {
+      fprintf(stderr,"send transition to GRIC \n");
+      tdc->sendTransition("INITIALISE");
+      fprintf(stderr,"End  of transition to GRIC \n");
+    }
   
   // Fill status
   m->setAnswer(toJson(this->difstatus()));
@@ -653,7 +681,12 @@ void FullDaq::configure(zdaq::fsmmessage* m)
       jd["sourceid"]=(*it)["id"];
       jsou.append(jd);
     }
-  //
+  // Configure GRIC
+  for (auto tdc:_GRICClients)
+    {
+      tdc->sendTransition("CONFIGURE");
+    }
+
   // Configure and Checking tdc
   for (auto tdc:_tdcClients)
     {
@@ -744,6 +777,12 @@ void FullDaq::start(zdaq::fsmmessage* m)
 	  jl["type"]=0;
 	  tdc->sendTransition("START",jl);
 	}
+   // Start the GRIC
+   for (auto tdc:_GRICClients)
+     {
+      tdc->sendTransition("START");
+     }
+
   //Start the CCC
    if (_cccClient)
      {
@@ -787,7 +826,13 @@ void FullDaq::stop(zdaq::fsmmessage* m)
 	{
 	  tdc->sendTransition("STOP");
 	}
-  
+
+   // Stop the GRIC
+   for (auto tdc:_GRICClients)
+     {
+      tdc->sendTransition("STOP");
+     }
+
   ::sleep(1);
    LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP of TDC Status ");
   // Stop the builder
@@ -818,7 +863,12 @@ void FullDaq::destroy(zdaq::fsmmessage* m)
     {
       tdc->sendTransition("DESTROY");
     }
-  
+  // Destroy the GRIC
+   for (auto tdc:_GRICClients)
+     {
+      tdc->sendTransition("DESTROY");
+     }
+
 }
 
 FullDaq::~FullDaq() 
