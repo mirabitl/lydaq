@@ -36,6 +36,7 @@ public:
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response);
   
   // FEB access
   void writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val);
@@ -46,6 +47,7 @@ public:
   void setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic);
   void setDelay();
   void setDuration();
+  void getLUT(int chan);
 private:
   lydaq::TdcConfigAccess* _tca;
   lydaq::WiznetInterface* _wiznet;

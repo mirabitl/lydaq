@@ -174,7 +174,7 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket)
     if (ier<0)
       break;
     _npacket++;
-    if (_npacket%1000 ==1)
+    //    if (_npacket%1000 ==1)
       printf("Packet %d Receive %d bytes from %lx \n",_npacket,ier,id);
     break;
     size_remain -=ier;
