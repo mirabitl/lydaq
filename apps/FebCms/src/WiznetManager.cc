@@ -55,6 +55,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("SETMODE",boost::bind(&lydaq::WiznetManager::c_setMode,this,_1,_2));
   _fsm->addCommand("SETDELAY",boost::bind(&lydaq::WiznetManager::c_setDelay,this,_1,_2));
   _fsm->addCommand("SETDURATION",boost::bind(&lydaq::WiznetManager::c_setDuration,this,_1,_2));
+  _fsm->addCommand("GETLUT",boost::bind(&lydaq::WiznetManager::c_getLUT,this,_1,_2));
 
   
   
@@ -180,6 +181,17 @@ void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::Json
    this->setDelay();
    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetDelay called with"<<delay<<" "<<_delay );
   response["MODE"]=_delay;
+}
+void lydaq::WiznetManager::c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMode called ");
+  response["STATUS"]="DONE";
+
+
+   uint32_t chan=atol(request.get("value","0").c_str());
+   this->getLUT(chan);
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"get LUT called for "<<chan);
+  response["LUT"]=chan;
 }
 void lydaq::WiznetManager::c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -505,6 +517,14 @@ void lydaq::WiznetManager::setDuration()
   for (auto x:_wiznet->controlSockets())
     {
       this->writeAddress(x.second->hostTo(),x.second->portTo(),0x223,_duration); 
+    }
+}
+void lydaq::WiznetManager::getLUT(int chan)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" get LUT "<<chan);
+  for (auto x:_wiznet->controlSockets())
+    {
+      this->writeAddress(x.second->hostTo(),x.second->portTo(),0x224,chan); 
     }
 }
 void lydaq::WiznetManager::start(zdaq::fsmmessage* m)
