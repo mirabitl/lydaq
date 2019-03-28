@@ -97,7 +97,7 @@ lydaq::WiznetMessageHandler::WiznetMessageHandler(std::string directory) : _stor
 
 }
 
-void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket) throw (std::string)
+void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket) 
 {
   // build id
 

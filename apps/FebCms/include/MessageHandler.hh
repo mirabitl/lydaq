@@ -9,7 +9,7 @@ namespace lytdc {
 class MessageHandler
 {
 public:
-  virtual void processMessage(NL::Socket* socket) throw (std::string){;}
+  virtual void processMessage(NL::Socket* socket){;}
   virtual void removeSocket(NL::Socket* sock){;}
 };
 
@@ -42,15 +42,23 @@ class OnDisconnect: public NL::SocketGroupCmd
  public:
   OnDisconnect(MessageHandler* msh);
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+  bool disconnected(){return _disconnect;}
+
 private:
   MessageHandler* _msh;
+  bool _disconnect;
 };
 
 
 
 class OnClientDisconnect: public NL::SocketGroupCmd 
 {
+  public:
+  OnClientDisconnect();
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+   bool disconnected(){return _disconnect;}
+private:
+  bool _disconnect;
 };
 };
 #endif

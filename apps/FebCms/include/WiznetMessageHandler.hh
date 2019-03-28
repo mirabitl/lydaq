@@ -17,7 +17,7 @@ class WiznetMessageHandler : public lytdc::MessageHandler
   {
   public:
     WiznetMessageHandler(std::string directory);
-    virtual void processMessage(NL::Socket* socket) throw (std::string);
+    virtual void processMessage(NL::Socket* socket);
     static uint32_t convertIP(std::string hname);
     void addHandler(uint64_t id,FEBFunctor f);
     void removeSocket(NL::Socket* socket);
