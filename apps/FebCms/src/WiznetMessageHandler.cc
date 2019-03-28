@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <vector>
 #include <map>
+#include "ReadoutLogger.hh"
 
 #include <err.h>
 
@@ -49,7 +50,7 @@ std::map<uint32_t,std::string> lydaq::WiznetMessageHandler::scanNetwork(std::str
   std::stringstream ss;
   ss<<"echo $(seq 254) | xargs -P255 -I% -d\" \" ping -W 1 -c 1 "<<base<<"% | grep -E \"[0-1].*?:\" | awk '{print $4}' | awk 'BEGIN{FS=\":\"}{print $1}'";
   std::string res=lmexec(ss.str().c_str());
-  std::cout<<"Ethernet board on "<<base <<" \n"<<res;
+  LOG4CXX_INFO(_logFeb,"Ethernet board on "<<base <<" \n"<<res);
   //getchar();
   std::stringstream ss1(res.c_str());
   std::string to;
@@ -74,11 +75,12 @@ std::map<uint32_t,std::string> lydaq::WiznetMessageHandler::scanNetwork(std::str
       errx(1, "can't parse IP address %s", x.c_str());
     
     if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL)
-      printf("\t  %s is not known on the DNS \n", x.c_str());
+    {
+      LOG4CXX_ERROR(_logFeb,x<<" is unknown on the DNS");
+    }
     else
     {
-      printf("%s is %x  %s\n", x.c_str(),ip.s_addr, hp->h_name);
-      //m.insert(std::pair<uint32_t,std::string>(ip.s_addr,std::string(hp->h_name)));
+      LOG4CXX_INFO(_logFeb,x.c_str()<<" is "<<ip.s_addr<<" name="<<hp->h_name);
       m.insert(std::pair<uint32_t,std::string>(ip.s_addr,x));
     }
       
@@ -102,9 +104,12 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket)
   // build id
 
   uint64_t id=( (uint64_t) lydaq::WiznetMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
-  std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
+  LOG4CXX_INFO(_logFeb,"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id);
+
+  // Is the socket in the Map
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
 
+  // Add it
   if (itsock==_sockMap.end())
   {
     ptrBuf p(0,new unsigned char[0x100000]);
@@ -126,40 +131,32 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket)
       mkdir(s.str().c_str(), 0700);
     }
 
-    // std::stringstream sf;
-    // sf<<_storeDir<<"/"<<socket->hostTo()<<"/"<<socket->portTo()<<"/events";
-    // _fd= ::open(s.str().c_str(),O_CREAT| O_RDWR | O_NONBLOCK,S_IRWXU);
-    // if (_fd<0)
-    //   {
-    
-    // 	//LOG4CXX_FATAL(_logShm," Cannot open shm file "<<s.str());
-    // 	perror("No way to store to file :");
-    // //std::cout<<" No way to store to file"<<std::endl;
-    // 	return;
-    //   }
-
   }
 
 
 
 
-  
+  // Pointers to the buffer
   ptrBuf &p=itsock->second;
   uint32_t* iptr=(uint32_t*) &p.second[0];
   uint16_t* sptr=(uint16_t*) &p.second[0];
   // Check
 
 
-  
+  // maximal size 16K
   size_t ier=0;
   uint32_t size_remain=16*1024;
+
+  // Debug
+  #ifdef DEBUGBUF
   // uint8_t temp[8];
   // ier=socket->read(temp,8);
   // for (int ib=0;ib<8;ib++)
   //   printf("%.2x ",temp[ib]);
   // printf("\n");
-  // //getchar();
-  // return;
+  #endif
+  
+  // read the socket
   while (size_remain>0)
   {
     try 
@@ -168,23 +165,26 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket)
     }
     catch (NL::Exception e)
     {
-      printf("%s Error message when reading block %s \n",__PRETTY_FUNCTION__,e.msg().c_str());
+      LOG4CXX_ERROR(_logFeb,"Error reading socket "<<e.msg().c_str());
       return;
     }
     if (ier<0)
       break;
     _npacket++;
     //    if (_npacket%1000 ==1)
-      printf("Packet %d Receive %d bytes from %lx \n",_npacket,ier,id);
+    LOG4CXX_DEBUG(_logFeb," End of packet "<<_npacket<<" readout on socket "<<std::hex<<id<<std::dec<<" Bytes received"<<ier);
     break;
     size_remain -=ier;
     
   }
+
+  // Process  the buffer
+  // Find the buffer handler
   p.first=ier;
   std::map<uint64_t,FEBFunctor >::iterator icmd=_handlers.find(id);
   if (icmd==_handlers.end())
     {
-      printf("%s No data handler for socket id %ld \n",__PRETTY_FUNCTION__,id);
+      LOG4CXX_ERROR(_logFeb," No data handler  for socket id "<<id<<" readout on socket "<<std::hex<<id<<std::dec);
       p.first=0;
       return;
           
@@ -193,6 +193,7 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket* socket)
   p.first=0;
   return;
 }
+
 void lydaq::WiznetMessageHandler::removeSocket(NL::Socket* socket)
 {
   uint64_t id=((uint64_t) lydaq::WiznetMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
