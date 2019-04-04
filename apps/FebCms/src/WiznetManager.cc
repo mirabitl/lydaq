@@ -26,7 +26,7 @@ using namespace lydaq;
 lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(name),_context(NULL)
 {
   _fsm=this->fsm();
-  // Register state
+  // Register state machine
 
   _fsm->addState("INITIALISED");
   _fsm->addState("CONFIGURED");
