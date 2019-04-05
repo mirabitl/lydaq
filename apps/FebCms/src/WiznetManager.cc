@@ -164,10 +164,10 @@ void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonR
 uint32_t nc;
 sscanf(request.get("value","4294967295").c_str(),"%u",&nc);
 
-uint8_t asic=atol(request.get("asic","255").c_str());
+uint32_t asic=atol(request.get("asic","255").c_str());
  
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
-  this->setMask(nc,asic);
+ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<asic<<"SetMask called "<<std::hex<<nc<<std::dec<<" parameter "<<request.get("value","4294967295"));
+  this->setMask(nc,asic&0xFF);
   response["MASK"]=nc;
 }
 void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -412,16 +412,14 @@ void lydaq::WiznetManager::setMask(uint32_t mask,uint8_t asic)
     {
       uint32_t iasic=it->first&0xFF;
       fprintf(stderr,"ASIC in map %d ASIC asked %d \n",iasic,asica);
-      if ((iasic&asica)==0) continue;
-#ifdef PERASIC
-      //int iasic=it->first&0xFF;
-      if (iasic == 2)
-	umask=0;
+      if ((iasic&asica)==0)
+	{
+	  fprintf(stderr,"Skipping asic %d\n",iasic);
+	  umask=0;
+	}
       else
 	umask=mask;
-#else
-      umask=mask;
-#endif
+
       for (int i=0;i<32;i++)
 	{
 	  if ((umask>>i)&1)
