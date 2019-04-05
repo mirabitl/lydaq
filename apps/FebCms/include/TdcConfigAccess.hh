@@ -31,17 +31,26 @@ public:
   void parseJsonFile(std::string jsf);
   /// Fill buffers with JSON parsed data
   void parseJson();
+  /// Parse a JSON url
   void parseJsonUrl(std::string jsf);
+
+  /// FEB specific slow control buffers
   uint16_t *slcBuffer();
   uint16_t *slcAddr();
   uint32_t slcBytes();
+  /// map id - ASIC where id = (IP<<32| asic  header)
   std::map<uint64_t, lydaq::PRSlow> &asicMap();
   void clear();
   void dumpMap();
+  /// Fill FEB buffer for one FEB (ip address)
   void prepareSlowControl(std::string ipadr);
+  /// Fill map from DB
   void parseDb(std::string state, std::string mode);
+  /// Write Slow control buffer in /dev/shm
   void dumpToShm(std::string path);
+  /// Not implemented
   void connect();
+  /// Not implemented
   void publish();
 
 private:
