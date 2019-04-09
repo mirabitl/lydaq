@@ -96,7 +96,7 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket *socket)
   // build id
 
   uint64_t id = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(socket->hostTo()) << 32) | socket->portTo();
-  LOG4CXX_INFO(_logFeb, "Message received from " << socket->hostTo() << ":" << socket->portTo() << " =>" << std::hex << id);
+  LOG4CXX_DEBUG(_logFeb, "Message received from " << socket->hostTo() << ":" << socket->portTo() << " =>" << std::hex << id);
 
   // Is the socket in the Map
   std::map<uint64_t, ptrBuf>::iterator itsock = _sockMap.find(id);
