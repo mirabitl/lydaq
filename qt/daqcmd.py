@@ -51,16 +51,16 @@ grp_action.add_argument('--daq-forceState', action='store_true',
                         help='force the sate name of the FDAQ with the --state option, ex --forceState --state=DISCOVERED')
 grp_action.add_argument('--daq-services', action='store_true',
                         help='Send INITIALISE/CONFIGURE transition to services application (MDCC,DB,BUILDER mainly)')
-grp_action.add_argument('--daq-state', action='store_true', 
+grp_action.add_argument('--daq-state', action='store_true',
                         help=' display DAQ state')
 # Running
-grp_action.add_argument('--daq-initialise', action='store_true', 
+grp_action.add_argument('--daq-initialise', action='store_true',
                         help='Initialise FDAQ, data source discovery and Builder final configuration')
-grp_action.add_argument('--daq-configure', action='store_true', 
+grp_action.add_argument('--daq-configure', action='store_true',
                         help=' Configure FDAQ, front end ASICs configuration')
-grp_action.add_argument('--daq-startrun', action='store_true', 
+grp_action.add_argument('--daq-startrun', action='store_true',
                         help=' start the run')
-grp_action.add_argument('--daq-stoprun', action='store_true', 
+grp_action.add_argument('--daq-stoprun', action='store_true',
                         help=' stop the run')
 grp_action.add_argument('--daq-destroy', action='store_true',
                         help='destroy the readout, back to the PREPARED state')
@@ -74,7 +74,7 @@ grp_action.add_argument('--daq-evbstatus', action='store_true',
 grp_action.add_argument('--daq-dbstatus', action='store_true',
                         help='get current run and state from db')
 # Actions
-grp_action.add_argument('--daq-resettdc', action='store_true', 
+grp_action.add_argument('--daq-resettdc', action='store_true',
                         help=' Send Reset to all TDC')
 grp_action.add_argument('--daq-downloaddb', action='store_true',
                         help='download the dbsate specified in --dbstate=state')
@@ -87,32 +87,32 @@ grp_action.add_argument('--daq-ctrlreg', action='store_true',
 
 # Calibration
 grp_action.add_argument('--daq-setgain', action='store_true',
-                        help='change the gain and reconfigure chips with --gain=xxx')
+                        help='change the gain of HARDROC2 and reconfigure chips with --gain=xxx')
 grp_action.add_argument('--daq-setthreshold', action='store_true',
-                        help='change the threholds and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
+                        help='change the threholds of HARDROC2 and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
 grp_action.add_argument('--daq-setvth', action='store_true',
-                        help='change the gain and reconfigure chips with -vth=xxx')
+                        help='change the VTHTIME threshold of PETIROC2 and reconfigure chips with -vth=xxx')
 grp_action.add_argument('--daq-setmask', action='store_true',
-                        help='change the gain and reconfigure chips with -mask=xxx')
+                        help='change the MASK of PETIROC2reconfigure chips with -mask=xxx')
 grp_action.add_argument('--daq-settdcmode', action='store_true',
                         help='change the trigger mode before starting the run with --value=1/0')
 grp_action.add_argument('--daq-settdcdelays', action='store_true',
-                        help='change the petiroc mode before starting the run with --active=1-255, --dead=1-255 ')
+                        help='change the PETIROC mode before starting the run with --active=1-255, --dead=1-255 ')
 
 
-# TRIGGER
+# TRIGGER MDCC
 grp_action.add_argument('--trig-status', action='store_true',
-                        help=' display trigger counter status')
+                        help=' display trigger (MDCC) counter status')
 grp_action.add_argument('--trig-reset', action='store_true',
-                        help=' reset trigger counter')
-grp_action.add_argument(
-    '--trig-pause', action='store_true', help=' trigger soft veto')
+                        help=' reset trigger (MDCC) counter')
+grp_action.add_argument('--trig-pause', action='store_true',
+                        help=' trigger (MDCC) soft veto')
 grp_action.add_argument('--trig-resume', action='store_true',
-                        help=' release trigger soft veto ')
-grp_action.add_argument(
-    '--ecal-pause', action='store_true', help=' Ecal soft veto')
-grp_action.add_argument(
-    '--ecal-resume', action='store_true', help=' release Ecal soft veto')
+                        help=' release trigger (MDCC) soft veto ')
+grp_action.add_argument('--ecal-pause', action='store_true',
+                        help=' (Obsolete) Ecal soft veto')
+grp_action.add_argument('--ecal-resume', action='store_true',
+                        help=' (Obsolete) release Ecal soft veto')
 grp_action.add_argument('--trig-spillon', action='store_true',
                         help=' set spill nclock on with --clock=nc (20ns)')
 grp_action.add_argument('--trig-spilloff', action='store_true',
@@ -120,34 +120,34 @@ grp_action.add_argument('--trig-spilloff', action='store_true',
 grp_action.add_argument('--trig-beam', action='store_true',
                         help=' set beam length to nclock with --clock=nc (20ns) ')
 grp_action.add_argument('--trig-spillregister', action='store_true',
-                        help=' set the value of the spill register --value=xx ')
+                        help=' set the value of the spill register (FEB CMS) (32/64 for beamtest or cosmic) --value=xx ')
 grp_action.add_argument('--trig-calibon', action='store_true',
-                        help=' set the value of the calibon register --value=xx ')
+                        help=' set the value of the calibon register (FEB calibration) --value=xx ')
 grp_action.add_argument('--trig-calibcount', action='store_true',
-                        help=' set the value of the calibcount register --value=xx ')
-grp_action.add_argument(
-    '--trig-rearm', action='store_true', help=' reload calib  ')
+                        help=' set the value of the calibcount (FEB calibration) register --value=xx ')
+grp_action.add_argument('--trig-rearm', action='store_true',
+                        help=' reload calib (FEB calibration)  ')
 grp_action.add_argument('--trig-hardreset', action='store_true',
                         help=' send a hard reset to mezzanines ')
 grp_action.add_argument('--trig-setregister', action='store_true',
-                        help=' set the value of the Mdcc register --value=xx --address=yy')
+                        help=' set the value of the MDCC register --value=xx --address=yy')
 grp_action.add_argument('--trig-getregister', action='store_true',
-                        help=' get the value of the Mdcc register  --address=yy')
-grp_action.add_argument(
-    '--trig-tdcreset', action='store_true', help=' hard reset of Tdc counters')
+                        help=' get the value of the MDCC register  --address=yy')
+grp_action.add_argument('--trig-tdcreset', action='store_true',
+                        help=' hard reset of TDC (FEB) counters')
 
 
-# SLC
+# Slow Control Managment
 grp_action.add_argument('--slc-create', action='store_true',
-                        help='Create the DimSlowControl object to control WIENER crate and BMP sensor')
-grp_action.add_argument('--slc-initialisesql', action='store_true',
-                        help='initiliase the mysql access specified with --account=login/pwd@host:base')
+                        help='Send a CREATE transition to FSLOW app (parsing of configuration)')
+grp_action.add_argument('--slc-initialise', action='store_true',
+                        help='Send a INITIALISE transition to FSLOW (auto discovery and CREATE transition to all controlled apps) ')
 grp_action.add_argument('--slc-configure', action='store_true',
-                        help='initiliase the mysql access specified with --account=login/pwd@host:base')
+                        help='Send a CONFIGURE transition to FSLOW (configuration of all controlled apps)')
 grp_action.add_argument('--slc-start', action='store_true',
-                        help='initiliase the mysql access specified with --account=login/pwd@host:base')
+                        help='Send a START transition to all monitorApplication controlled ')
 grp_action.add_argument('--slc-stop', action='store_true',
-                        help='initiliase the mysql access specified with --account=login/pwd@host:base')
+                        help='Send a STOP transition to all monitorApplication controlled')
 # LV
 grp_action.add_argument(
     '--slc-lvon', action='store_true', help='put Zup LV ON')
@@ -269,15 +269,16 @@ parser.add_argument('--active', action='store', type=int,
                     dest='active', default=None, help='active time of Petiroc')
 parser.add_argument('--dead', action='store', type=int,
                     dest='dead', default=None, help='dead time of Petiroc')
-
+parser.add_argument('--asic', action='store', type=int,
+                    dest='asic', default=None, help='asic header of Petiroc')
+parser.add_argument('--feb', action='store', type=int,
+                    dest='feb', default=None, help='FEB id')
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='Raw Json output')
 
 results = parser.parse_args()
 
 
-#print results
-#exit(0)
 # Analyse results
 # set the connection mode
 if (results.sockport == None):
@@ -294,8 +295,6 @@ if (results.sockport != None):
 
 
 # fill parameters
-#p_conf=parseConfig()
-#print p_conf
 
 fdc = dqc.fdaqClient()
 
@@ -307,50 +306,9 @@ if (results.daq_create):
     r_cmd = 'createDaq'
     fdc.daq_create()
     exit(0)
-
-elif (results.webstatus):
-    p_res = {}
-    #if (hasattr(conf,'ecalhost')):
-    #sre=executeCMD(conf.ecalhost,conf.ecalport,"ecalWeb",None,None)
-    #sje=json.loads(sre)
-    #p_res["ECAL"]=sje["STATE"]
-    #else:
-    #p_res["ECAL"]="DEAD"
-    #srd=executeCMD(conf.daqhost,conf.daqport,"FDAQ",None,None)
-    #srs=executeCMD(conf.slowhost,conf.slowport,"WSLOW",None,None)
-    #srj=executeCMD(conf.jobhost,conf.jobport,"WJOB",None,None)
-    #sjd=json.loads(srd)
-    #sjs=json.loads(srs)
-    #sjj=json.loads(srj)
-    #p_res["DAQ"]=sjd["STATE"]
-    #p_res["SLOW"]=sjs["STATE"]
-    #p_res["JOB"]=sjj["STATE"]
-
-    print json.dumps(p_res)
-    exit(0)
 elif(results.available):
     r_cmd = 'available'
     fdc.daq_list()
-
-    #srd=executeCMD(conf.daqhost,conf.daqport,"WDAQ",None,None)
-    #if (results.verbose):
-    #print srd
-    #else:
-    #print ">>>>>>>>>>>>>>>> DAQ <<<<<<<<<<<<<<<<<<"
-    #parseReturn("state",srd)
-    #srs=executeCMD(conf.slowhost,conf.slowport,"WSLOW",None,None)
-    #if (results.verbose):
-    #print srs
-    #else:
-    #print ">>>>>>>>>>>>>>>> SLOWCONTROL <<<<<<<<<<<<<<<<<<"
-    #parseReturn("state",srs)
-    #srj=executeCMD(conf.jobhost,conf.jobport,"WJOB",None,None)
-    #if (results.verbose):
-    #print srj
-    #else:
-    #print ">>>>>>>>>>>>>>>> JOB CONTROL <<<<<<<<<<<<<<<<<<"
-    #parseReturn("state",srj)
-    #fdc.daq_process()
     exit(0)
 elif(results.app_info):
     r_cmd = 'available'
@@ -358,26 +316,6 @@ elif(results.app_info):
         fdc.daq_info(results.name)
     else:
         print 'Please specify the name --name=name'
-
-    #srd=executeCMD(conf.daqhost,conf.daqport,"WDAQ",None,None)
-    #if (results.verbose):
-        #print srd
-    #else:
-        #print ">>>>>>>>>>>>>>>> DAQ <<<<<<<<<<<<<<<<<<"
-        #parseReturn("state",srd)
-    #srs=executeCMD(conf.slowhost,conf.slowport,"WSLOW",None,None)
-    #if (results.verbose):
-        #print srs
-    #else:
-        #print ">>>>>>>>>>>>>>>> SLOWCONTROL <<<<<<<<<<<<<<<<<<"
-        #parseReturn("state",srs)
-    #srj=executeCMD(conf.jobhost,conf.jobport,"WJOB",None,None)
-    #if (results.verbose):
-        #print srj
-    #else:
-        #print ">>>>>>>>>>>>>>>> JOB CONTROL <<<<<<<<<<<<<<<<<<"
-        #parseReturn("state",srj)
-    #fdc.daq_process()
     exit(0)
 elif(results.jc_create):
     r_cmd = 'createJobControl'
@@ -388,12 +326,10 @@ elif(results.jc_kill):
     fdc.jc_kill()
     exit(0)
 elif(results.jc_start):
-
     r_cmd = 'jobStartAll'
     fdc.jc_start()
     exit(0)
 elif(results.jc_destroy):
-
     r_cmd = 'jobDestroy'
     fdc.jc_destroy()
     exit(0)
@@ -417,16 +353,10 @@ elif(results.jc_status):
 elif(results.daq_state):
     r_cmd = 'state'
     fdc.daq_state()
-    #print "WHAHAHAHA",sr
-    #if (results.verbose):
-    #print sr
-    #else:
-    #parseReturn(r_cmd,sr)
     exit(0)
 elif(results.daq_discover):
     r_cmd = 'Discover'
     fdc.daq_discover()
-    #fdc.daq_setparameters()
     exit(0)
 elif(results.daq_setparameters):
     r_cmd = 'setParameters'
@@ -457,14 +387,6 @@ elif(results.daq_initialise):
 
 elif(results.daq_configure):
     r_cmd = 'configure'
-    #if (hasattr(conf,'ecalhost')):
-    #if (hasattr(conf,'ecaldetid') and hasattr(conf,'ecalsourceid') ):
-    #for x in conf.ecalsourceid:
-    #lcgi.clear()
-    #lcgi['detid']=conf.ecaldetid
-    #lcgi['sourceid']=x
-    #sr=executeCMD(conf.daqhost,conf.daqport,"WDAQ","REGISTERDS",lcgi)
-    #print sr
     fdc.daq_configure()
     exit(0)
 
@@ -474,7 +396,7 @@ elif(results.daq_status):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.daq_tdcstatus):
     r_cmd = 'tdcstatus'
@@ -482,7 +404,7 @@ elif(results.daq_tdcstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.daq_resettdc):
     r_cmd = 'tdcstatus'
@@ -495,7 +417,7 @@ elif(results.daq_evbstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.daq_setgain):
     r_cmd = 'SETGAIN'
@@ -516,7 +438,10 @@ elif(results.daq_setmask):
     if (results.mask == None):
         print 'Please specify the vth --mask=value'
         exit(0)
-    fdc.tdc_setmask(results.mask)
+    asic = 255
+    if (results.asic != None):
+        asic = results.asic
+    fdc.tdc_setmask(results.mask, asic)
     exit(0)
 
 elif(results.daq_setthreshold):
@@ -571,7 +496,7 @@ elif(results.daq_dbstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.daq_calibdac):
     r_cmd = 'calibdac'
@@ -585,6 +510,7 @@ elif(results.daq_scurve):
     step = 2
     spillon = 200
     spilloff = 1000
+    mask = 255
     if (results.first != None):
         first = results.first
     if (results.last != None):
@@ -597,12 +523,13 @@ elif(results.daq_scurve):
         spillon = results.spillon
     if (results.spilloff != None):
         spilloff = results.spilloff
+    if (results.mask != None):
+        mask = results.mask
 
-    print chan, first, last, step, spillon, spilloff
+    print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
     val = raw_input()
 
-    fdc.daq_fullscurve(chan, spillon, spilloff, first, last, step)
-    #fdc.daq_scurve(50,50,250,450,4294967295)
+    fdc.daq_fullscurve(chan, spillon, spilloff, first, last, step, mask)
     exit(0)
 elif(results.daq_downloaddb):
     r_cmd = 'downloadDB'
@@ -627,10 +554,6 @@ elif(results.daq_ctrlreg):
 elif(results.trig_status):
     r_cmd = 'triggerStatus'
     fdc.trig_status()
-    #if (results.verbose):
-    #print sr
-    #else:
-    #parseReturn(r_cmd,sr)
     exit(0)
 
 elif(results.trig_beam):
@@ -740,24 +663,23 @@ elif(results.trig_resume):
     exit(0)
 elif(results.slc_create):
     r_cmd = 'createSlowControl'
-    #lcgi['jsonfile']=conf.jsonfile
     fdc.slow_create()
     exit(0)
 
-elif(results.slc_initialisesql):
-    r_cmd = 'initialiseDB'
+elif(results.slc_initialise):
+    r_cmd = 'initialise'
     fdc.slow_discover()
     exit(0)
 elif(results.slc_configure):
-    r_cmd = 'initialiseDB'
+    r_cmd = 'configure'
     fdc.slow_configure()
     exit(0)
 elif(results.slc_start):
-    r_cmd = 'initialiseDB'
+    r_cmd = 'start'
     fdc.slow_start()
     exit(0)
 elif(results.slc_stop):
-    r_cmd = 'initialiseDB'
+    r_cmd = 'stop'
     fdc.slow_stop()
     exit(0)
 elif(results.slc_lvon):
@@ -766,7 +688,7 @@ elif(results.slc_lvon):
     if (results.verbose):
         print sr
     else:
-        parseReturn('LVSTATUS', sr)
+        dqc.parseReturn('LVSTATUS', sr)
     exit(0)
 
 elif(results.slc_lvoff):
@@ -775,7 +697,7 @@ elif(results.slc_lvoff):
     if (results.verbose):
         print sr
     else:
-        parseReturn('LVSTATUS', sr)
+        dqc.parseReturn('LVSTATUS', sr)
     exit(0)
 elif(results.slc_lvstatus):
     r_cmd = 'LVStatus'
@@ -783,11 +705,7 @@ elif(results.slc_lvstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn('LVSTATUS', sr)
-    #if (results.verbose):
-        #print sr
-    #else:
-        #parseReturn(r_cmd,sr)
+        dqc.parseReturn('LVSTATUS', sr)
     exit(0)
 
 elif(results.slc_hvstatus):
@@ -802,7 +720,7 @@ elif(results.slc_hvstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.slc_hvon):
     r_cmd = 'hvStatus'
@@ -816,7 +734,7 @@ elif(results.slc_hvon):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 elif(results.slc_hvoff):
     r_cmd = 'hvStatus'
@@ -830,17 +748,7 @@ elif(results.slc_hvoff):
     if (results.verbose):
         print sr
     else:
-        parseReturn(r_cmd, sr)
-#    if (fdc.slowhost==None or fdc.slowport==None):
-#      print "No WSLOW application exiting"
-#      exit(0)
-#    lcgi.clear()
-#    lcgi['channel']=99;
-#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","HVREADCHANNEL",lcgi)
-#    if (results.verbose):
-#        print sr
-#    else:
-#        parseReturn(r_cmd,sr)
+        dqc.parseReturn(r_cmd, sr)
     exit(0)
 
 elif(results.slc_ptstatus):
@@ -849,14 +757,7 @@ elif(results.slc_ptstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn('PTSTATUS', sr)
-#    if (fdc.slowhost==None or fdc.slowport==None):
-#      print "No WSLOW application exiting"
-#      exit(0)
-#    lcgi.clear()
-    #lcgi['channel']=99;
-#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
-#    print sr
+        dqc.parseReturn('PTSTATUS', sr)
     exit(0)
 elif(results.slc_humstatus):
     r_cmd = 'PT'
@@ -864,14 +765,7 @@ elif(results.slc_humstatus):
     if (results.verbose):
         print sr
     else:
-        parseReturn('HUMSTATUS', sr)
-#    if (fdc.slowhost==None or fdc.slowport==None):
-#      print "No WSLOW application exiting"
-#      exit(0)
-#    lcgi.clear()
-    #lcgi['channel']=99;
-#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
-#    print sr
+        dqc.parseReturn('HUMSTATUS', sr)
     exit(0)
 
 elif(results.slc_ptcor):
@@ -880,14 +774,7 @@ elif(results.slc_ptcor):
     if (results.verbose):
         print sr
     else:
-        parseReturn('PTCOR', sr, results)
-#    if (fdc.slowhost==None or fdc.slowport==None):
-#      print "No WSLOW application exiting"
-#      exit(0)
-#    lcgi.clear()
-    #lcgi['channel']=99;
-#    sr=executeCMD(fdc.slowhost,fdc.slowport,"WSLOW","PTREAD",lcgi)
-#    print sr
+        dqc.parseReturn('PTCOR', sr, results)
     exit(0)
 
 elif(results.slc_vset):
@@ -908,7 +795,7 @@ elif(results.slc_vset):
     if (results.verbose):
         print sr
     else:
-        parseReturn('hvStatus', sr)
+        dqc.parseReturn('hvStatus', sr)
     exit(0)
 elif(results.slc_iset):
     r_cmd = 'setCurrent'
@@ -928,7 +815,7 @@ elif(results.slc_iset):
     if (results.verbose):
         print sr
     else:
-        parseReturn('hvStatus', sr)
+        dqc.parseReturn('hvStatus', sr)
     exit(0)
 
 elif(results.slc_rampup):
@@ -949,103 +836,5 @@ elif(results.slc_rampup):
     if (results.verbose):
         print sr
     else:
-        parseReturn('hvStatus', sr)
+        dqc.parseReturn('hvStatus', sr)
     exit(0)
-
-
-#print r_cmd
-#print lcgi
-
-
-def sendcommand2(command, host=fdc.daqhost, port=fdc.daqport, lq=None):
-   global results
-   if (lq != None):
-       if (len(lq) != 0):
-           myurl = "http://"+host + ":%d" % (port)
-           #conn = httplib.HTTPConnection(myurl)
-           #if (name!=None):
-           #    lq['name']=name
-           #if (value!=None):
-           #    lq['value']=value
-           lqs = urllib.urlencode(lq)
-           saction = '/%s?%s' % (command, lqs)
-           myurl = myurl+saction
-           #print myurl
-           req = urllib2.Request(myurl)
-           r1 = urllib2.urlopen(req)
-
-           return r1.read()
-   else:
-       myurl = "http://"+host + ":%d" % (port)
-       #conn = httplib.HTTPConnection(myurl)
-       saction = '/%s' % command
-       myurl = myurl+saction
-       #print myurl
-       req = urllib2.Request(myurl)
-       r1 = urllib2.urlopen(req)
-       if (command == "status" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["statusResponse"]["statusResult"][0])
-#           for x in ssj:
-#             for d in x["difs"]:
-#                print '#%4d %5x %6d %12d %12d %s %s ' % (d["id"],d["slc"],d["gtc"],d["bcid"],d["bytes"],d["state"],x["name"])
-           print "\033[1m %4s %5s %6s %12s %12s %15s  %s \033[0m" % ('DIF', 'SLC', 'EVENT', 'BCID', 'BYTES', 'SERVER', 'STATUS')
-
-           for d in ssj:
-               #print d
-               #for d in x["difs"]:
-               print '#%4d %5x %6d %12d %12d %15s %s ' % (d["id"], d["slc"], d["gtc"], d["bcid"], d["bytes"], d["host"], d["state"])
-       elif (command == "jobStatus" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["jobStatusResponse"]["jobStatusResult"][0])
-           print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID', 'NAME', 'HOST', 'STATUS')
-           for x in ssj:
-               if (x['DAQ'] == 'Y'):
-                   print "%6d %15s %25s %20s" % (x['PID'], x['NAME'], x['HOST'], x['STATUS'])
-       elif (command == "hvStatus" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["hvStatusResponse"]["hvStatusResult"][0])
-           print "\033[1m %5s %10s %10s %10s %10s \033[0m" % ('Chan', 'VSET', 'ISET', 'VOUT', 'IOUT')
-           for x in ssj:
-               print "#%.4d %10.2f %10.2f %10.2f %10.2f" % (x['channel'], x['vset'], x['iset'], x['vout'], x['iout'])
-
-       elif (command == "LVStatus" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["LVStatusResponse"]["LVStatusResult"][0])
-           print "\033[1m %10s %10s %10s \033[0m" % ('VSET', 'VOUT', 'IOUT')
-           print " %10.2f %10.2f %10.2f" % (ssj['vset'], ssj['vout'], ssj['iout'])
-           #for x in ssj:
-           #    print "#%.4d %10.2f %10.2f %10.2f %10.2f" % (x['channel'],x['vset'],x['iset'],x['vout'],x['iout'])
-       elif (command == "shmStatus" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["shmStatusResponse"]["shmStatusResult"][0])
-           print "\033[1m %10s %10s \033[0m" % ('Run', 'Event')
-           print " %10d %10d " % (ssj['run'], ssj['event'])
-       elif (command == "triggerStatus" and not results.verbose):
-           s = r1.read()
-           sj = json.loads(s)
-           ssj = json.loads(sj["triggerStatusResponse"]
-                            ["triggerStatusResult"][0])
-           print "\033[1m %10s %10s %10s %10s %12s %12s %10s %10s %10s \033[0m" % ('Spill', 'Busy1', 'Busy2', 'Busy3', 'SpillOn', 'SpillOff', 'Beam', 'Mask', 'EcalMask')
-           print " %10d %10d %10d %10d  %12d %12d %12d %10d %10d " % (ssj['spill'], ssj['busy1'], ssj['busy2'], ssj['busy3'], ssj['spillon'], ssj['spilloff'], ssj['beam'], ssj['mask'], ssj['ecalmask'])
-
-       else:
-          print r1.read()
-          return r1.read()
-
-       #print r1.status, r1.reason
-
-
-if (r_cmd == None):
-    print "No command given"
-    exit(0)
-if (len(lcgi) != 0):
-    sendcommand2(r_cmd, lq=lcgi)
-else:
-    sendcommand2(r_cmd)
-exit(0)
