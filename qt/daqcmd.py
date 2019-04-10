@@ -297,7 +297,7 @@ if (results.sockport != None):
 # fill parameters
 
 fdc = dqc.fdaqClient()
-
+fdc.loadConfig()
 
 # analyse the command
 lcgi = {}
@@ -389,8 +389,7 @@ elif(results.daq_configure):
     r_cmd = 'configure'
     fdc.daq_configure()
     exit(0)
-
-elif(results.daq_status):
+elif(results.daq_difstatus):
     r_cmd = 'status'
     sr = fdc.daq_status()
     if (results.verbose):
