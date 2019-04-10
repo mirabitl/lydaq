@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import parse,fromstring, tostring
 
 class Scurve(QtCore.QThread):
-    def __init__(self,daq,ch,son,soff,beg,las,step):
+    def __init__(self,daq,ch,son,soff,beg,las,step,asic):
         QtCore.QThread.__init__(self)
         self.daq =daq
         self.ch = ch
@@ -23,8 +23,9 @@ class Scurve(QtCore.QThread):
         self.beg = beg
         self.las = las
         self.step = step
+        self.asic=asic
     def run(self):
-        self.daq.daq_fullscurve(self.ch,self.son,self.soff,self.beg,self.las,self.step)
+        self.daq.daq_fullscurve(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
         #self.terminate()
         
 class AllStatus(QtCore.QThread):
@@ -320,7 +321,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.state=l
         self.LADAQState.setText(l)
     def action_daq_scurve(self):
-        self.scurve=Scurve(self.daq,self.SBChannel.value(),self.SBWindow.value(),100000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
+        self.scurve=Scurve(self.daq,self.SBChannel.value(),self.SBWindow.value(),100000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value(),self.SBPR2.value())
         self.scurve.start()
         if (self.allstatus.stop):
             self.allstatus.stop=False

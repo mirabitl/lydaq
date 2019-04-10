@@ -958,7 +958,7 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_fullscurve(self,ch,spillon,spilloff,beg,las,step=2,mode="FEB1"):
+  def daq_fullscurve(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
       ### petiroc to scan OLD
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
       # Coaxial chamber COAX
@@ -967,7 +967,7 @@ class fdaqClient:
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
       # Buggy firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
-      firmwaret1=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28]
+      firmwaret1=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
       self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
@@ -983,7 +983,7 @@ class fdaqClient:
       self.daq_start()
       #### commenter en dessous
       if (ch==255):
-          self.tdc_setmask(0XFFFFFFFF,255)
+          self.tdc_setmask(0XFFFFFFFF,asic)
           #self.tdc_setmask(0Xf7fffffb)
           #self.tdc_setmask(1073741832)
           mask=0
@@ -1001,7 +1001,7 @@ class fdaqClient:
           for ist in firmware:
               if ( not self.scurve_running):
                   break;
-              self.tdc_setmask((1<<ist),255)
+              self.tdc_setmask((1<<ist),asic)
               self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
@@ -1011,7 +1011,7 @@ class fdaqClient:
       else:
           ipr=(31-ch/2)
       ipr=ch
-      self.tdc_setmask((1<<ipr),255)
+      self.tdc_setmask((1<<ipr),asic)
       self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
