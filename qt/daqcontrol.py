@@ -21,7 +21,7 @@ if (sockport !=None):
     socket.socket = socks.socksocket
     #socks.wrapmodule(urllib2)
 
-def parseReturn(command,sr,res=None):
+def parseReturn(command,sr,res=None,verbose=False):
     if (command=="jobStatus"):
         #s=r1.read()
         #print s["answer"]
@@ -83,7 +83,7 @@ def parseReturn(command,sr,res=None):
 	  print "P0 must be set"
 	  return
 	print "\033[1m Voltage to be set is\033[0m %10.2f" % (res.v0*p/res.p0*res.t0/t)
-    if (command=="status" and not results.verbose):
+    if (command=="status" and not verbose):
 
         sj=json.loads(sr)
         ssj=sj["answer"]["diflist"]
@@ -93,7 +93,7 @@ def parseReturn(command,sr,res=None):
             #print d
             #for d in x["difs"]:
             print '#%4d %5x %6d %12d %12d %15s %s ' % (d["id"],d["slc"],d["gtc"],d["bcid"],d["bytes"],d["host"],d["state"])
-    if (command=="tdcstatus" and not results.verbose):
+    if (command=="tdcstatus" and not verbose):
 
         sj=json.loads(sr)
         ssj=sj["answer"]["tdclist"]
