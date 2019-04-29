@@ -12,53 +12,97 @@
 #include <iostream>
 #include "ReadoutLogger.hh"
 
+/*!
+* \file WiznetManager.hh
+ * \brief Main Zdaq baseAPplication to interavt with FEBS
+ * \author L.Mirabito
+ * \version 1.0
+*/
+
 namespace lydaq
 {
-
+/**
+   * \class WiznetManager
+   * \brief zdaq::baseApplication to interact with FEBs
+   * 
+   *  State Machine Implementation
+   *  VOID,CREATED,INITIALISED,CONFIGURED,RUNNING
+   * */
 class WiznetManager : public zdaq::baseApplication
 {
 public:
+  ///Constructor
   WiznetManager(std::string name);
-  ~WiznetManager(){;}
-  void initialise(zdaq::fsmmessage* m);
-  void configure(zdaq::fsmmessage* m);
-  void start(zdaq::fsmmessage* m);
-  void stop(zdaq::fsmmessage* m);
-  void destroy(zdaq::fsmmessage* m);
+  /// Empty destructor
+  ~WiznetManager() { ; }
+  /// INITIALISE  handler
+  void initialise(zdaq::fsmmessage *m);
+  /// CONFIGURE  handler
+  void configure(zdaq::fsmmessage *m);
+  /// START  handler
+  void start(zdaq::fsmmessage *m);
+  /// STOP  handler
+  void stop(zdaq::fsmmessage *m);
+  /// DESTROY  handler
+  void destroy(zdaq::fsmmessage *m);
+  /// job log command  (obsolete)
   void c_joblog(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// STATUS Command handler
   void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// DIFLIST Command handler
   void c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SET6BDAC Command handler
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETMASK Command handler
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETMODE Command handler
   void c_setMode(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETDELAY Command handler
   void c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETDURATION Command handler
   void c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETVTHTIME Command Handler
   void c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// SETONEVTHTIME Command handler
   void c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// DOWNLOADDB Command handler
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  
-  // FEB access
-  void writeAddress(std::string host,uint32_t port,uint16_t addr,uint16_t val);
+  /// GETLUT command handler
+  void c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response);
+
+  /// FEB register access
+  void writeAddress(std::string host, uint32_t port, uint16_t addr, uint16_t val);
+
+  /// Change 6BDAC (all FEBs,all Asics)
   void set6bDac(uint8_t dac);
-  void setMask(uint32_t mask,uint8_t asic=255);
+  /// Change Mask (all febs, ASIC mask)
+  void setMask(uint32_t mask, uint8_t asic = 255);
+  /// Sof trigger (obsolete)
   void sendTrigger(uint32_t nt);
+  /// Change VTHTIME (all FEBS)
   void setVthTime(uint32_t dac);
-  void setSingleVthTime(uint32_t vth,uint32_t feb,uint32_t asic);
+  /// Change VTHTIME (FEB and asic specified)
+  void setSingleVthTime(uint32_t vth, uint32_t feb, uint32_t asic);
+  /// Change Dead time
   void setDelay();
+  /// Change active time
   void setDuration();
+  /// Reuqires LUT of one TDC channel
+  void getLUT(int chan);
+
 private:
-  lydaq::TdcConfigAccess* _tca;
-  lydaq::WiznetInterface* _wiznet;
-  lydaq::WiznetMessage* _msg;
+  lydaq::TdcConfigAccess *_tca;
+  lydaq::WiznetInterface *_wiznet;
+  lydaq::WiznetMessage *_msg;
 
-  std::vector<lydaq::TdcWiznet*> _vTdc;
+  std::vector<lydaq::TdcWiznet *> _vTdc;
 
-  zdaq::fsmweb* _fsm;
-  uint32_t _run,_type;
+  zdaq::fsmweb *_fsm;
+  uint32_t _run, _type;
   uint8_t _delay;
   uint8_t _duration;
 
-  zmq::context_t* _context;
+  zmq::context_t *_context;
 };
-};
+}; // namespace lydaq
 #endif

@@ -154,7 +154,7 @@ if (ntohl(_lBuf[0])==0xcafedade)
 
      
      uint32_t gtc= (_buf[7]|(_buf[6]<<8)|(_buf[5]<<16)|(_buf[4]<<24));
-     uint64_t abcid=(_buf[13]|(_buf[12]<<8)|(_buf[11]<<16)|(_buf[10]<<24)|(_buf[9]<<32));
+     uint64_t abcid=((uint64_t) _buf[13]|((uint64_t)_buf[12]<<8)|((uint64_t)_buf[11]<<16)|((uint64_t)_buf[10]<<24)|((uint64_t)_buf[9]<<32));
      if (abcid==_lastABCID)
        {
 	 printf("HEADER ERROR \n");

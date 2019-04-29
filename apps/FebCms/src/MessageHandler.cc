@@ -7,7 +7,7 @@
 #include <netlink/socket.h>
 #include <netlink/socket_group.h>
 #include <string>
-
+#include "ReadoutLogger.hh"
 using namespace std;
 using namespace lytdc;
 
@@ -19,8 +19,7 @@ void lytdc::OnAccept:: exec(NL::Socket* socket, NL::SocketGroup* group, void* re
 {
   NL::Socket* newConnection = socket->accept();
   group->add(newConnection);
-  cout << "\nConnection " << newConnection->hostTo() << ":" << newConnection->portTo() << " added...";
-  cout.flush();
+  LOG4CXX_INFO(_logLdaq,"\nConnection " << newConnection->hostTo() << ":" << newConnection->portTo() << " added...");
 }
 
 
@@ -29,43 +28,22 @@ void lytdc::OnAccept:: exec(NL::Socket* socket, NL::SocketGroup* group, void* re
 lytdc::OnRead::OnRead(MessageHandler* msh) : _msh(msh) {}
 void lytdc::OnRead::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
 
-  //cout << "\nREAD -- ";
-  _msh->processMessage(socket);
-
-
-    cout.flush();
-  /*    unsigned char buffer[256];
-    buffer[255] = '\0';
-    memset(theReadBuffer_,0,0x10000);
-    //socket->read(buffer, 255);
-    size_t msgLen =socket->read(theReadBuffer_,0x10000);
-    std::string sread(buffer);
-    cout << "Message from " << socket->hostTo() << ":" << socket->portTo() << ". Text received: " << sread<<std::endl;
-    cout.flush();
-		
-    for(unsigned i=1; i < (unsigned) group->size(); ++i)
-    {
-    if(group->get(i) != socket)
-    {
-    printf(" \t sending %d  %d %s \n",i,sread.size(),sread.c_str());
-    group->get(i)->send(sread.c_str(), sread.size());
-    }
-    }
-  */
+  _msh->processMessage(socket);  
 }
 
-lytdc::OnDisconnect::OnDisconnect(MessageHandler* msh) : _msh(msh) {}
+lytdc::OnDisconnect::OnDisconnect(MessageHandler* msh) : _msh(msh),_disconnect(false)  {}
 void lytdc::OnDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
 
   group->remove(socket);
-  cout << "\nClient " << socket->hostTo() << " disconnected...";
-  _msh->removeSocket(socket);
+  LOG4CXX_WARN(_logLdaq,"Server disconnected "<<socket->hostTo()<<":"<<socket->portTo());
   cout.flush();
-  delete socket;
+  _disconnect=true;
 }
-void lytdc::OnClientDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) {
+lytdc::OnClientDisconnect::OnClientDisconnect() : _disconnect(false) {}
+void lytdc::OnClientDisconnect::exec(NL::Socket* socket, NL::SocketGroup* group, void* reference)  {
 
-  cout << "\nClient " << socket->hostTo() << " disconnected..."<<std::flush;
-  uint32_t* i =(uint32_t*) reference;
-  (*i)=0xDEAD;
+if (!_disconnect)
+  LOG4CXX_WARN(_logLdaq,"Client disconnected "<<socket->hostTo()<<":"<<socket->portTo());
+  _disconnect=true;
+ 
 }

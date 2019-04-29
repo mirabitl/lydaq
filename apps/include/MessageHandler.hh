@@ -6,10 +6,19 @@
 #include <string>
 #include "debug.hh"
 namespace lytdc {
+
+struct MpiException : public std::exception
+{
+   std::string s;
+   MpiException(std::string ss) : s(ss) {}
+   ~MpiException() throw () {} // Updated
+   const char* what() const throw() { return s.c_str(); }
+};
+  
 class MessageHandler
 {
 public:
-  virtual void processMessage(NL::Socket* socket) throw (std::string){;}
+  virtual void processMessage(NL::Socket* socket){;} //throw (MpiException){;}
   virtual void removeSocket(NL::Socket* sock){;}
 };
 
@@ -42,15 +51,22 @@ class OnDisconnect: public NL::SocketGroupCmd
  public:
   OnDisconnect(MessageHandler* msh);
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+  bool disconnected(){return _disconnect;}
 private:
   MessageHandler* _msh;
+  bool _disconnect;
 };
 
 
 
 class OnClientDisconnect: public NL::SocketGroupCmd 
 {
+public:
+  OnClientDisconnect();
   void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
+  bool disconnected(){return _disconnect;}
+private:
+  bool _disconnect;
 };
 };
 #endif

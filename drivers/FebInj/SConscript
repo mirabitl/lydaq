@@ -3,6 +3,34 @@ import  os
 import re
 import sys
 
+def SWIGSharedLibrary(env, library, sources, **args):
+  swigre = re.compile('(.*).i')
+  if env.WhereIs('swig') is None:
+    sourcesbis = []
+    for source in sources:
+      cName = swigre.sub(r'\1_wrap.c', source)
+      cppName = swigre.sub(r'\1_wrap.cc', source)
+      if os.path.exists(cName):
+        sourcesbis.append(cName)
+      elif os.path.exists(cppName):
+        sourcesbis.append(cppName)
+      else:
+        sourcesbis.append(source)
+  else:
+    sourcesbis = sources
+ 
+  if 'SWIGFLAGS' in args:
+    args['SWIGFLAGS'] += ['-python']
+  else:
+    args['SWIGFLAGS'] = ['-python'] + env['SWIGFLAGS']
+  args['SHLIBPREFIX']=""
+  if sys.version >= '2.5':
+    args['SHLIBSUFFIX']=".pyd"
+ 
+  cat=env.SharedLibrary(library, sourcesbis, **args)
+  return cat
+ 
+
 
 #print "----------------------------------------------"
 Decider('MD5-timestamp')
@@ -55,7 +83,7 @@ Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 INCLUDES=['include',"/usr/include/boost141/","/usr/include/jsoncpp"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
-LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp']
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','wiringPi']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python
@@ -70,16 +98,24 @@ if (Use_Mongoose):
   INCLUDES.append('/usr/local/include/')
   INCLUDES.append('/usr/local/include/mongoose')
  
+INCLUDES.append(commands.getoutput("python -c 'import distutils.sysconfig as conf; print conf.get_python_inc()'"))
+LIBRARY_PATHS.append(commands.getoutput("python -c 'import distutils.sysconfig as conf; print conf.PREFIX'")+"/lib")
   
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]
 
+# SWIG
+SWIGSF=["-c++","-classic"]
+
+for i in INCLUDES:
+    SWIGSF.append("-I"+i)
+print SWIGSF
 
 # Create the Environment
-env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS,SWIGFLAGS=SWIGSF)
 
 #print "CC is:",env.subst('$CPPPATH')
-
+env['BUILDERS']['PythonModule'] = SWIGSharedLibrary
 
 # Library source
 LIBRARY_SOURCES=Glob("#src/*.cxx")
@@ -96,6 +132,8 @@ else:
     INCLUDE_FILES=Glob("./include/*.hh")
     env.Install("../include",INCLUDE_FILES)
     env.Alias('install', ["../lib","../include"])
+    #Python module
+    _FebInj=env.PythonModule('_LFebInj', ['LFebInj.i'],LIBPATH="#lib",LIBS="lydaq_FebInj")
 
 #env.Install(DHCAL_ROOT+"/opt/dhcal/lib",levbdimdaq)
 #env.Install(DHCAL_ROOT+"/opt/dhcal/bin",plist)
