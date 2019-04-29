@@ -105,6 +105,7 @@ void lydaq::FebInjServer::c_set_mask(Mongoose::Request &request, Mongoose::JsonR
   }
   uint32_t mask=atol(request.get("mask","0").c_str());
   uint32_t side=atol(request.get("side","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Mask "<<mask<<" Side "<<side);
   _inj->setMask(mask,side);
   response["STATUS"]="DONE";
 }
@@ -117,6 +118,7 @@ void lydaq::FebInjServer::c_set_trigger_source(Mongoose::Request &request, Mongo
     return;
   }
   uint32_t value=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Source Value "<<value);
   _inj->setTriggerSource(value);
   response["STATUS"]="DONE";
 }
@@ -177,6 +179,7 @@ void lydaq::FebInjServer::c_set_number_of_trigger(Mongoose::Request &request, Mo
     return;
   }
   uint32_t value=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Nb Trig Value "<<value);
   _inj->setNumberOfTrigger(value);
   response["STATUS"]="DONE";
 }
@@ -189,6 +192,7 @@ void lydaq::FebInjServer::c_set_delay(Mongoose::Request &request, Mongoose::Json
     return;
   }
   uint32_t value=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Delay Value "<<value);
   _inj->setDelay(value);
   response["STATUS"]="DONE";
 }
@@ -201,6 +205,7 @@ void lydaq::FebInjServer::c_set_duration(Mongoose::Request &request, Mongoose::J
     return;
   }
   uint32_t value=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Duration Value "<<value);
   _inj->setDuration(value);
   response["STATUS"]="DONE";
 }
@@ -213,6 +218,7 @@ void lydaq::FebInjServer::c_set_pulse_height(Mongoose::Request &request, Mongoos
     return;
   }
   uint32_t value=atol(request.get("value","0").c_str());
+  LOG4CXX_INFO(_logLdaq,"Pulse Height Value "<<value);
   _inj->setPulseHeight(value);
   response["STATUS"]="DONE";
 }
