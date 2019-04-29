@@ -19,6 +19,7 @@ namespace lydaq
   class FebInjServer : public zdaq::baseApplication
   {
   public:
+    enum TRIGGER_TYPE {INTSINGLE=1,INTMULTI=2,EXTSINGLE=4,EXTMULTI=8,SOFT=16,BYPASS=32};
     FebInjServer(std::string name);
     // Transition
     void configure(zdaq::fsmmessage* m);
