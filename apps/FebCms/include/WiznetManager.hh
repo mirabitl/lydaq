@@ -69,9 +69,15 @@ public:
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// GETLUT command handler
   void c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  /// TDC Calibration  command handlers
+  void c_getCalibrationStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_setCalibrationMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_setMeasurementMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
   /// FEB register access
   void writeAddress(std::string host, uint32_t port, uint16_t addr, uint16_t val);
+
+  void writeLongWord(std::string host, uint32_t port, uint16_t addr, uint64_t val);
 
   /// Change 6BDAC (all FEBs,all Asics)
   void set6bDac(uint8_t dac);
@@ -89,6 +95,12 @@ public:
   void setDuration();
   /// Reuqires LUT of one TDC channel
   void getLUT(int chan);
+  /// Get calibration status bits
+  void getCalibrationStatus();
+  /// Set Calibration Mask
+  void setCalibrationMask(uint64_t mask);
+  /// Set measurement mask
+  void setMeasurementMask(uint64_t mask);
 
 private:
   lydaq::TdcConfigAccess *_tca;

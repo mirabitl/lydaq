@@ -35,6 +35,8 @@ public:
   void addHandler(uint64_t id, FEBFunctor f);
   /// Socket handling
   void removeSocket(NL::Socket *socket);
+  /// Shm dump
+  void dumpShm(NL::Socket *socket,ptrBuf p);
   /**
      * \brief Scan of the network
      * \param class C network (ex 192.168.10.)
