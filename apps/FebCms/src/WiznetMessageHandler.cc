@@ -90,10 +90,13 @@ lydaq::WiznetMessageHandler::WiznetMessageHandler(std::string directory) : _stor
 {
   _sockMap.clear();
 }
+
+
 void lydaq::WiznetMessageHandler::dumpShm(NL::Socket* socket,ptrBuf p)
 {
   std::stringstream s;
   s<<_storeDir<<"/"<<socket->hostTo()<<"/"<<socket->portTo()<<"/data";
+  ::unlink(s.str().c_str());
   int fd= ::open(s.str().c_str(),O_CREAT| O_RDWR | O_NONBLOCK,S_IRWXU);
   if (fd<0)
   {

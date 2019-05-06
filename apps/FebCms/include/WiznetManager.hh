@@ -101,6 +101,13 @@ public:
   void setCalibrationMask(uint64_t mask);
   /// Set measurement mask
   void setMeasurementMask(uint64_t mask);
+  /// Shm read
+  void readShm(std::string host,uint32_t port);
+  /// controlSize
+  int32_t getControlSize(){return _controlSize;}
+  inline void setControlSize(int32_t s){_controlSize=s;}
+  /// controlData
+  inline uint8_t* getControlData(){return _controlData;}
 
 private:
   lydaq::TdcConfigAccess *_tca;
@@ -115,6 +122,10 @@ private:
   uint8_t _duration;
 
   zmq::context_t *_context;
+
+  int32_t _controlSize;
+  uint8_t _controlData[0x40000];
+  Json::Value _jControl;
 };
 }; // namespace lydaq
 #endif
