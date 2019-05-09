@@ -10,6 +10,7 @@ import base64
 import time
 import argparse
 import requests
+from ROOT import *
 
 sockport=None
 sp=os.getenv("SOCKPORT","Not Found")
@@ -233,6 +234,8 @@ class fdaqClient:
       self.anport=None
       self.injhost=None
       self.injport=None
+      self.tdchost=[]
+      self.tdcport=[]
       self.daq_par={}
       self.slow_par={}
       self.scurve_running=False
@@ -272,6 +275,10 @@ class fdaqClient:
               if (p["NAME"]=="FEBINJ"):
                   self.injhost=x
                   self.injport=port
+              if (p["NAME"]=="TDCSERVER"):
+                  print "TDC=============>",x
+                  self.tdchost.append(x)
+                  self.tdcport.append(port)
 
               if (p["NAME"]=="DBSERVER"):
                   if ("PARAMETER" in p):
@@ -1295,6 +1302,80 @@ class fdaqClient:
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","RESUME",lcgi)
       return sr
+  def lut_calib(self,tdc,channel):
+      if (len(self.tdchost)<tdc+1):
+          return "non existing tdc"
+      lcgi={}
+      lcgi["value"]="%x" % ((1<<channel))
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBMASK",lcgi)
+      print sr
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
+      print sr
+  def lut_draw(self,tdc,channel):
+      if (len(self.tdchost)<tdc+1):
+          return "non existing tdc"
+      lcgi={}
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
+      print sr
+      lcgi["value"]=channel
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"GETLUT",lcgi)
+      print sr
+      
+      s=json.loads(sr)
+      ar=s["answer"]["LUT"]["192.168.10.11"]["content"]
+      lut=[]
+      xi=[]
+      idx=0
+      a=0
+      xmi=9999
+      xma=0
+      print "N",ar[5]
+      idx=0
+      tdlen=0
+      tdorig=9999
+      for i in range(6,6+int(ar[5])*2-6):
+          x=int(ar[i])
+          ##print x
+          if (idx%2 ==0):
+              a=(x<<8)
+          else:
+              a=a+x
+              if (a>32768):
+                  break
+              if (a==0 and idx/2>140):
+                  break
+
+              if (a==32768 and tdlen==0):
+                  tdlen=idx/2
+                  #lut.append(a/128.*2.5/256.)
+              #print idx/2,a,tdorig,tdlen
+              if (a==0 and tdorig>0):
+                  tdorig=idx/2+1
+              lut.append(a)
+              xi.append(idx/2)
+              if (idx/2 < xmi):
+                  xmi=idx/2
+              if (idx/2 > xma):
+                   xma=idx/2
+              a=0
+          idx=idx+1
+      print idx
+      print xi
+      print lut
+      print "Delay line length",tdorig,tdlen
+      c=TCanvas()
+      gStyle.SetOptStat(0)
+      gStyle.SetOptFit(1)
+      xmi=xmi
+      xma=xma
+
+      h=TH1F("lut%d" % int(channel),"LUT %d " % int(channel),len(xi),xmi,xma)
+      for i in range(0,len(xi)):
+          h.SetBinContent(i+1,lut[i])
+      h.Draw()
+      h.Fit("pol1","","",tdorig+1,tdlen-5)
+      c.Update()
+      v=raw_input()
 
 
   
