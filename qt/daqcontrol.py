@@ -1377,5 +1377,26 @@ class fdaqClient:
       c.Update()
       v=raw_input()
 
-
-  
+  def  histo_draw(self,name):
+        # If the changed item is not checked, don't bother checking others
+        print name
+        r=self.analysis_histo(name)
+        #print r
+        sr=json.loads(r)
+        #print sr["answer"]["histo"].replace('\\n','').replace('\"','"')
+        h=TBufferJSON.ConvertFromJSON(sr["answer"]["histo"].replace('\\n','').replace('\"','"'))
+        #tree = ET.XML(sr["answer"]["histo"])
+        #h=TBufferXML.ConvertFromXML(ET.tostring(tree))
+        #print ET.tostring(tree)
+        c=TCanvas()
+        
+        h.Draw()
+        h.Print()
+        s=""
+        for i in range(1,h.GetNbinsX()):
+            s=s+"%f " % h.GetBinContent(i)
+        print s
+        #self.canvas.Draw()
+        c.Modified()
+        c.Update()
+        v=raw_input()

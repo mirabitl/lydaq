@@ -185,6 +185,8 @@ grp_action.add_argument('--tdc-lutcalib', action='store_true',
                         help='Calibrate --tdc=i --channel=k ')
 grp_action.add_argument('--tdc-lutdraw', action='store_true',
                         help='Calibrate --tdc=i --channel=k ')
+grp_action.add_argument('--histo-draw', action='store_true',
+                        help='Draw histo --name=histo ')
 
 #grp_action.add_argument('--slc-store',action='store_true',help='start the data storage in the mysql DB at period p  with --period=p (s) ')
 #grp_action.add_argument('--slc-store-stop',action='store_true',help='stop the data storage in the mysql DB ')
@@ -864,4 +866,11 @@ elif(results.tdc_lutdraw):
         print 'Please specify the channel --channel=#'
         exit(0)
     fdc.lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
     exit(0)
