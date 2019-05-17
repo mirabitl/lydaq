@@ -1311,7 +1311,7 @@ class fdaqClient:
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
-  def lut_draw(self,tdc,channel):
+  def lut_draw(self,tdc,channel,canvas=None):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -1366,7 +1366,9 @@ class fdaqClient:
       print xi
       print lut
       print "Delay line length",tdorig,tdlen
-      c=TCanvas()
+      standalone=(canvas==None)
+      if (standalone):
+          canvas=TCanvas()
       gStyle.SetOptStat(0)
       gStyle.SetOptFit(1)
       xmi=xmi
@@ -1375,10 +1377,13 @@ class fdaqClient:
       h=TH1F("lut%d" % int(channel),"LUT %d " % int(channel),len(xi),xmi,xma)
       for i in range(0,len(xi)):
           h.SetBinContent(i+1,lut[i])
+      canvas.cd()
       h.Draw()
       h.Fit("pol1","","",tdorig+1,tdlen-5)
-      c.Update()
-      v=raw_input()
+      canvas.Update()
+      if (standalone):
+          v=raw_input()
+      return (h,tdorig,tdlen)
 
   def  histo_draw(self,name):
         # If the changed item is not checked, don't bother checking others

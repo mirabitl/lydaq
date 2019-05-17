@@ -57,7 +57,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.allstatus=AllStatus(self)
         self.LVHisto.setWindowTitle('Honey-Do List')
         self.LVHisto.setMinimumSize(600, 400)
- 
+        self.luts=[]
         
         self.connect(self.allstatus, QtCore.SIGNAL("updateStatus()"), self.updateStatus)
 
@@ -135,6 +135,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.RBInjectionExternalMultiple.clicked.connect(self.action_injection_source)
         self.RBInjectionSoft.clicked.connect(self.action_injection_source)
         self.RBInjectionByPass.clicked.connect(self.action_injection_source)
+
+        #calibration
+        self.PBLutcalib.clicked.connect(self.action_lutcalib)
+        self.PBLutdraw.clicked.connect(self.action_lutdraw)
         
         
     def onChange(self,i):
@@ -504,7 +508,13 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 
         print self.daq.injection_source(s)
 
-
+# calibration
+    def action_lutcalib(self):
+        for i in range(self.SBNtdc.value()):
+            self.daq.lut_calib(0,i)
+    def action_lutdraw(self):
+        v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas)
+        self.luts.append(v[0])
 
 
 
