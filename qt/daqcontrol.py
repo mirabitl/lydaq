@@ -1330,10 +1330,13 @@ class fdaqClient:
       xmi=9999
       xma=0
       print "N",ar[5]
+      N=int(ar[5])
+      if (N==0):
+          N=149
       idx=0
       tdlen=0
       tdorig=9999
-      for i in range(6,6+int(ar[5])*2-6):
+      for i in range(6,2*N+6):
           x=int(ar[i])
           ##print x
           if (idx%2 ==0):
