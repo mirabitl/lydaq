@@ -1310,6 +1310,14 @@ class fdaqClient:
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBMASK",lcgi)
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
+  def tdc_testmask(self,tdc,mask):
+      if (len(self.tdchost)<tdc+1):
+          return "non existing tdc"
+      lcgi={}
+      lcgi["value"]="%x" % mask
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"TESTMASK",lcgi)
+      print sr
+      sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
   def lut_draw(self,tdc,channel,canvas=None):
       if (len(self.tdchost)<tdc+1):

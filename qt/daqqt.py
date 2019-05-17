@@ -139,6 +139,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         #calibration
         self.PBLutcalib.clicked.connect(self.action_lutcalib)
         self.PBLutdraw.clicked.connect(self.action_lutdraw)
+        self.PBTestmask.clicked.connect(self.action_tdc_testmask)
         
         
     def onChange(self,i):
@@ -510,12 +511,17 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 
 # calibration
     def action_lutcalib(self):
+        self.luts=[]
         for i in range(self.SBNtdc.value()):
             self.daq.lut_calib(0,i)
     def action_lutdraw(self):
         v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas)
         self.luts.append(v[0])
 
+    def action_tdc_testmask(self):
+        self.daq.tdc_testmask(0,int(str(self.LEMaskTDC.text()),16))
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)        
 
 
 
