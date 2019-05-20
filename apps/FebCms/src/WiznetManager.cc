@@ -542,6 +542,7 @@ void lydaq::WiznetManager::getLUT(int chan)
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x224, chan);
+    ::sleep(1);
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 }
@@ -551,6 +552,7 @@ void lydaq::WiznetManager::getCalibrationStatus()
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x225, 0);
+    ::sleep(1);
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 }
