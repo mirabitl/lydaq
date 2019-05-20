@@ -1310,6 +1310,7 @@ class fdaqClient:
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBMASK",lcgi)
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
+      print sr
   def tdc_testmask(self,tdc,mask):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
