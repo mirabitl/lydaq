@@ -186,7 +186,7 @@ def executeCMD(host,port,prefix,cmd,params):
        lqs=urllib.urlencode(lq)
        saction = '/%s/CMD?%s' % (prefix,lqs)
        myurl=myurl+saction
-       #1print myurl
+       #print myurl
        req=urllib2.Request(myurl)
        try:
            r1=urllib2.urlopen(req)
@@ -211,7 +211,18 @@ def executeCMD(host,port,prefix,cmd,params):
            return json.dumps(p_rep,sort_keys=True)
        else:
            return r1.read()
-    
+
+def executeRequest(surl):
+    req=urllib2.Request(surl)
+    try:
+        r1=urllib2.urlopen(req)
+    except URLError, e:
+        p_rep={}
+        p_rep["STATE"]="DEAD"
+        return json.dumps(p_rep,sort_keys=True)
+
+    return r1.read()
+
 
 #
 # Check the configuration
@@ -369,22 +380,54 @@ class fdaqClient:
 
   def jc_status(self):
     lcgi={}
+    resum={}
     rep=""
-    for x,y in self.p_conf["HOSTS"].iteritems():
-        #print "HOST ",x
-        sr=executeCMD(x,9999,"LJC-%s" % x,"STATUS",lcgi)
+    for xh,y in self.p_conf["HOSTS"].iteritems():
+        print "\033[1m HOST:  \033[0m",xh
+        resum[xh]=[]
+        sr=executeCMD(xh,9999,"LJC-%s" % xh,"STATUS",lcgi)
         sj=json.loads(sr)
-        print "ON A ",sj
+        #print "ON A ",sj
         ssj=sj["answer"]["JOBS"]
 
         if (ssj != None):
-        #print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID','NAME','HOST','STATUS')
+            print "\033[1m %6s %15s %25s %20s %20s \033[0m" % ('PID','NAME','HOST','STATUS','PORT')
             for x in ssj:
-                print x
-                print "%6d %15s %25s %20s" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
-                rep =rep + "%6d %15s %25s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
+                #print x
+                if ('PORT' in x):
+                    srcmd=executeRequest("http://%s:%s/" % (x['HOST'],x['PORT']))
+                    sjcmd=json.loads(srcmd)
+                    #print sjcmd
+                    resum[xh].append([x,sjcmd])
+                else:
+                    x['PORT']="0"
+                print "%6d %15s %25s %20s %20s " % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
+                rep =rep + "%6d %15s %25s %20s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
         else:
             rep="No Jobs"
+    #print resum
+    for xh,y in resum.iteritems():
+        for x in y:
+            if ('PREFIX' not in x[1]):
+                print "================================================= \n \033[1m %s   running on %s PID %s is  %s \033[0m \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
+                continue
+            print "\033[1m %s :\033[0m http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
+            print "\t \033[1m STATE :\033[0m",x[1]['STATE']
+            rep="\t \033[1m FSM :\033[0m"
+            for z in x[1]['FSM']:
+                rep=rep+" "+z['name']
+            print rep
+            rep="\t \033[1m ALLOWED :\033[0m"
+            for z in x[1]['ALLOWED']:
+                rep=rep+" "+z['name']
+            print rep
+            rep="\t \033[1m COMMAND :\033[0m"
+            for z in x[1]['CMD']:
+                rep=rep+" "+z['name']
+            print rep
+            
+            
+
     return rep
   def jc_restart(self,host,jobname,jobpid):
     lcgi={}
