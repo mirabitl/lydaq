@@ -387,7 +387,7 @@ class fdaqClient:
         resum[xh]=[]
         sr=executeCMD(xh,9999,"LJC-%s" % xh,"STATUS",lcgi)
         sj=json.loads(sr)
-        #print "ON A ",sj
+        print "\033[1m Acquisition %s \n \n Processus \n\033[0m" % sj['answer']['NAME']
         ssj=sj["answer"]["JOBS"]
 
         if (ssj != None):
@@ -405,7 +405,7 @@ class fdaqClient:
                 rep =rep + "%6d %15s %25s %20s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
         else:
             rep="No Jobs"
-    #print resum
+    print "\033[1m List of Applications  \033[0m" 
     for xh,y in resum.iteritems():
         for x in y:
             if ('PREFIX' not in x[1]):
