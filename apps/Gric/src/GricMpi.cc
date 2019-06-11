@@ -122,7 +122,7 @@ bool lydaq::GricMpi::processPacket()
 	 //fprintf(stderr,"Event send \n");
 	 // Reset lines number
 	 _chlines=0;
-	 _lastABCID=_lBuf[0];
+
        }
 
      if (isSensorData())
@@ -313,19 +313,45 @@ void lydaq::GricMpi::processSensorGric()
   uint16_t command=_buf[4];
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
 
-
-  
+#define DEBUGEVENT
+#ifdef DEBUGEVENT  
   fprintf(stderr,"Length %d \n==> ",_idx);
-     for (int i=4;i<_idx;i++)
-       {
-	 fprintf(stderr,"%.2x ",(_buf[i]));
-	 
-	 if (i%16==15)
-	   {
-	     fprintf(stderr,"\n==> ");
-	   }
-       }
-     fprintf(stderr,"\n");
+  for (int i=4;i<_idx;i++)
+    {
+      fprintf(stderr,"%.2x ",(_buf[i]));
+      
+      if (i%16==15)
+	{
+	  fprintf(stderr,"\n==> ");
+	}
+    }
+  fprintf(stderr,"\n");
+#endif
+  uint8_t temp[0x100000];
+  uint32_t* itemp=(uint32_t*) temp;
+  uint64_t* ltemp=(uint64_t*) temp;
+  itemp[0]=_event;
+
+  uint32_t gtc=((_buf[5]<<24)|(_buf[6]<<16)|(_buf[7]<<8)|_buf[9]);
+  uint64_t abcid=(((uint64_t) _buf[10]<<40)|((uint64_t) _buf[11]<<32)|((uint64_t) _buf[12]<<24)|((uint64_t) _buf[13]<<16)|((uint64_t) _buf[14]<<8)|_buf[15]);
+  itemp[1]=gtc;
+  ltemp[1]=abcid;
+  itemp[4]= _event;
+  itemp[5]=_adr;
+  itemp[6]=_idx-16;
+  uint32_t idx=28; // 4 x5 int + 1 int64
+  uint32_t trbcid=0;
+  memcpy(&temp[idx],_buf,_idx-16);
+  _lastGTC=gtc;
+  _lastABCID=abcid;
+  if (_dsData!=NULL)
+    {
+      memcpy((unsigned char*) _dsData->payload(),temp,idx);
+      _dsData->publish(_lastABCID,_lastGTC,idx);
+      //if (_event%100==0)
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" PL size="<<_idx-16<<" size="<<length);
+    }
+  _event++;
 }
 
  /*

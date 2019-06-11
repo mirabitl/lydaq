@@ -36,8 +36,10 @@ public:
   void c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_close(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_pulse(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void initialise(zdaq::fsmmessage* m);
   void sendCommand(std::string host,uint32_t port,uint8_t command);
+  void sendParameter(std::string host,uint32_t port,uint8_t command,uint8_t par);
   void sendSlowControl(std::string host,uint32_t port,uint8_t* slc);
   void configureHR2();
   void configure(zdaq::fsmmessage* m);
