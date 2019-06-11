@@ -36,7 +36,9 @@ grp_action.add_argument('--jc-start', action='store_true',
 grp_action.add_argument('--jc-restart', action='store_true',
                         help='restart one job with --jobname=name --jobpid=pid --host=hostname')
 grp_action.add_argument('--jc-status', action='store_true',
-                        help='show the status all controled processes')
+                        help='show the status all controled processes or of the process specified in --name=PROC')
+grp_action.add_argument('--jc-info', action='store_true',
+                        help='show the status all controled processesof the host specified in --host=Host')
 
 #DAQ preparation
 grp_action.add_argument('--daq-create', action='store_true',
@@ -358,7 +360,23 @@ elif(results.jc_restart):
     r_cmd = 'jobReStart'
     exit(0)
 elif(results.jc_status):
-    sr = fdc.jc_status()
+    if (results.name != None):
+        sr = fdc.jc_status(results.name)
+        exit(0)
+    else:
+        sr = fdc.jc_status()
+    exit(0)
+elif(results.jc_info):
+    if (results.host != None):
+        if (results.name != None):
+            sr = fdc.jc_info(results.host,results.name)
+            exit(0)
+        else:
+            sr = fdc.jc_info(results.host)
+
+        exit(0)
+    else:
+        print "Host name missing"
     exit(0)
 elif(results.daq_state):
     r_cmd = 'state'

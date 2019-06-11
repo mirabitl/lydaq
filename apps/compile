@@ -1,6 +1,7 @@
 cd ConfigurationDB;scons install -j4;cd -
 cd Tdc;scons install -j4;cd -
 cd FebCms;scons install -j4;cd -
+cd Gric;scons install -j4;cd -
 cd TdcCms;scons install -j4;cd -
 cd Dif;scons install -j4;cd -
 cd Sdcc;scons install -j4;cd -
