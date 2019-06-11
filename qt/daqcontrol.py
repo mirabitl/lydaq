@@ -1409,11 +1409,34 @@ class fdaqClient:
         
         h.Draw()
         h.Print()
+        vb=[]
         s=""
         for i in range(1,h.GetNbinsX()):
             s=s+"%f " % h.GetBinContent(i)
+            vb.append(h.GetBinContent(i))
         print s
         #self.canvas.Draw()
         c.Modified()
         c.Update()
         v=raw_input()
+        return vb
+  def  get_channel_summary(self,run,feb,delay,nchan):
+      namem="/run%d/Raw/Feb%d/ChannelMean" % (run,feb)
+      namer="/run%d/Raw/Feb%d/ChannelRMS" % (run,feb)
+      vm=self.histo_draw(namem)
+      vr=self.histo_draw(namer)
+
+      foutm=open("mean%d.txt" % (run),"a")
+      foutr=open("rms%d.txt" % (run),"a")
+      sm="%7.2f " % delay
+      sr="%7.2f " % delay
+      for i in range(0,nchan-1):
+          sm=sm+"%7.3f " % vm[i]
+          sr=sr+"%7.2f " % (vr[i]*1000)
+
+      sr=sr+"\n"
+      sm=sm+"\n"
+      foutm.write(sm)
+      foutr.write(sr)
+      foutm.close()
+      foutr.close()
