@@ -77,6 +77,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.JCKill.clicked.connect(self.action_JCKill)
         self.JCDestroy.clicked.connect(self.action_JCDestroy)
         self.JCStatus.clicked.connect(self.action_JCStatus)
+        self.PBAppcreate.clicked.connect(self.action_JCAppcreate)
         # DAQ
         self.PBCreate.clicked.connect(self.action_daq_create)
         self.PBDiscover.clicked.connect(self.action_daq_discover)
@@ -178,6 +179,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.plainTextEdit.document().setPlainText(r)
     def action_JCStart(self):
         r=self.daq.jc_start()
+        self.plainTextEdit.document().setPlainText(r)
+    def action_JCAppcreate(self):
+        r=self.daq.jc_appcreate()
+        r=self.daq.jc_status()
         self.plainTextEdit.document().setPlainText(r)
     def action_JCKill(self):
         r=self.daq.jc_kill()

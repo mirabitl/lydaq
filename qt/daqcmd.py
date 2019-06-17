@@ -39,6 +39,8 @@ grp_action.add_argument('--jc-status', action='store_true',
                         help='show the status all controled processes or of the process specified in --name=PROC')
 grp_action.add_argument('--jc-info', action='store_true',
                         help='show the status all controled processesof the host specified in --host=Host')
+grp_action.add_argument('--jc-appcreate', action='store_true',
+                        help='Create all ZDAQ app on all hosts')
 
 #DAQ preparation
 grp_action.add_argument('--daq-create', action='store_true',
@@ -358,6 +360,10 @@ elif(results.jc_restart):
         exit(0)
     fdc.jc_restart(results.host, results.jobname, results.jobpid)
     r_cmd = 'jobReStart'
+    exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print sr
     exit(0)
 elif(results.jc_status):
     if (results.name != None):

@@ -378,6 +378,15 @@ class fdaqClient:
         rep[x]= json.loads(sr)
     return json.dumps(rep)  
 
+  def jc_appcreate(self):
+    lcgi={}
+    rep={}
+    for x,y in self.p_conf["HOSTS"].iteritems():
+        #print x,"  found"
+        sr=executeCMD(x,9999,"LJC-%s" % x,"APPCREATE",lcgi)
+        rep[x]=json.loads(sr)
+    return json.dumps(rep)
+
   def jc_info(self,hostname,apname=None):
     lcgi={}
     resum={}
