@@ -30,7 +30,7 @@ def parseReturn(command,sr,res=None,verbose=False):
         #sj=s
         #ssj=json.loads(sj["answer"]["ANSWER"])
         ssj=sj["answer"]["ANSWER"]
-        print "\033[1m %6s %15s %25s %20s \033[0m" % ('PID','NAME','HOST','STATUS')
+        print "== %6s %15s %25s %20s ==" % ('PID','NAME','HOST','STATUS')
         for x in ssj:
             if (x['DAQ']=='Y'):
                 print "%6d %15s %25s %20s" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'])
@@ -41,36 +41,36 @@ def parseReturn(command,sr,res=None,verbose=False):
         #print ssj
 
         if (device == "ISEG"):
-            print "\033[1m %5s %10s %10s %10s %10s %10s %30s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP',"STATUS")
+            print "== %5s %10s %10s %10s %10s %10s %30s ==" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP',"STATUS")
             for x in ssj:
                 print "#%.4d %10.2f %10.2f %10.2f %10.2f %10.2f %30s " % (x['id'],x['vset'],x['iset']*1E6,x['vout'],x['iout']*1E6,x['rampup'],x['status'][x['status'].find("=")+1:len(x['status'])-1])
         if (device == "SY1527"):
-            print "\033[1m %5s %10s %10s %10s %10s %10s %10s \033[0m" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP',"STATUS")
+            print "== %5s %10s %10s %10s %10s %10s %10s ==" % ('Chan','VSET','ISET','VOUT','IOUT','RAMPUP',"STATUS")
             for x in ssj:
                 print "#%.4d %10.2f %10.2f %10.2f %10.2f %10.2f %10d " % (x['id'],x['vset'],x['iset'],x['vout'],x['iout'],x['rampup'],x['status'])
     if (command=="LVSTATUS"):
         sj=json.loads(sr)
         
         ssj=sj["answer"]["STATUS"]
-        print "\033[1m %10s %10s %10s \033[0m" % ('VSET','VOUT','IOUT')
+        print "== %10s %10s %10s ==" % ('VSET','VOUT','IOUT')
         print " %10.2f %10.2f %10.2f" % (ssj['vset'],ssj['vout'],ssj['iout'])
     if (command=="PTSTATUS"):
         sj=json.loads(sr)
         
         ssj=sj["answer"]["STATUS"]
-        print "\033[1m %10s %10s  \033[0m" % ('P','T')
+        print "== %10s %10s  ==" % ('P','T')
         print " %10.2f %10.2f " % (ssj['pressure'],ssj['temperature']+273.15)
     if (command=="HUMSTATUS"):
         sj=json.loads(sr)
         
         ssj=sj["answer"]["STATUS"]
-        print "\033[1m %10s %10s %10s %10s  \033[0m" % ('H0','T0','H1','T1')
+        print "== %10s %10s %10s %10s  ==" % ('H0','T0','H1','T1')
         print " %10.2f %10.2f %10.2f %10.2f " % (ssj['humidity0'],ssj['temperature0'],ssj['humidity11'],ssj['temperature1'])
     if (command=="PTCOR"):
         sj=json.loads(sr)
         
         ssj=sj["answer"]["STATUS"]
-        print "\033[1m %10s %10s  \033[0m" % ('P','T')
+        print "== %10s %10s  ==" % ('P','T')
         print " %10.2f %10.2f " % (ssj['pressure'],ssj['temperature']+273.15)
         p=ssj['pressure']
         t=ssj['temperature']+273.15
@@ -83,12 +83,12 @@ def parseReturn(command,sr,res=None,verbose=False):
         if (res.p0==None):
 	  print "P0 must be set"
 	  return
-	print "\033[1m Voltage to be set is\033[0m %10.2f" % (res.v0*p/res.p0*res.t0/t)
+	print "== Voltage to be set is== %10.2f" % (res.v0*p/res.p0*res.t0/t)
     if (command=="status" and not verbose):
 
         sj=json.loads(sr)
         ssj=sj["answer"]["diflist"]
-        print "\033[1m %4s %5s %6s %12s %12s %15s  %s \033[0m" % ('DIF','SLC','EVENT','BCID','BYTES','SERVER','STATUS')
+        print "== %4s %5s %6s %12s %12s %15s  %s ==" % ('DIF','SLC','EVENT','BCID','BYTES','SERVER','STATUS')
 
         for d in ssj:
             #print d
@@ -98,7 +98,7 @@ def parseReturn(command,sr,res=None,verbose=False):
 
         sj=json.loads(sr)
         ssj=sj["answer"]["tdclist"]
-        print "\033[1m %4s %6s %6s %12s %5s %5s \033[0m" % ('DIF','SLC','EVENT','BCID','DETID','TRIGS')
+        print "== %4s %6s %6s %12s %5s %5s ==" % ('DIF','SLC','EVENT','BCID','DETID','TRIGS')
 
         for d in ssj:
             #print d
@@ -109,16 +109,16 @@ def parseReturn(command,sr,res=None,verbose=False):
     if (command=="dbStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
-        print "\033[1m %10s %10s \033[0m" % ('Run','State')
+        print "== %10s %10s ==" % ('Run','State')
         print " %10d %s " % (ssj['run'],ssj['state'])
     if (command=="shmStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
-        print "\033[1m %10s %10s \033[0m" % ('Run','Event')
+        print "== %10s %10s ==" % ('Run','Event')
         print " %10d %10d " % (ssj['run'],ssj['event'])
     if (command=="state"):
         sj=json.loads(sr)
-        print "\033[1m State \033[0m :",sj["STATE"]
+        print "== State == :",sj["STATE"]
         scm=""
         for z in sj["CMD"]:
             scm=scm+"%s:" % z["name"]
@@ -126,21 +126,21 @@ def parseReturn(command,sr,res=None,verbose=False):
         for z in sj["FSM"]:
             scf=scf+"%s:" % z["name"]
 
-        print "\033[1m Commands \033[0m :",scm
-        print "\033[1m F S M \033[0m :",scf
+        print "== Commands == :",scm
+        print "== F S M == :",scf
     if (command=="triggerStatus"):
           
         sj=json.loads(sr)
         ssj=sj["answer"]["COUNTERS"]
-        print "\033[1m %10s %10s %10s %10s %12s %12s %10s %10s %10s \033[0m" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
+        print "== %10s %10s %10s %10s %12s %12s %10s %10s %10s ==" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
         print " %10d %10d %10d %10d  %12d %12d %12d %10d %10d " % (ssj['spill'],ssj['busy1'],ssj['busy2'],ssj['busy3'],ssj['spillon'],ssj['spilloff'],ssj['beam'],ssj['mask'],ssj['ecalmask'])
     if (command=="difLog" or command=="cccLog" or command=="mdccLog" or command =="zupLog"):
           
         sj=json.loads(sr)
-        print  "\033[1m %s \033[0m" % sj["answer"]["FILE"]
+        print  "== %s ==" % sj["answer"]["FILE"]
         ssj=sj["answer"]["LINES"]
         print ssj
-        #print "\033[1m %10s %10s %10s %10s %12s %12s %10s %10s %10s \033[0m" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
+        #print "== %10s %10s %10s %10s %12s %12s %10s %10s %10s ==" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
         #print " %10d %10d %10d %10d  %12d %12d %12d %10d %10d " % (ssj['spill'],ssj['busy1'],ssj['busy2'],ssj['busy3'],ssj['spillon'],ssj['spilloff'],ssj['beam'],ssj['mask'],ssj['ecalmask'])
 
         
@@ -383,15 +383,15 @@ class fdaqClient:
     resum={}
     rep=""
     for xh in [hostname]:
-        print "\033[1m HOST:  \033[0m",xh
+        print "== HOST:  ==",xh
         resum[xh]=[]
         sr=executeCMD(xh,9999,"LJC-%s" % xh,"STATUS",lcgi)
         sj=json.loads(sr)
-        print "\033[1m Acquisition %s \n \n Processus \n\033[0m" % sj['answer']['NAME']
+        print "== Acquisition %s \n \n Processus \n==" % sj['answer']['NAME']
         ssj=sj["answer"]["JOBS"]
 
         if (ssj != None):
-            print "\033[1m %6s %15s %25s %20s %20s \033[0m" % ('PID','NAME','HOST','STATUS','PORT')
+            print "== %6s %15s %25s %20s %20s ==" % ('PID','NAME','HOST','STATUS','PORT')
             for x in ssj:
                 #print x
                 if (apname!=None and x['NAME']!=apname):
@@ -408,29 +408,29 @@ class fdaqClient:
                 rep =rep + "%6d %15s %25s %20s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
         else:
             rep="No Jobs"
-    print "\033[1m List of Applications  \033[0m" 
+    print "== List of Applications  ==" 
     for xh,y in resum.iteritems():
         for x in y:
             # Dead process or non ZDAQ
             if ('PREFIX' not in x[1]):
-                print "================================================= \n \033[1m %s   running on %s PID %s is  %s \033[0m \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
+                print "================================================= \n == %s   running on %s PID %s is  %s == \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
                 continue
             # normal process
-            print "\033[1m %s :\033[0m http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
-            print "\t \033[1m STATE :\033[0m",x[1]['STATE']
-            rep="\t \033[1m FSM :\033[0m"
+            print "== %s :== http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
+            print "\t == STATE :==",x[1]['STATE']
+            rep="\t == FSM :=="
             for z in x[1]['FSM']:
                 rep=rep+" "+z['name']
             print rep
-            rep="\t \033[1m ALLOWED :\033[0m"
+            rep="\t == ALLOWED :=="
             for z in x[1]['ALLOWED']:
                 rep=rep+" "+z['name']
             print rep
-            rep="\t \033[1m COMMAND :\033[0m"
+            rep="\t == COMMAND :=="
             for z in x[1]['CMD']:
                 rep=rep+" "+z['name']
             print rep
-            print "\t \033[1m FSM PARAMETERS :\033[0m"
+            print "\t == FSM PARAMETERS :=="
             for z in x[1]['CMD']:
                 if (z['name'] != "GETPARAM"):
                     continue
@@ -439,7 +439,7 @@ class fdaqClient:
                 #print sjcmd1
                 if ('PARAMETER' in sjcmd1['answer']):
                     for xp,vp in sjcmd1['answer']['PARAMETER'].iteritems():
-                        print "\t \t  \033[1m %s : \033[0m %s " % (xp,vp)
+                        print "\t \t  == %s : == %s " % (xp,vp)
             
 
     return rep
@@ -456,15 +456,15 @@ class fdaqClient:
     resum={}
     rep=""
     for xh,y in self.p_conf["HOSTS"].iteritems():
-        print "\033[1m HOST:  \033[0m",xh
+        print "== HOST:  ==",xh
         resum[xh]=[]
         sr=executeCMD(xh,9999,"LJC-%s" % xh,"STATUS",lcgi)
         sj=json.loads(sr)
-        print "\033[1m Acquisition %s \n \n Processus \n\033[0m" % sj['answer']['NAME']
+        print "== Acquisition %s \n \n Processus \n==" % sj['answer']['NAME']
         ssj=sj["answer"]["JOBS"]
 
         if (ssj != None):
-            print "\033[1m %6s %15s %25s %20s %20s \033[0m" % ('PID','NAME','HOST','STATUS','PORT')
+            print "== %6s %15s %25s %20s %20s ==" % ('PID','NAME','HOST','STATUS','PORT')
             for x in ssj:
                 #print x
                 if (apname!=None and x['NAME']!=apname):
@@ -480,29 +480,29 @@ class fdaqClient:
                 rep =rep + "%6d %15s %25s %20s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
         else:
             rep="No Jobs"
-    print "\033[1m List of Applications  \033[0m" 
+    print "== List of Applications  ==" 
     for xh,y in resum.iteritems():
         for x in y:
             # Dead process or non ZDAQ
             if ('PREFIX' not in x[1]):
-                print "================================================= \n \033[1m %s   running on %s PID %s is  %s \033[0m \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
+                print "================================================= \n == %s   running on %s PID %s is  %s == \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
                 continue
             # normal process
-            print "\033[1m %s :\033[0m http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
-            print "\t \033[1m STATE :\033[0m",x[1]['STATE']
-            rep="\t \033[1m FSM :\033[0m"
+            print "== %s :== http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
+            print "\t == STATE :==",x[1]['STATE']
+            rep="\t == FSM :=="
             for z in x[1]['FSM']:
                 rep=rep+" "+z['name']
             print rep
-            rep="\t \033[1m ALLOWED :\033[0m"
+            rep="\t == ALLOWED :=="
             for z in x[1]['ALLOWED']:
                 rep=rep+" "+z['name']
             print rep
-            rep="\t \033[1m COMMAND :\033[0m"
+            rep="\t == COMMAND :=="
             for z in x[1]['CMD']:
                 rep=rep+" "+z['name']
             print rep
-            print "\t \033[1m FSM PARAMETERS :\033[0m"
+            print "\t == FSM PARAMETERS :=="
             for z in x[1]['CMD']:
                 if (z['name'] != "GETPARAM"):
                     continue
@@ -511,7 +511,7 @@ class fdaqClient:
                 #print sjcmd1
                 if ('PARAMETER' in sjcmd1['answer']):
                     for xp,vp in sjcmd1['answer']['PARAMETER'].iteritems():
-                        print "\t \t  \033[1m %s : \033[0m %s " % (xp,vp)
+                        print "\t \t  == %s : == %s " % (xp,vp)
             
 
     return rep
@@ -569,8 +569,8 @@ class fdaqClient:
       for x,y in self.p_conf["HOSTS"].iteritems():
           print "HOST ",x
           rep=rep+" Host %s \n" % x
-          print "\033[1m %12s %12s %8s %8s %20s \033[0m" % ('NAME','INSTANCE','PORT','PID','STATE')
-          rep=rep+"\033[1m %12s %12s %8s %8s %20s \033[0m\n" % ('NAME','INSTANCE','PORT','PID','STATE')
+          print "== %12s %12s %8s %8s %20s ==" % ('NAME','INSTANCE','PORT','PID','STATE')
+          rep=rep+"== %12s %12s %8s %8s %20s ==\n" % ('NAME','INSTANCE','PORT','PID','STATE')
           for p in y:
               #print x,p["NAME"]," process found"
               port=0
@@ -603,8 +603,8 @@ class fdaqClient:
       for x,y in self.p_conf["HOSTS"].iteritems():
           print "HOST ",x
           rep=rep+" Host %s \n" % x
-          print "\033[1m %12s %12s %8s %8s %20s \033[0m" % ('NAME','INSTANCE','PORT','PID','STATE')
-          rep=rep+"\033[1m %12s %12s %8s %8s %20s \033[0m\n" % ('NAME','INSTANCE','PORT','PID','STATE')
+          print "== %12s %12s %8s %8s %20s ==" % ('NAME','INSTANCE','PORT','PID','STATE')
+          rep=rep+"== %12s %12s %8s %8s %20s ==\n" % ('NAME','INSTANCE','PORT','PID','STATE')
           for p in y:
               #print x,p["NAME"]," process found"
               port=0
