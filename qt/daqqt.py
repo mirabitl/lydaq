@@ -187,6 +187,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.plainTextEdit.document().setPlainText(r)
     def action_JCStatus(self):
         r=self.daq.jc_status()
+
+        print "REPONSE"
+        print r
+        
         self.plainTextEdit.document().setPlainText(r)
     def action_daq_create(self):
         self.daq.daq_create()

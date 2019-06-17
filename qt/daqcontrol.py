@@ -383,15 +383,18 @@ class fdaqClient:
     resum={}
     rep=""
     for xh in [hostname]:
-        print "== HOST:  ==",xh
+        #print "== HOST:  ==",xh
+        rep = rep+ "== HOST: %s  == \n" % xh
         resum[xh]=[]
         sr=executeCMD(xh,9999,"LJC-%s" % xh,"STATUS",lcgi)
         sj=json.loads(sr)
-        print "== Acquisition %s \n \n Processus \n==" % sj['answer']['NAME']
+        #print "== Acquisition %s ===\n \n == Processus ==\n" % sj['answer']['NAME']
+        rep=rep+"== Acquisition %s ===\n \n == Processus ==\n" % sj['answer']['NAME']
         ssj=sj["answer"]["JOBS"]
 
         if (ssj != None):
-            print "== %6s %15s %25s %20s %20s ==" % ('PID','NAME','HOST','STATUS','PORT')
+            #print "== %6s %15s %25s %20s %20s ==" % ('PID','NAME','HOST','STATUS','PORT')
+            rep=rep+"== %6s %15s %25s %20s %20s ==\n" % ('PID','NAME','HOST','STATUS','PORT')
             for x in ssj:
                 #print x
                 if (apname!=None and x['NAME']!=apname):
@@ -404,33 +407,38 @@ class fdaqClient:
                     resum[xh].append([x,sjcmd])
                 else:
                     x['PORT']="0"
-                print "%6d %15s %25s %20s %20s " % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
+                #print "%6d %15s %25s %20s %20s " % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
                 rep =rep + "%6d %15s %25s %20s %20s\n" % (x['PID'],x['NAME'],x['HOST'],x['STATUS'],x['PORT'])
         else:
-            rep="No Jobs"
-    print "== List of Applications  ==" 
+            rep=rep+"No Jobs"
+    #print "== List of Applications  =="
+    rep=rep+ "== List of Applications  ==\n"
     for xh,y in resum.iteritems():
         for x in y:
             # Dead process or non ZDAQ
             if ('PREFIX' not in x[1]):
-                print "================================================= \n == %s   running on %s PID %s is  %s == \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
+                #print "================================================= \n == %s   running on %s PID %s is  %s == \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
+                rep=rep+"================================================= \n == %s   running on %s PID %s is  %s == \n ==========================================\n " % (x[0]['NAME'],x[0]['HOST'],x[0]['PID'],x[0]['STATUS'])
                 continue
             # normal process
-            print "== %s :== http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
-            print "\t == STATE :==",x[1]['STATE']
-            rep="\t == FSM :=="
+            #print "== %s :== http://%s:%s/%s/ on %s status %s" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
+            rep=rep+"== %s :== http://%s:%s/%s/ on %s status %s\n" % (x[0]['NAME'],x[0]['HOST'],x[0]['PORT'],x[1]['PREFIX'],x[0]['PID'],x[0]['STATUS'])
+            #print "\t == STATE :==",x[1]['STATE']
+            rep=rep+"\t == STATE : %s == \n" % x[1]['STATE']
+            rep=rep+ "\t == FSM :== "
             for z in x[1]['FSM']:
                 rep=rep+" "+z['name']
-            print rep
-            rep="\t == ALLOWED :=="
+            rep=rep+"\n"
+            rep=rep+"\t == ALLOWED :== "
             for z in x[1]['ALLOWED']:
                 rep=rep+" "+z['name']
-            print rep
-            rep="\t == COMMAND :=="
+            rep=rep+"\n"
+            rep=rep+"\t == COMMAND :=="
             for z in x[1]['CMD']:
                 rep=rep+" "+z['name']
-            print rep
-            print "\t == FSM PARAMETERS :=="
+            rep=rep+"\n"
+            #print "\t == FSM PARAMETERS :=="
+            rep=rep+"\t == FSM PARAMETERS :== \n"
             for z in x[1]['CMD']:
                 if (z['name'] != "GETPARAM"):
                     continue
@@ -439,9 +447,10 @@ class fdaqClient:
                 #print sjcmd1
                 if ('PARAMETER' in sjcmd1['answer']):
                     for xp,vp in sjcmd1['answer']['PARAMETER'].iteritems():
-                        print "\t \t  == %s : == %s " % (xp,vp)
+                        #print "\t \t  == %s : == %s " % (xp,vp)
+                        rep=rep+ "\t \t  == %s : == %s \n" % (xp,vp)
             
-
+    print rep
     return rep
 
   def jc_status(self,apname=None):
