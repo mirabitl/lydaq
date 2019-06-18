@@ -1,5 +1,5 @@
-#ifndef _PRSLOW_HH
-#define _PRSLOW_HH
+#ifndef _PRBSLOW_HH
+#define _PRBSLOW_HH
 #include <bitset>
 #include <iostream>
 #include <stdlib.h>
@@ -10,11 +10,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#define SLC_BYTES_LENGTH 80
+#define SLC_BYTES_LENGTH 81
 /**
  * 
- * \file PRSlow.hh
+ * \file PRBSlow.hh
  * \brief  Access to PETIROC2A slow control information
  * \author L.Mirabito
  * \version 1.0
@@ -25,11 +24,11 @@ namespace lydaq
 /**
    * \brief Class to manipulate slow control parameters of PETIROC2A
    * */
-class PRSlow
+class PRBSlow
 {
 public:
   ///  Constructor
-  PRSlow() { memset(_l, 0, 20 * sizeof(uint32_t)); }
+  PRBSlow() { memset(_l, 0, 21 * sizeof(uint32_t)); }
   ///  Get one bit status
   bool getBit(int b) { return (_l[b / 32] >> (b % 32)) & 1; }
   /// set one bit
@@ -124,6 +123,7 @@ public:
     std::cout << "DIS_triggers =" << getDIS_triggers() << std::endl;
     std::cout << "EN_dout_oc =" << getEN_dout_oc() << std::endl;
     std::cout << "EN_transmit =" << getEN_transmit() << std::endl;
+    //std::cout << "EN_transmit =" << getEN_transmit() << std::endl;
     std::cout << "DacDelay =" << getDacDelay() << std::endl;
     for (int ch = 0; ch < 32; ch++)
       std::cout << "InputDac[" << ch << "]=" << (int)getInputDac(ch) << std::endl;
@@ -208,6 +208,11 @@ public:
     _jasic["DIS_triggers"] = getDIS_triggers();
     _jasic["EN_dout_oc"] = getEN_dout_oc();
     _jasic["EN_transmit"] = getEN_transmit();
+    _jasic["PA_ccomp_0"] = getPA_ccomp_0();
+    _jasic["PA_ccomp_1"] = getPA_ccomp_1();
+    _jasic["PA_ccomp_2"] = getPA_ccomp_2();
+    _jasic["PA_ccomp_3"] = getPA_ccomp_3();
+    _jasic["Choice_Trigger_Out"] = getChoice_Trigger_Out();
     _jasic["DacDelay"] = getDacDelay();
     Json::Value idac;
     Json::Value bdac;
@@ -233,7 +238,7 @@ public:
   }
 
   ///   \obsolete load binary file
-  static void loadAsics(std::string fname, PRSlow &s1, PRSlow &s2)
+  static void loadAsics(std::string fname, PRBSlow &s1, PRBSlow &s2)
   {
     FILE *fp = fopen(fname.c_str(), "r");
     int ier;
@@ -394,11 +399,16 @@ public:
     setlatch(_jasic["latch"].asUInt());
     setsel_starb_ramp_adc_ext(_jasic["sel_starb_ramp_adc_ext"].asUInt());
     setusebcompensation(_jasic["usebcompensation"].asUInt());
+    setPA_ccomp_0(_jasic["PA_ccomp_0"].asUInt());
+    setPA_ccomp_1(_jasic["PA_ccomp_1"].asUInt());
+    setPA_ccomp_1(_jasic["PA_ccomp_2"].asUInt());
+    setPA_ccomp_1(_jasic["PA_ccomp_3"].asUInt());
+    setChoice_Trigger_Out(_jasic["Choice_Trigger_Out"].asUInt());
   }
   ///  \obsolete Old format
   void loadConfig(std::string fname)
   {
-    PRSlow s;
+    PRBSlow s;
     uint8_t *buf = (uint8_t *)ptr();
     uint8_t slcBytes = 0;
     FILE *fp = fopen(fname.c_str(), "r");
@@ -527,6 +537,13 @@ public:
   void setDIS_triggers(bool t) { setBitState(637, t); }
   void setEN_dout_oc(bool t) { setBitState(638, t); }
   void setEN_transmit(bool t) { setBitState(639, t); }
+  void setPA_ccomp_0(bool t) { setBitState(640, t); }
+  void setPA_ccomp_1(bool t) { setBitState(641, t); }
+  void setPA_ccomp_2(bool t) { setBitState(642, t); }
+  void setPA_ccomp_3(bool t) { setBitState(643, t); }
+  void setChoice_Trigger_Out(bool t) { setBitState(647, t); }
+
+  
   bool getEN_adc() { return getBit(574); }
   bool getPP_adc() { return getBit(575); }
   bool getsel_starb_ramp_adc_ext() { return getBit(576); }
@@ -585,13 +602,19 @@ public:
   bool getDIS_triggers() { return getBit(637); }
   bool getEN_dout_oc() { return getBit(638); }
   bool getEN_transmit() { return getBit(639); }
+  bool getPA_ccomp_0() { return getBit(640); }
+  bool getPA_ccomp_1() { return getBit(641); }
+  bool getPA_ccomp_2() { return getBit(642); }
+  bool getPA_ccomp_3() { return getBit(643); }
+  bool getChoice_Trigger_Out() { return getBit(647); }
+  
 
   /// Ivert bit orders
-  void loadInvert(PRSlow r)
+  void loadInvert(PRBSlow r)
   {
 
-    for (int i = 639; i >= 0; i--)
-      setBitState(639 - i, r.getBit(i) == 1);
+    for (int i = 647; i >= 0; i--)
+      setBitState(647 - i, r.getBit(i) == 1);
   }
 
   /// Fill address & value for FEB slow control
@@ -621,7 +644,7 @@ public:
   }
 
 private:
-  uint32_t _l[20]; ///< 160 bits of SLC
+  uint32_t _l[21]; ///< 640 bits of SLC
   Json::Value _jasic; ///< JSON cpp Value 
 };
 }; // namespace lydaq

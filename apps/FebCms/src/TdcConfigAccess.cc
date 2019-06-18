@@ -70,10 +70,10 @@ void lydaq::TdcConfigAccess::parseJson()
     {
       const Json::Value &asic = *ita;
       uint8_t header = asic["header"].asUInt();
-      lydaq::PRSlow prs;
+      lydaq::PR2 prs;
       prs.setJson(asic);
       uint64_t eid = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32 | header;
-      _asicMap.insert(std::pair<uint64_t, lydaq::PRSlow>(eid, prs));
+      _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
     }
   }
 }
@@ -90,7 +90,7 @@ void lydaq::TdcConfigAccess::parseJsonUrl(std::string jsf)
 uint16_t *lydaq::TdcConfigAccess::slcBuffer() { return _slcBuffer; }
 uint16_t *lydaq::TdcConfigAccess::slcAddr() { return _slcAddr; }
 uint32_t lydaq::TdcConfigAccess::slcBytes() { return _slcBytes; }
-std::map<uint64_t, lydaq::PRSlow> &lydaq::TdcConfigAccess::asicMap() { return _asicMap; }
+std::map<uint64_t, lydaq::PR2> &lydaq::TdcConfigAccess::asicMap() { return _asicMap; }
 void lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
 {
   // Initialise
@@ -100,14 +100,14 @@ void lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
   for (int ias = 4; ias >= 1; ias--)
   {
     uint64_t eisearch = eid | ias;
-    std::map<uint64_t, lydaq::PRSlow>::iterator im = _asicMap.find(eisearch);
+    std::map<uint64_t, lydaq::PR2>::iterator im = _asicMap.find(eisearch);
     if (im == _asicMap.end())
       continue;
     printf("DIF %x ,Asic %d Found\n", eid >> 32, ias);
     im->second.prepare4Tdc(_slcAddr, _slcBuffer, _slcBytes);
-    _slcBytes += 80;
+    _slcBytes += SLC_BYTES_LENGTH;
   }
-  if (_slcBytes >= 80)
+  if (_slcBytes >= SLC_BYTES_LENGTH)
   {
     _slcBuffer[_slcBytes] = 0x3;
     _slcAddr[_slcBytes] = 0x201;
@@ -209,7 +209,7 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
 
     if (_asicMap.find(eid) != _asicMap.end())
       continue;
-    lydaq::PRSlow prs;
+    lydaq::PR2 prs;
     // Fill it
     prs.setCf0_1p25pF(itMR->getInt("CF0_1P25PF"));
     prs.setCf1_2p5pF(itMR->getInt("CF1_2P5PF"));
@@ -275,6 +275,16 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     prs.setsel_starb_ramp_adc_ext(itMR->getInt("SEL_STARB_RAMP_ADC_EXT"));
     prs.setusebcompensation(itMR->getInt("USEBCOMPENSATION"));
 
+    // PR2B
+#ifndef USE_PR2A
+    prs.setPA_ccomp_0(itMR->getInt("PA_CCOMP_0"));
+    prs.setPA_ccomp_1(itMR->getInt("PA_CCOMP_1"));
+    prs.setPA_ccomp_2(itMR->getInt("PA_CCOMP_2"));
+    prs.setPA_ccomp_3(itMR->getInt("PA_CCOMP_3"));
+    prs.setChoice_Trigger_Out(itMR->getInt("CHOICE_TRIGGER_OUT"));
+#endif
+
+    
     std::vector<int> DAC6B = itMR->getIntVector("DAC6B");
     std::vector<int> INPUTDAC = itMR->getIntVector("INPUTDAC");
     std::vector<int> INPUTDACCOMMAND = itMR->getIntVector("INPUTDACCOMMAND");
@@ -290,7 +300,7 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     }
     prs.toJson();
     // Update map
-    _asicMap.insert(std::pair<uint64_t, lydaq::PRSlow>(eid, prs));
+    _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
   }
 
 #ifndef NO_DB
