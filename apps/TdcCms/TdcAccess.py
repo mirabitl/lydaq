@@ -315,7 +315,7 @@ class TdcAccess:
         self.dccs.append(theDcc)
         print "\t DCC added", theDcc.getString("LDA_ADDRESS"), theDcc.getInt("LDA_CHANNEL")
 
-    def addAsic(self, dif_num, header):
+    def addAsic(self, dif_num, header,version="A"):
         """
         Add a new PETIROC2 
         dif_num = DIF ID (ipaddr in integer >>16)
@@ -323,11 +323,11 @@ class TdcAccess:
         """
         print "force ASIC"
 
-        thePR2 = self.initPR2(dif_num, header)
+        thePR2 = self.initPR2(dif_num, header,version)
         self.asiclist.append(thePR2)
         self.asicConf.add(thePR2)
 
-    def addDIF(self, ipaddr, nb_asic, lda_address="ff:ff:ff:ff:ff:ff", lda_channel=0, dcc_channel=0, xmlfile=None):
+    def addDIF(self, ipaddr, nb_asic, version="A",lda_address="ff:ff:ff:ff:ff:ff", lda_channel=0, dcc_channel=0, xmlfile=None):
         """
         Add a new DIF and load asics conf from file if any
         dif_num = DIF ID = LSB of the ipaddr in integer
@@ -354,7 +354,7 @@ class TdcAccess:
             for ih in range(nb_asic):
                 header = ih+1
 
-                thePR2 = self.initPR2(dif_num, header)
+                thePR2 = self.initPR2(dif_num, header,version)
                 self.asiclist.append(thePR2)
                 self.asicConf.add(thePR2)
 
@@ -508,12 +508,21 @@ class TdcAccess:
         for x in self.asicConf.getVector():
             print x.getInt('DIF_ID'), x.getInt('HEADER')
 
-    def initPR2(self, dif, num):
+    def initPR2(self, dif, num,version="A"):
         """
         PETIROC 2  initialisation
         """
 	#print "***** init HR2"
-        asi = Asic('PR2', dif, num)
+        asi=None
+        if (version=="A"):
+            asi = Asic('PR2', dif, num)
+        else:
+            asi = Asic('PR2B', dif, num)
+            asi.setInt("PA_CCOMP_0",0)
+            asi.setInt("PA_CCOMP_1",0)
+            asi.setInt("PA_CCOMP_2",0)
+            asi.setInt("PA_CCOMP_3",0)
+            asi.setInt("CHOICE_TRIGGER_OUT",0)
         asi.setInt('DIF_ID', dif)
         asi.setInt('HEADER', num)
         asi.setInt('EN_BIAS_DISCRI', 1)
