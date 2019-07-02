@@ -45,6 +45,7 @@ class MongoRoc:
         for i in range(len(self.asiclist)):
             if (self.asiclist[i]["_id"]!=None):
                 continue
+            del self.asiclist[i]["_id"]
             result=self.db.asics.insert_one(self.asiclist[i])
             self.asiclist[i]["_id"]=result.inserted_id
         for  i in range(len(self.asiclist)):
@@ -172,22 +173,33 @@ class MongoRoc:
         return _jasic
 
 
-    def uploadChanges(self):
+    def uploadChanges(self,statename):
         """
         Upload a new version
         The state name will be, old_state_name_xx where xx is the new index (starting from 00)
         """
+        # Find last version
+        res=self.db.states.find({'name':statename})
+        last=0
+        for x in res:
+            last=x["version"]
+        if (last==0):
+            print " No state ",statename,"found"
+            return
         # First append modified ASICS
         for i in range(len(self.asiclist)):
             if (self.asiclist[i]["_id"]!=None):
                 continue
+            del self.asiclist[i]["_id"]
             result=self.db.asics.insert_one(self.asiclist[i])
             self.asiclist[i]["_id"]=result.inserted_id
         self.bson_id=[]
-        for  i in range(len(self.asiclist)):
-            self.bson_id.append(self.asiclist[i]["_id"])
+        for  a in self.asiclist:
+            print a
+            print a["_id"]
+            self.bson_id.append(a["_id"])
         self.state["asics"]=self.bson_id
-        self.state["version"]=self.state["version"]+1
+        self.state["version"]=last+1
         resstate=self.db.states.insert_one(self.state)
         print resstate,self.state["version"],self.state["name"]
     def getDIFList(self):
@@ -258,14 +270,14 @@ class MongoRoc:
         Change the DACDELAY  of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
         """
-        for a in self.asics:
-            if (idif != 0 and a.getInt("DIF_ID") != idif):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
                 continue
-            if (iasic != 0 and a.getInt("HEADER") != iasic):
+            if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
-                a.setInt("DACDELAY", delay)
-                a.setModified(1)
+                a["slc"]["DacDelay"]=delay
+                a["_id"]=None
             except Exception, e:
                 print e.getMessage()
 
@@ -274,36 +286,36 @@ class MongoRoc:
         Change all the ENable signals  of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
         """
-        for a in self.asics:
-            if (idif != 0 and a.getInt("DIF_ID") != idif):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
                 continue
-            if (iasic != 0 and a.getInt("HEADER") != iasic):
+            if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
+                a["slc"]["EN_bias_discri"]=1
+                a["slc"]["EN_bias_pa"]=1
+                a["slc"]["EN_bias_discri_charge"]=1
+                a["slc"]["EN_dout_oc"]=1
+                a["slc"]["EN_bias_dac_delay"]=1
+                a["slc"]["EN10bdac"]=1
+                a["slc"]["EN_bias_discri_adc_charge"]=1
+                a["slc"]["EN_bias_sca"]=1
+                a["slc"]["EN_bias_6bit_dac"]=1
+                a["slc"]["EN_transmit"]=1
+                a["slc"]["EN_bias_ramp_delay"]=1
+                a["slc"]["EN_bias_charge"]=1
+                a["slc"]["EN_fast_lvds_rec"]=1
+                a["slc"]["EN_transmitter"]=1
+                a["slc"]["EN_adc"]=1
+                a["slc"]["EN_NOR32_charge"]=1
+                a["slc"]["EN_80M"]=1
+                a["slc"]["EN_discri_delay"]=1
+                a["slc"]["EN_bias_discri_adc_time"]=1
+                a["slc"]["EN_NOR32_time"]=1
+                a["slc"]["EN_temp_sensor"]=1
 
-                a.setInt('EN_BIAS_DISCRI', 1)
-                a.setInt('EN_BIAS_PA', 1)
-                a.setInt('EN_BIAS_DISCRI_CHARGE', 1)
-                a.setInt('EN_DOUT_OC', 1)
-                a.setInt('EN_BIAS_DAC_DELAY', 1)
-                a.setInt('EN10BDAC', 1)
-                a.setInt('EN_BIAS_DISCRI_ADC_CHARGE', 1)
-                a.setInt('EN_BIAS_SCA', 1)
-                a.setInt('EN_BIAS_6BIT_DAC', 1)
-                a.setInt('EN_TRANSMIT', 1)
-                a.setInt('EN_BIAS_RAMP_DELAY', 1)
-                a.setInt('EN_BIAS_CHARGE', 1)
-                a.setInt('EN_FAST_LVDS_REC', 1)
-                a.setInt('EN_TRANSMITTER', 1)
-                a.setInt('EN_ADC', 1)
-                a.setInt('EN_NOR32_CHARGE', 1)
-                a.setInt('EN_80M', 1)
-                a.setInt('EN_DISCRI_DELAY', 1)
-                a.setInt('EN_BIAS_DISCRI_ADC_TIME', 1)
-                a.setInt('EN_NOR32_TIME', 1)
-                a.setInt('EN_TEMP_SENSOR', 1)
+                a["_id"]=None
 
-                a.setModified(1)
             except Exception, e:
                 print e.getMessage()
 
@@ -312,44 +324,36 @@ class MongoRoc:
         Change the 6BDAC value to dac  of the asic #asic on the TDCDIF #dif       
         """
 
-        for a in self.asics:
-            if (a.getInt("DIF_ID") != idif):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
                 continue
-            if (a.getInt("HEADER") != iasic):
+            if (iasic != 0 and a["num"] != iasic):
                 continue
-
-            vg = a.getIntVector("DAC6B")
-            vg[ich] = dac
-            print " Dac changed", idif, iasic, ich, dac
             try:
-                a.setIntVector("DAC6B", vg)
+                a["slc"]["6bDac"][ich]=dac
+                a["_id"]=None
             except Exception, e:
                 print e.getMessage()
-            a.setModified(1)
-
     def Correct6BDac(self, idif, iasic, cor):
         """
         Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
         cor is an array of 32 value , 
         6BDAC[i]=6BDAC[i]+cor[i]
         """
-
-        for a in self.asics:
-            if (a.getInt("DIF_ID") != idif):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
                 continue
-            if (a.getInt("HEADER") != iasic):
+            if (iasic != 0 and a["num"] != iasic):
                 continue
-
-            vg = a.getIntVector("DAC6B")
-            for ich in range(32):
-                print " Dac changed", idif, iasic, ich, vg[ich], cor[ich]
-                vg[ich] = vg[ich]+cor[ich]
-
             try:
-                a.setIntVector("DAC6B", vg)
+                for ich in range(32):
+                    print " Dac changed", idif, iasic, ich, vg[ich], cor[ich]
+                    a["slc"]["6bDac"][ich] = a["slc"]["6bDac"][ich]+cor[ich]
+
+                a["_id"]=None
             except Exception, e:
                 print e.getMessage()
-            a.setModified(1)
+
 
     def ChangeMask(self, idif, iasic, ich, mask):
         """
@@ -357,18 +361,17 @@ class MongoRoc:
         Careful: 1 = inactive, 0=active
         """
 
-        for a in self.asics:
-            if (a.getInt("DIF_ID") != idif):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
                 continue
-            if (a.getInt("HEADER") != iasic):
+            if (iasic != 0 and a["num"] != iasic):
                 continue
-
-            vg = a.getIntVector("MASKDISCRITIME")
-            vg[ich] = mask
-            print " Dac changed", idif, iasic, ich, mask
             try:
-                a.setIntVector("MASKDISCRITIME", vg)
+                a["slc"]["VthTime"]=VthTime
+                for ich in range(32):
+                    a["slc"]["MaskDiscriTime"][ich] = (mask>>ich)&1
+
+                a["_id"]=None
             except Exception, e:
                 print e.getMessage()
-            a.setModified(1)
 
