@@ -1,0 +1,5 @@
+MONGO_HOST = "lyosdhcal12"
+MONGO_PORT = 27017
+MONGO_DB = "MonTest"
+MONGO_USER = "acqilc"
+MONGO_PASS = "RPC_2008"
