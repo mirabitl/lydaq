@@ -59,7 +59,7 @@ class MongoRoc:
             print x["name"],x["version"],x["asics"]
             self.state["name"]=x["name"]
             self.state["version"]=x["version"]
-            var=raw_input()
+            #var=raw_input()
             slc={}
             slc["asics"]=[]
             self.asiclist=[]
@@ -75,6 +75,7 @@ class MongoRoc:
             f=open("/dev/shm/%s_%s.json" % (statename,version),"w+")
             f.write(json.dumps(slc))
             f.close()
+            return slc
     def initPR2(self, num,version="PR2"):
         """
         PETIROC 2  initialisation
