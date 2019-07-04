@@ -1,6 +1,7 @@
 cd ConfigurationDB;scons -c install;cd -
 cd Tdc;scons -c install;cd -
 cd FebCms;scons -c install;cd -
+cd Gric;scons -c install;cd -
 cd TdcCms;scons -c install;cd -
 cd Dif;scons -c install;cd -
 cd Sdcc;scons -c install;cd -

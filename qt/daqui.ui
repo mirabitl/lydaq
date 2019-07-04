@@ -6,15 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1062</width>
-    <height>887</height>
+    <width>1547</width>
+    <height>1195</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_16">
+   <item row="2" column="0">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
@@ -23,59 +33,8 @@
       <attribute name="title">
        <string>Processus</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="0">
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Job Control</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="JCCreate">
-            <property name="text">
-             <string>Create</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="JCStart">
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="JCKill">
-            <property name="text">
-             <string>Kill</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QPushButton" name="JCDestroy">
-            <property name="text">
-             <string>Destroy</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QPushButton" name="JCStatus">
-            <property name="text">
-             <string>Status</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="5">
-           <widget class="QPlainTextEdit" name="plainTextEdit">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="0">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Configuration</string>
@@ -122,13 +81,87 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Job Control</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="JCCreate">
+            <property name="text">
+             <string>Create</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="JCStart">
+            <property name="text">
+             <string>Start</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="JCKill">
+            <property name="text">
+             <string>Kill</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="JCDestroy">
+            <property name="text">
+             <string>Destroy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QPushButton" name="JCStatus">
+            <property name="text">
+             <string>Status</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <spacer name="horizontalSpacer_18">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>930</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="6">
+           <widget class="QPushButton" name="PBAppcreate">
+            <property name="text">
+             <string>Create Applications</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="7">
+           <widget class="QPlainTextEdit" name="plainTextEdit">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOn</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
        <string>DAQ</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
@@ -321,172 +354,326 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_12">
+        <widget class="QGroupBox" name="groupBox_23">
          <property name="title">
-          <string>TDC Settings</string>
+          <string>TDC Calibration</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <layout class="QHBoxLayout" name="horizontalLayout_15">
           <item>
-           <widget class="QCheckBox" name="CBTrigExt">
+           <widget class="QPushButton" name="PBLutcalib">
             <property name="text">
-             <string>External trigger mode</string>
+             <string>Calibrate</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_14">
+           <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>Active (10 ns)</string>
+             <string>Nb TDC</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="SBActive">
-            <property name="maximum">
-             <number>255</number>
-            </property>
+           <widget class="QSpinBox" name="SBNtdc">
             <property name="value">
-             <number>3</number>
+             <number>48</number>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Dead (10 ns)</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="SBDead">
-            <property name="maximum">
-             <number>255</number>
-            </property>
-            <property name="value">
-             <number>3</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_10">
+           <spacer name="horizontalSpacer_16">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>456</width>
+              <width>556</width>
               <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="PBSetTdc">
+           <widget class="QLabel" name="label_24">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>Set</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_15">
-         <property name="title">
-          <string>TDC Threshold</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_11">
-          <item>
-           <widget class="QSpinBox" name="SBThreshold">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>1023</number>
-            </property>
-            <property name="value">
-             <number>600</number>
+             <string>Calibration status</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="PBThreshold">
+           <widget class="QLabel" name="LACalibStatus">
+            <property name="minimumSize">
+             <size>
+              <width>180</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
-             <string>Set</string>
+             <string>Unknown</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_11">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Drawing channel</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="SBLutchannel"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="PBLutdraw">
+            <property name="text">
+             <string>Draw</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_17">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>858</width>
+              <width>172</width>
               <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_21">
-         <property name="title">
-          <string>Mask</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_14">
           <item>
-           <widget class="QLabel" name="label_18">
+           <widget class="QLabel" name="label_23">
             <property name="text">
              <string>Mask</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="LEMask">
+           <widget class="QLineEdit" name="LEMaskTDC">
+            <property name="minimumSize">
+             <size>
+              <width>180</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
-             <string>0XFFFFFFFF</string>
+             <string>0xFFFFFFFFFFFF</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_19">
+           <widget class="QPushButton" name="PBTestmask">
             <property name="text">
-             <string>Asic</string>
+             <string>Apply</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QSpinBox" name="SBAsic">
-            <property name="maximum">
-             <number>255</number>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_22">
+         <property name="title">
+          <string>PETIROC</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_17">
+          <item row="0" column="1" colspan="2">
+           <widget class="QGroupBox" name="groupBox_15">
+            <property name="title">
+             <string>PETIROC Threshold</string>
             </property>
-            <property name="value">
-             <number>255</number>
-            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_11">
+             <item>
+              <widget class="QSpinBox" name="SBThreshold">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>1023</number>
+               </property>
+               <property name="value">
+                <number>600</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="PBThreshold">
+               <property name="text">
+                <string>Set</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_11">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>858</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </item>
-          <item>
-           <spacer name="horizontalSpacer_12">
+          <item row="1" column="0" colspan="2">
+           <widget class="QGroupBox" name="groupBox_21">
+            <property name="title">
+             <string>Mask</string>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_14">
+             <item>
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>Mask</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="LEMask">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>0XFFFFFFFF</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Asic</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="SBAsic">
+               <property name="maximum">
+                <number>255</number>
+               </property>
+               <property name="value">
+                <number>255</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_12">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>388</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="PBMask">
+               <property name="text">
+                <string>Set</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_15">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>388</width>
+              <width>430</width>
               <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
-          <item>
-           <widget class="QPushButton" name="PBMask">
-            <property name="text">
-             <string>Set</string>
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBox_12">
+            <property name="title">
+             <string>FSM PETIROC Settings</string>
             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QCheckBox" name="CBTrigExt">
+               <property name="text">
+                <string>External trigger mode</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_14">
+               <property name="text">
+                <string>Active (10 ns)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="SBActive">
+               <property name="maximum">
+                <number>255</number>
+               </property>
+               <property name="value">
+                <number>3</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>Dead (10 ns)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="SBDead">
+               <property name="maximum">
+                <number>255</number>
+               </property>
+               <property name="value">
+                <number>3</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_10">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>456</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="PBSetTdc">
+               <property name="text">
+                <string>Set</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
@@ -1494,16 +1681,6 @@
        </item>
       </layout>
      </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
     </widget>
    </item>
   </layout>

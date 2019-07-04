@@ -60,6 +60,7 @@ lydaq::GricManager::GricManager(std::string name) : zdaq::baseApplication(name),
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::GricManager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::GricManager::c_downloadDB,this,_1,_2));
   _fsm->addCommand("CLOSE",boost::bind(&lydaq::GricManager::c_close,this,_1,_2));
+  _fsm->addCommand("PULSE",boost::bind(&lydaq::GricManager::c_pulse,this,_1,_2));
 
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
@@ -205,6 +206,22 @@ void lydaq::GricManager::c_setthresholds(Mongoose::Request &request, Mongoose::J
   response["THRESHOLD0"]=b0;
   response["THRESHOLD1"]=b1;
   response["THRESHOLD2"]=b2;
+}
+void lydaq::GricManager::c_pulse(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Pulse called ");
+  response["STATUS"]="DONE";
+
+  
+  uint32_t b0=atol(request.get("value","0").c_str());
+ for (auto x:_mpi->controlSockets())
+    {
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Pulse  "<<x.second->hostTo()<<" "<<x.second->portTo()<<" "<<lydaq::MpiMessage::command::PULSE<<" "<<b0);
+      this->sendParameter(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::PULSE,b0);
+    }
+  
+
+  response["NPULSE"]=b0&0xFF;
 }
 void lydaq::GricManager::c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -442,9 +459,26 @@ void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t comm
   _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
-  sp[0]=htons(6);
+  sp[0]=htons(len);
   _msg->ptr()[4]=command;
   _msg->ptr()[len-1]=')';    
+  uint32_t tr=_mpi->sendMessage(_msg);
+  this->processReply(adr,tr,command);
+}
+void lydaq::GricManager::sendParameter(std::string host,uint32_t port,uint8_t command,uint8_t par)
+{
+  uint16_t len=7;
+  uint32_t adr= lydaq::MpiMessageHandler::convertIP(host);
+  _msg->setAddress(( (uint64_t) adr<<32)|port);
+  _msg->setLength(len);
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
+  _msg->ptr()[0]='(';
+  sp[0]=htons(len);
+  _msg->ptr()[4]=command;
+  _msg->ptr()[5]=par;
+  _msg->ptr()[len-1]=')';
+
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" SENDING ="<<(int) command<<" length="<<len<<" parameter="<<(int) par<<" address="<<host <<" port="<<port);
   uint32_t tr=_mpi->sendMessage(_msg);
   this->processReply(adr,tr,command);
 }

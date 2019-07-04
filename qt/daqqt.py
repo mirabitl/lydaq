@@ -57,7 +57,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.allstatus=AllStatus(self)
         self.LVHisto.setWindowTitle('Honey-Do List')
         self.LVHisto.setMinimumSize(600, 400)
- 
+        self.luts=[]
         
         self.connect(self.allstatus, QtCore.SIGNAL("updateStatus()"), self.updateStatus)
 
@@ -77,6 +77,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.JCKill.clicked.connect(self.action_JCKill)
         self.JCDestroy.clicked.connect(self.action_JCDestroy)
         self.JCStatus.clicked.connect(self.action_JCStatus)
+        self.PBAppcreate.clicked.connect(self.action_JCAppcreate)
         # DAQ
         self.PBCreate.clicked.connect(self.action_daq_create)
         self.PBDiscover.clicked.connect(self.action_daq_discover)
@@ -135,6 +136,11 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.RBInjectionExternalMultiple.clicked.connect(self.action_injection_source)
         self.RBInjectionSoft.clicked.connect(self.action_injection_source)
         self.RBInjectionByPass.clicked.connect(self.action_injection_source)
+
+        #calibration
+        self.PBLutcalib.clicked.connect(self.action_lutcalib)
+        self.PBLutdraw.clicked.connect(self.action_lutdraw)
+        self.PBTestmask.clicked.connect(self.action_tdc_testmask)
         
         
     def onChange(self,i):
@@ -174,6 +180,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
     def action_JCStart(self):
         r=self.daq.jc_start()
         self.plainTextEdit.document().setPlainText(r)
+    def action_JCAppcreate(self):
+        r=self.daq.jc_appcreate()
+        r=self.daq.jc_status()
+        self.plainTextEdit.document().setPlainText(r)
     def action_JCKill(self):
         r=self.daq.jc_kill()
         self.plainTextEdit.document().setPlainText(r)
@@ -182,6 +192,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.plainTextEdit.document().setPlainText(r)
     def action_JCStatus(self):
         r=self.daq.jc_status()
+
+        print "REPONSE"
+        print r
+        
         self.plainTextEdit.document().setPlainText(r)
     def action_daq_create(self):
         self.daq.daq_create()
@@ -504,8 +518,19 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 
         print self.daq.injection_source(s)
 
+# calibration
+    def action_lutcalib(self):
+        self.luts=[]
+        for i in range(self.SBNtdc.value()):
+            self.daq.lut_calib(0,i)
+    def action_lutdraw(self):
+        v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas)
+        self.luts.append(v[0])
 
-
+    def action_tdc_testmask(self):
+        self.daq.tdc_testmask(0,int(str(self.LEMaskTDC.text()),16))
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)        
 
 
 

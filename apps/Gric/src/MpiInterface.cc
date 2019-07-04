@@ -99,14 +99,18 @@ uint32_t  lydaq::MpiInterface::sendMessage(MpiMessage* m)
   try
   {
     m->ptr()[3]=(_transaction++)%255;
+    
     itsock->second->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
+
+    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
+
     return (_transaction-1);
   }
   catch (NL::Exception e)
   {
     throw e.msg();
   }
-  //  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
+  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
 
 }
 

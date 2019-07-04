@@ -36,7 +36,11 @@ grp_action.add_argument('--jc-start', action='store_true',
 grp_action.add_argument('--jc-restart', action='store_true',
                         help='restart one job with --jobname=name --jobpid=pid --host=hostname')
 grp_action.add_argument('--jc-status', action='store_true',
-                        help='show the status all controled processes')
+                        help='show the status all controled processes or of the process specified in --name=PROC')
+grp_action.add_argument('--jc-info', action='store_true',
+                        help='show the status all controled processesof the host specified in --host=Host')
+grp_action.add_argument('--jc-appcreate', action='store_true',
+                        help='Create all ZDAQ app on all hosts')
 
 #DAQ preparation
 grp_action.add_argument('--daq-create', action='store_true',
@@ -181,6 +185,13 @@ grp_action.add_argument('--slc-hvoff', action='store_true',
 grp_action.add_argument('--slc-clearalarm', action='store_true',
                         help='Clear alarm  of channel i to k with --first=i --last=k ')
 
+grp_action.add_argument('--tdc-lutcalib', action='store_true',
+                        help='Calibrate --tdc=i --channel=k ')
+grp_action.add_argument('--tdc-lutdraw', action='store_true',
+                        help='Calibrate --tdc=i --channel=k ')
+grp_action.add_argument('--histo-draw', action='store_true',
+                        help='Draw histo --name=histo ')
+
 #grp_action.add_argument('--slc-store',action='store_true',help='start the data storage in the mysql DB at period p  with --period=p (s) ')
 #grp_action.add_argument('--slc-store-stop',action='store_true',help='stop the data storage in the mysql DB ')
 #grp_action.add_argument('--slc-check',action='store_true',help='start the voltage tuning wrt references at period p  with --period=p (s) ')
@@ -223,6 +234,9 @@ parser.add_argument('--p0', action='store', type=float,
                     default=None, dest='p0', help='reference P')
 parser.add_argument('--t0', action='store', type=float,
                     default=None, dest='t0', help='reference T')
+
+parser.add_argument('--tdc', action='store', type=int,
+                    default=None, dest='tdc', help='set the tdc process')
 
 # Slow
 parser.add_argument('--channel', action='store', type=int,
@@ -347,8 +361,28 @@ elif(results.jc_restart):
     fdc.jc_restart(results.host, results.jobname, results.jobpid)
     r_cmd = 'jobReStart'
     exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print sr
+    exit(0)
 elif(results.jc_status):
-    sr = fdc.jc_status()
+    if (results.name != None):
+        sr = fdc.jc_status(results.name)
+        exit(0)
+    else:
+        sr = fdc.jc_status()
+    exit(0)
+elif(results.jc_info):
+    if (results.host != None):
+        if (results.name != None):
+            sr = fdc.jc_info(results.host,results.name)
+            exit(0)
+        else:
+            sr = fdc.jc_info(results.host)
+
+        exit(0)
+    else:
+        print "Host name missing"
     exit(0)
 elif(results.daq_state):
     r_cmd = 'state'
@@ -836,4 +870,31 @@ elif(results.slc_rampup):
         print sr
     else:
         dqc.parseReturn('hvStatus', sr)
+    exit(0)
+elif(results.tdc_lutcalib):
+    r_cmd = 'lutcalib'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.lut_calib(results.tdc, results.channel)
+    exit(0)
+elif(results.tdc_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
     exit(0)

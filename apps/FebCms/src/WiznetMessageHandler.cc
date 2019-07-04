@@ -91,6 +91,28 @@ lydaq::WiznetMessageHandler::WiznetMessageHandler(std::string directory) : _stor
   _sockMap.clear();
 }
 
+
+void lydaq::WiznetMessageHandler::dumpShm(NL::Socket* socket,ptrBuf p)
+{
+  std::stringstream s;
+  s<<_storeDir<<"/"<<socket->hostTo()<<"/"<<socket->portTo()<<"/data";
+  ::unlink(s.str().c_str());
+  int fd= ::open(s.str().c_str(),O_CREAT| O_RDWR | O_NONBLOCK,S_IRWXU);
+  if (fd<0)
+  {
+    
+    LOG4CXX_FATAL(_logFeb," Cannot open shm file "<<s.str());
+    perror("No way to store to file :");
+    return;
+  }
+  int ier=write(fd,&p.second[0],p.first);
+  if (ier!=p.first) 
+  {
+    std::cout<<"pb in write "<<ier<<std::endl;
+  }
+  ::close(fd);
+
+}
 void lydaq::WiznetMessageHandler::processMessage(NL::Socket *socket)
 {
   // build id
@@ -169,6 +191,8 @@ void lydaq::WiznetMessageHandler::processMessage(NL::Socket *socket)
   }
   /// Call the functor
   icmd->second(id, p.first, (char *)p.second);
+  /// Dmp to Shm
+  this->dumpShm(socket,p);
   /// Reset the buffer
   p.first = 0;
   return;

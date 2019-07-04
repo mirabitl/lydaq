@@ -50,6 +50,9 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("SETDELAY", boost::bind(&lydaq::WiznetManager::c_setDelay, this, _1, _2));
   _fsm->addCommand("SETDURATION", boost::bind(&lydaq::WiznetManager::c_setDuration, this, _1, _2));
   _fsm->addCommand("GETLUT", boost::bind(&lydaq::WiznetManager::c_getLUT, this, _1, _2));
+  _fsm->addCommand("CALIBSTATUS", boost::bind(&lydaq::WiznetManager::c_getCalibrationStatus, this, _1, _2));
+  _fsm->addCommand("CALIBMASK", boost::bind(&lydaq::WiznetManager::c_setCalibrationMask, this, _1, _2));
+  _fsm->addCommand("TESTMASK", boost::bind(&lydaq::WiznetManager::c_setMeasurementMask, this, _1, _2));
 
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
 
@@ -112,7 +115,7 @@ void lydaq::WiznetManager::c_set6bdac(Mongoose::Request &request, Mongoose::Json
   LOG4CXX_INFO(_logFeb, "Set6bdac called with dac=" << nc);
 
   this->set6bDac(nc & 0xFF);
-  response["6BDAC"] = nc;
+  response["6BDAC"] = _jControl;
 }
 void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -123,7 +126,7 @@ void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::Js
   LOG4CXX_INFO(_logFeb, "set VThTime called with value=" << nc);
 
   this->setVthTime(nc);
-  response["VTHTIME"] = nc;
+  response["VTHTIME"] = _jControl;
 }
 void lydaq::WiznetManager::c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -137,6 +140,7 @@ void lydaq::WiznetManager::c_set1vthtime(Mongoose::Request &request, Mongoose::J
   response["VTH"] = vth;
   response["FEB"] = feb;
   response["ASIC"] = asic;
+  response["1VTH"]=_jControl;
 }
 void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -149,9 +153,30 @@ void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonR
 
   uint32_t asic = atol(request.get("asic", "255").c_str());
 
- LOG4CXX_INFO(_logFeb,"SetMask called  with mask"<<std::hex<<nc<<std::dec<<" and asic mask "<<asic);
-  this->setMask(nc,asic&0xFF);
-  response["MASK"]=nc;
+  LOG4CXX_INFO(_logFeb, "SetMask called  with mask" << std::hex << nc << std::dec << " and asic mask " << asic);
+  this->setMask(nc, asic & 0xFF);
+  response["MASK"] = _jControl;
+}
+
+void lydaq::WiznetManager::c_setCalibrationMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb, __PRETTY_FUNCTION__ << "SetCalibrationMask called ");
+  response["STATUS"] = "DONE";
+  uint64_t mask = 0;
+  sscanf(request.get("value", "0x0").c_str(), "%llx", &mask);
+  LOG4CXX_INFO(_logFeb, "SetCalibrationMask called  with mask" << std::hex << mask << std::dec);
+  this->setCalibrationMask(mask);
+  response["CMASK"] = (Json::Value::UInt64)mask;
+}
+void lydaq::WiznetManager::c_setMeasurementMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb, __PRETTY_FUNCTION__ << "c_setMeasurementMask called ");
+  response["STATUS"] = "DONE";
+  uint64_t mask = 0;
+  sscanf(request.get("value", "0x0").c_str(), "%llx", &mask);
+  LOG4CXX_INFO(_logFeb, "c_setMeasurementMask called  with mask" << std::hex << mask << std::dec);
+  this->setMeasurementMask(mask);
+  response["MMASK"] = (Json::Value::UInt64)mask;
 }
 void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -161,7 +186,7 @@ void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::Json
   _delay = delay;
   this->setDelay();
   LOG4CXX_INFO(_logFeb, "SetDelay called with " << delay << " " << _delay);
-  response["DELAY"] = _delay;
+  response["DELAY"] =_delay;
 }
 void lydaq::WiznetManager::c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -170,7 +195,15 @@ void lydaq::WiznetManager::c_getLUT(Mongoose::Request &request, Mongoose::JsonRe
   uint32_t chan = atol(request.get("value", "0").c_str());
   this->getLUT(chan);
   LOG4CXX_INFO(_logFeb, "GETLUT called for " << chan);
-  response["LUT"] = chan;
+  response["LUT"] = _jControl;
+}
+void lydaq::WiznetManager::c_getCalibrationStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  this->getCalibrationStatus();
+  LOG4CXX_INFO(_logFeb, "GetCalibrationStatus called ");
+  response["CALIBRATION"] = _jControl;
 }
 void lydaq::WiznetManager::c_setDuration(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -326,6 +359,24 @@ void lydaq::WiznetManager::writeAddress(std::string host, uint32_t port, uint16_
   _msg->_buf[3] = htons(val);
   _wiznet->sendMessage(_msg);
 }
+
+void lydaq::WiznetManager::writeLongWord(std::string host, uint32_t port, uint16_t addr, uint64_t val)
+{
+  /// Encode one command for FEB+wiznet
+  _msg->_address = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(host) << 32) | port;
+  _msg->_length = 10;
+  _msg->_buf[0] = htons(0xFF00);
+  _msg->_buf[1] = htons(4);
+  _msg->_buf[2] = htons(addr);
+  _msg->_buf[3] = htons(val & 0XFFFF);
+  _msg->_buf[4] = htons(addr + 1);
+  _msg->_buf[5] = htons((val >> 16) & 0XFFFF);
+  _msg->_buf[6] = htons(addr + 2);
+  _msg->_buf[7] = htons((val >> 32) & 0xFFFF);
+  _msg->_buf[8] = htons(addr + 3);
+  _msg->_buf[9] = htons((val >> 48) & 0xFFFF);
+  _wiznet->sendMessage(_msg);
+}
 void lydaq::WiznetManager::configure(zdaq::fsmmessage *m)
 {
   LOG4CXX_INFO(_logFeb, "CONFIGURE transition");
@@ -339,6 +390,7 @@ void lydaq::WiznetManager::configure(zdaq::fsmmessage *m)
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
   }
 }
 
@@ -362,6 +414,7 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
   ::sleep(1);
@@ -408,6 +461,7 @@ void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
   ::sleep(1);
@@ -433,6 +487,7 @@ void lydaq::WiznetManager::setVthTime(uint32_t vth)
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
   }
   LOG4CXX_DEBUG(_logFeb, __PRETTY_FUNCTION__ << " Fin ");
 }
@@ -460,6 +515,7 @@ void lydaq::WiznetManager::setSingleVthTime(uint32_t vth, uint32_t feb, uint32_t
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+     this->readShm(x.second->hostTo(), x.second->portTo());
   }
   LOG4CXX_DEBUG(_logFeb, __PRETTY_FUNCTION__ << " Fin ");
 }
@@ -486,6 +542,34 @@ void lydaq::WiznetManager::getLUT(int chan)
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x224, chan);
+    ::sleep(1);
+    this->readShm(x.second->hostTo(), x.second->portTo());
+  }
+}
+void lydaq::WiznetManager::getCalibrationStatus()
+{
+  LOG4CXX_INFO(_logFeb, " get Calibration Status for on all FEBS");
+  for (auto x : _wiznet->controlSockets())
+  {
+    this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x225, 0);
+    ::sleep(1);
+    this->readShm(x.second->hostTo(), x.second->portTo());
+  }
+}
+void lydaq::WiznetManager::setCalibrationMask(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb, " setCalibrationMask " << std::hex << mask << std::dec << " on all FEBS");
+  for (auto x : _wiznet->controlSockets())
+  {
+    this->writeLongWord(x.second->hostTo(), x.second->portTo(), 0x226, mask);
+  }
+}
+void lydaq::WiznetManager::setMeasurementMask(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " on all FEBS");
+  for (auto x : _wiznet->controlSockets())
+  {
+    this->writeLongWord(x.second->hostTo(), x.second->portTo(), 0x230, mask);
   }
 }
 void lydaq::WiznetManager::start(zdaq::fsmmessage *m)
@@ -551,4 +635,36 @@ void lydaq::WiznetManager::destroy(zdaq::fsmmessage *m)
   _vTdc.clear();
 
   // To be done: _wiznet->clear();
+}
+void lydaq::WiznetManager::readShm(std::string host,uint32_t port)
+{
+  ::sleep(1);
+  std::stringstream s;
+  s<<"/dev/shm/"<<host<<"/"<<port<<"/data";
+
+  int fd= ::open(s.str().c_str(),O_RDONLY);
+  if (fd<0)
+  {
+    
+    LOG4CXX_FATAL(_logFeb," Cannot open shm file "<<s.str());
+    perror("No way to store to file :");
+    _controlSize=fd;
+    return;
+  }
+  _controlSize=65536;
+  int32_t ier=::read(fd,_controlData,_controlSize);
+  _controlSize=ier;
+  ::close(fd);
+  _jControl.clear();
+  Json::Value jl;
+  jl["size"]=_controlSize;
+  if (_controlSize>0)
+    {
+      
+      Json::Value jt;
+      for (int i =0;i<_controlSize;i++)       
+	jt.append((uint16_t) _controlData[i]);
+      jl["content"]=jt;
+    }
+  _jControl[host]=jl;
 }
