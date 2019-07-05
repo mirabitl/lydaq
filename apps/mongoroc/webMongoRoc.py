@@ -13,7 +13,17 @@ import os,sys,json
 import time
 def jdefault(o):
     return o.__dict__
+
+
 _wdd=None
+# create the default access
+f=open("/etc/.mongoroc.json")
+s=json.loads(f.read())
+_wdd=mg.MongoRoc(s["host"],s["port"],s["db"],s["user"],s["pwd"])
+server_host=s["server_host"]
+server_port=s["server_port"]
+f.close()
+
 
 class wddService(ServiceBase):
     @srpc(String,UnsignedInteger,String,String,String, _returns=Iterable(String))
@@ -26,7 +36,8 @@ class wddService(ServiceBase):
     def download(state,version):
         global _wdd
         s=_wdd.download(state,version);
-        yield json.dumps(s)
+        yield s
+        #json.dumps(s)
 
     @srpc( _returns=Iterable(String))
     def startHost():
@@ -256,7 +267,7 @@ if __name__=='__main__':
     wsgi_application = WsgiApplication(application)
 
     # More daemon boilerplate
-    server = make_server('134.158.137.101', 8100, wsgi_application)
+    server = make_server(server_host, server_port, wsgi_application)
 
     logging.info("listening to http://lyosdhcal15:8100")
     logging.info("wsdl is at: http://lyosdhcal15:8100/?wsdl")
