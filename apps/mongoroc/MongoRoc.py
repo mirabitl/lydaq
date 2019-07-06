@@ -61,6 +61,8 @@ class MongoRoc:
             self.state["version"]=x["version"]
             #var=raw_input()
             slc={}
+            slc["state"]=statename
+            slc["version"]=version
             slc["asics"]=[]
             self.asiclist=[]
             for y in x["asics"]:
