@@ -40,6 +40,21 @@ class MongoRoc:
             asic["_id"]=None
             print asic["dif"],asic["num"],asic["_id"]," is added"
             self.asiclist.append(asic)
+    def uploadFromFile(self,fname):
+        f=open(fname)
+        sf=json.loads(f.read())
+        f.close()
+        self.state["name"]=sf["state"]
+        self.state["version"]=sf["version"]
+        for x in sf["asics"]:
+            result=self.db.asics.insert_one(x)
+            x["_id"]=result.inserted_id
+        self.bson_id=[]
+        for  i in range(len(sf["asics"])):
+            self.bson_id.append(sf["asics"][i]["_id"])
+        self.state["asics"]=self.bson_id
+        resstate=self.db.states.insert_one(self.state)
+        print resstate
     def uploadNewState(self):
         # First append modified ASICS
         for i in range(len(self.asiclist)):
@@ -176,7 +191,7 @@ class MongoRoc:
         return _jasic
 
 
-    def uploadChanges(self,statename):
+    def uploadChanges(self,statename,comment):
         """
         Upload a new version
         The state name will be, old_state_name_xx where xx is the new index (starting from 00)
@@ -203,6 +218,7 @@ class MongoRoc:
             self.bson_id.append(a["_id"])
         self.state["asics"]=self.bson_id
         self.state["version"]=last+1
+        self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate,self.state["version"],self.state["name"]
     def getDIFList(self):
@@ -336,7 +352,7 @@ class MongoRoc:
                 a["slc"]["6bDac"][ich]=dac
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
     def Correct6BDac(self, idif, iasic, cor):
         """
         Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
@@ -349,13 +365,14 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
+                print a["slc"]["6bDac"]
                 for ich in range(32):
-                    print " Dac changed", idif, iasic, ich, vg[ich], cor[ich]
+                    print " Dac changed", idif, iasic, ich, cor[ich]
                     a["slc"]["6bDac"][ich] = a["slc"]["6bDac"][ich]+cor[ich]
-
+                print a["slc"]["6bDac"]
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
 
 
     def ChangeMask(self, idif, iasic, ich, mask):
@@ -370,11 +387,8 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
-                a["slc"]["VthTime"]=VthTime
-                for ich in range(32):
-                    a["slc"]["MaskDiscriTime"][ich] = (mask>>ich)&1
-
+                a["slc"]["MaskDiscriTime"][ich] = mask
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
 
