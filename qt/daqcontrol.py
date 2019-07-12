@@ -1083,7 +1083,7 @@ class fdaqClient:
           self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
           self.curvth=xi
-          time.sleep(1)
+          time.sleep(0.1)
          
           #self.tdc_setmask(mask)
           #self.daq_setrunheader(2,(thmax-vth*step))
@@ -1093,7 +1093,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          time.sleep(1)
+          time.sleep(0.1)
           
           self.trig_reloadcalib()
           self.trig_resume()
@@ -1108,7 +1108,7 @@ class fdaqClient:
               print firstEvent,lastEvent,xi
               time.sleep(1)
               nloop=nloop+1
-              if (nloop>4):
+              if (nloop>8):
                   break
       self.trig_calibon(0)
       self.trig_pause()
@@ -1122,7 +1122,7 @@ class fdaqClient:
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
       # Buggy firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
-      firmwaret1=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
+      firmwaret1=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
       self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
@@ -1132,7 +1132,7 @@ class fdaqClient:
           firmware=firmwaret
       if (mode=="FEB1"):
           firmware=firmwaret1
-      
+      nevmax=200
 
       ###
       self.daq_start()
@@ -1144,7 +1144,7 @@ class fdaqClient:
           mask=0
           for i in firmware:
               mask=mask|(1<<i)
-          self.daq_scurve(100,spillon,spilloff,beg,las,mask,step)
+          self.daq_scurve(nevmax,spillon,spilloff,beg,las,mask,step)
           self.daq_normalstop()
           return
       if (ch==1023):
@@ -1157,7 +1157,7 @@ class fdaqClient:
               if ( not self.scurve_running):
                   break;
               self.tdc_setmask((1<<ist),asic)
-              self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
+              self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
       ipr=0
@@ -1167,7 +1167,7 @@ class fdaqClient:
           ipr=(31-ch/2)
       ipr=ch
       self.tdc_setmask((1<<ipr),asic)
-      self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
       # channel 1
@@ -1479,7 +1479,7 @@ class fdaqClient:
       print sr
       
       s=json.loads(sr)
-      ar=s["answer"]["LUT"]["192.168.10.11"]["content"]
+      ar=s["answer"]["LUT"]["192.168.10.15"]["content"]
       lut=[]
       xi=[]
       idx=0
