@@ -45,6 +45,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("SETONEVTHTIME", boost::bind(&lydaq::WiznetManager::c_set1vthtime, this, _1, _2));
   _fsm->addCommand("SETMASK", boost::bind(&lydaq::WiznetManager::c_setMask, this, _1, _2));
   _fsm->addCommand("DOWNLOADDB", boost::bind(&lydaq::WiznetManager::c_downloadDB, this, _1, _2));
+  _fsm->addCommand("ASICS", boost::bind(&lydaq::WiznetManager::c_asics, this, _1, _2));
 
   _fsm->addCommand("SETMODE", boost::bind(&lydaq::WiznetManager::c_setMode, this, _1, _2));
   _fsm->addCommand("SETDELAY", boost::bind(&lydaq::WiznetManager::c_setDelay, this, _1, _2));
@@ -417,8 +418,57 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
-  ::sleep(1);
+  ::usleep(50000);
 }
+void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
+{
+
+  ::sleep(1);
+
+  // Modify ASIC SLC
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+  {
+
+    for (int i = 0; i < 32; i++)
+    {
+      if ((mask>>i)&1)
+	{
+	  uint32_t dac=it->second.get6bDac(i);
+	  if (dac-dacShift>0)
+	    it->second.set6bDac(i, dac-dacShift);
+	}
+    }
+  }
+  // Now loop on slowcontrol socket and send packet
+  for (auto x : _wiznet->controlSockets())
+  {
+
+    _tca->prepareSlowControl(x.second->hostTo());
+
+    _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
+  }
+
+  ::usleep(50000);
+}
+void lydaq::WiznetManager::c_asics(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+  Json::Value jlist;;
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+  {
+    Json::Value jasic;
+    uint32_t iasic=it->first & 0xFF;
+    jasic["num"] = iasic;
+    uint32_t difid= ((it->first)>>32 & 0xFFFFFFFF);
+    jasic["dif"] = difid;
+    it->second.toJson();
+    jasic["slc"]=it->second.getJson();
+    jlist.append(jasic);
+  }
+  response["asics"]=jlist;
+}
+
 
 void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
 {
@@ -464,7 +514,7 @@ void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
-  ::sleep(1);
+  ::usleep(50000);
 }
 
 void lydaq::WiznetManager::setVthTime(uint32_t vth)
@@ -552,7 +602,7 @@ void lydaq::WiznetManager::getCalibrationStatus()
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x225, 0);
-    ::sleep(1);
+    ::usleep(100000);
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 }

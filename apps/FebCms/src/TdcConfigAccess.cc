@@ -15,6 +15,9 @@
 #include "fsmwebCaller.hh"
 #include "WiznetMessageHandler.hh"
 #include <ILCConfDB.h>
+#include <stdlib.h>
+
+
 
 using namespace lydaq;
 lydaq::TdcConfigAccess::TdcConfigAccess()
@@ -37,6 +40,39 @@ lydaq::TdcConfigAccess::TdcConfigAccess()
 
 #endif
 }
+
+void lydaq::TdcConfigAccess::parseMongoDb(std::string state,uint32_t version)
+{
+  std::stringstream scmd;
+  scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
+  system(scmd.str().c_str());
+  std::stringstream sname;
+  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  Json::Reader reader;
+  std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
+  //      Json::Value _jall;
+  bool parsingSuccessful = reader.parse(ifs, _jall, false);
+  if (!_jall.isMember("asics"))
+  {
+    std::cout << " No DIF tag found " << std::endl;
+    return;
+  }
+ 
+  const Json::Value &asics = _jall["asics"];
+  
+  for (Json::ValueConstIterator ita = asics.begin(); ita != asics.end(); ++ita)
+    {
+      const Json::Value &asic = *ita;
+      uint32_t ipadr = asic["dif"].asUInt();
+      uint8_t header = asic["num"].asUInt();
+      lydaq::PR2 prs;
+      prs.setJson(asic);
+      uint64_t eid = ((uint64_t) ipadr) << 32 | header;
+      _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
+    }
+  
+}
+
 void lydaq::TdcConfigAccess::parseJsonFile(std::string jsf)
 {
   Json::Reader reader;
