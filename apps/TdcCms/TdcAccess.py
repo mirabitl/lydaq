@@ -68,6 +68,25 @@ class TdcAccess:
             except Exception, e:
                 print e.getMessage()
 
+    def ChangePAC(self,A0,A1,A2,A3, idif=0, iasic=0):
+        """
+        Change the VTHTIME  of the asic #asic on the TDCDIF #dif
+        If 0 all hardware is changed
+        """
+        for a in self.asics:
+            if (idif != 0 and a.getInt("DIF_ID") != idif):
+                continue
+            if (iasic != 0 and a.getInt("HEADER") != iasic):
+                continue
+            try:
+                a.setInt("PA_CCOMP_0",A0)
+                a.setInt("PA_CCOMP_1",A1)
+                a.setInt("PA_CCOMP_2",A2)
+                a.setInt("PA_CCOMP_3",A3)
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
     def ChangeDacDelay(self, delay, idif=0, iasic=0):
         """
         Change the DACDELAY  of the asic #asic on the TDCDIF #dif
