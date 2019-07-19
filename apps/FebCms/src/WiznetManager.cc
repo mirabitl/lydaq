@@ -118,6 +118,17 @@ void lydaq::WiznetManager::c_set6bdac(Mongoose::Request &request, Mongoose::Json
   this->set6bDac(nc & 0xFF);
   response["6BDAC"] = _jControl;
 }
+void lydaq::WiznetManager::c_cal6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  uint32_t mask = atol(request.get("mask", "4294967295").c_str());
+  int32_t shift = atol(request.get("shift", "0").c_str());
+  LOG4CXX_INFO(_logFeb, "cal6bdac called with mask=" << mask<<" Shift:"<<shift);
+
+  this->cal6bDac(mask,shift);
+  response["6BDAC"] = _jControl;
+}
 void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   response["STATUS"] = "DONE";
@@ -398,7 +409,7 @@ void lydaq::WiznetManager::configure(zdaq::fsmmessage *m)
 void lydaq::WiznetManager::set6bDac(uint8_t dac)
 {
 
-  ::sleep(1);
+  //::sleep(1);
 
   // Modify ASIC SLC
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
@@ -423,7 +434,7 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
 void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
 {
 
-  ::sleep(1);
+  //::usleep(50000);
 
   // Modify ASIC SLC
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
@@ -434,8 +445,8 @@ void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
       if ((mask>>i)&1)
 	{
 	  uint32_t dac=it->second.get6bDac(i);
-	  if (dac-dacShift>0)
-	    it->second.set6bDac(i, dac-dacShift);
+	  if (dac+dacShift>0)
+	    it->second.set6bDac(i, dac+dacShift);
 	}
     }
   }
@@ -473,7 +484,7 @@ void lydaq::WiznetManager::c_asics(Mongoose::Request &request, Mongoose::JsonRes
 void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
 {
 
-  ::sleep(1);
+  //::sleep(1);
   // Change all Asics VthTime
   uint32_t umask;
   uint32_t asica = asic;

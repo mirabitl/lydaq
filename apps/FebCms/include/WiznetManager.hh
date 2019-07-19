@@ -52,6 +52,7 @@ public:
   /// DIFLIST Command handler
   void c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// SET6BDAC Command handler
+  void c_cal6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// SETMASK Command handler
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
