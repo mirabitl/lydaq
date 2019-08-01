@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1547</width>
+    <width>1212</width>
     <height>1195</height>
    </rect>
   </property>
@@ -53,7 +53,7 @@
           <item row="0" column="1">
            <widget class="QLineEdit" name="LEConfiguration">
             <property name="text">
-             <string>testv2_18</string>
+             <string>testv2b_2</string>
             </property>
            </widget>
           </item>
@@ -394,15 +394,9 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="label_24">
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
+           <widget class="QPushButton" name="PBLUT">
             <property name="text">
-             <string>Calibration status</string>
+             <string>Dump LUT</string>
             </property>
            </widget>
           </item>
@@ -414,8 +408,24 @@
               <height>0</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>Unknown</string>
+             <string>FEB</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="SBFEB">
+            <property name="maximum">
+             <number>255</number>
+            </property>
+            <property name="value">
+             <number>15</number>
             </property>
            </widget>
           </item>

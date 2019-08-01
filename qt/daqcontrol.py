@@ -143,7 +143,7 @@ def parseReturn(command,sr,res=None,verbose=False):
         #print "== %10s %10s %10s %10s %12s %12s %10s %10s %10s ==" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
         #print " %10d %10d %10d %10d  %12d %12d %12d %10d %10d " % (ssj['spill'],ssj['busy1'],ssj['busy2'],ssj['busy3'],ssj['spillon'],ssj['spilloff'],ssj['beam'],ssj['mask'],ssj['ecalmask'])
 
-        
+       
 def executeFSM(host,port,prefix,cmd,params):
    if (params!=None):
        myurl = "http://"+host+ ":%d" % (port)
@@ -161,12 +161,15 @@ def executeFSM(host,port,prefix,cmd,params):
        #    lq["content"][x]=y
        lq["command"]=cmd           
        lqs=urllib.urlencode(lq)
+       print 
        #print lqs
        saction = '/%s/FSM?%s' % (prefix,lqs)
        myurl=myurl+saction
-       #print myurl
+       print myurl
        req=urllib2.Request(myurl)
+       print req
        r1=urllib2.urlopen(req)
+       print r1
        return r1.read()
 
 def executeCMD(host,port,prefix,cmd,params):
@@ -688,9 +691,12 @@ class fdaqClient:
 
   def daq_initialise(self):
       lcgi={}
+      #print "daqhost = ", self.daqhost
+      #print "daqport = ", self.daqport
+      #print "lcgi = ", lcgi
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","INITIALISE",lcgi)
       rep=json.loads(sr)
-      #print rep
+      #print  rep
       #print "COUCOU"
       return json.dumps(rep)
 
@@ -1468,7 +1474,7 @@ class fdaqClient:
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
-  def lut_draw(self,tdc,channel,canvas=None):
+  def lut_draw(self,tdc,channel,canvas=None,feb=15):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -1479,7 +1485,7 @@ class fdaqClient:
       print sr
       
       s=json.loads(sr)
-      ar=s["answer"]["LUT"]["192.168.10.15"]["content"]
+      ar=s["answer"]["LUT"]["192.168.10.%d" % feb]["content"]
       lut=[]
       xi=[]
       idx=0
@@ -1541,6 +1547,62 @@ class fdaqClient:
       if (standalone):
           v=raw_input()
       return (h,tdorig,tdlen)
+  def lut_dump(self,tdc,feb=15):
+      f=open("summary_LUT_%d.txt" % feb,"w+")
+      if (len(self.tdchost)<tdc+1):
+          return "non existing tdc"
+      lcgi={}
+      for channel in range(56):
+        lcgi["value"]=channel
+        sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"GETLUT",lcgi)
+        print sr
+      
+        s=json.loads(sr)
+        ar=s["answer"]["LUT"]["192.168.10.%d" % feb]["content"]
+        lut=[]
+        xi=[]
+        idx=0
+        a=0
+        xmi=9999
+        xma=0
+        #print "N",ar[5]
+        N=int(ar[5])
+        if (N==0):
+            N=149
+        idx=0
+        tdlen=0
+        tdorig=9999
+        for i in range(6,2*N+6):
+            x=int(ar[i])
+            ##print x
+            if (idx%2 ==0):
+                a=(x<<8)
+            else:
+                a=a+x
+                if (a>32768):
+                    break
+                if (a==0 and idx/2>140):
+                    break
+
+                if (a==32768 and tdlen==0):
+                    tdlen=idx/2
+                    #lut.append(a/128.*2.5/256.)
+                    #print idx/2,a,tdorig,tdlen
+                if (a==0 and tdorig>0):
+                    tdorig=idx/2+1
+                lut.append(a)
+                xi.append(idx/2)
+                if (idx/2 < xmi):
+                    xmi=idx/2
+                if (idx/2 > xma):
+                    xma=idx/2
+                a=0
+            idx=idx+1
+        f.write("Channel %d %d\n" % (channel,idx))
+        for x in lut:
+            f.write("%d " % x)
+        f.write("\n Delay line length %d %d\n" % (tdorig,tdlen))
+      return
 
   def  histo_draw(self,name):
         # If the changed item is not checked, don't bother checking others
