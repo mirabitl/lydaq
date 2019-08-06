@@ -1,0 +1,9 @@
+{
+    "host":"lyosdhcal12",
+    "port":27017,
+    "db":"LYONROC",
+    "user":"yourfavorite one",
+    "pwd":"Yourfavorite one",
+    "server_host":"lyosdhcal15.in2p3.fr",
+    "server_port":8100
+}

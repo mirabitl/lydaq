@@ -43,7 +43,7 @@ results = parser.parse_args()
 lcgi = {}
 r_cmd = None
 if (results.download):
-    r_cmd = 'createDaq'
+    r_cmd = 'download'
     if (results.state == None):
         print 'Please specify the state --state=name'
         exit(0)
