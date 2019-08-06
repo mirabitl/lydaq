@@ -302,7 +302,10 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
   if (jTDC.isMember("db"))
   {
     Json::Value jTDCdb = jTDC["db"];
-    _tca->parseDb(jTDCdb["state"].asString(), jTDCdb["mode"].asString());
+    if (jTDCdb["mode"].asString().compare("mongo")!=0)
+      _tca->parseDb(jTDCdb["state"].asString(), jTDCdb["mode"].asString());
+    else
+      _tca->parseMongoDb(jTDCdb["state"].asString(), jTDCdb["version"].asUInt());
   }
   if (_tca->asicMap().size() == 0)
   {
