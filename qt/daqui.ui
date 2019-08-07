@@ -319,7 +319,7 @@
           <item row="2" column="1" colspan="2">
            <widget class="QLineEdit" name="LEDBState">
             <property name="text">
-             <string>FEBNEW_11_1</string>
+             <string>testFEB15_2B_6</string>
             </property>
            </widget>
           </item>
@@ -376,7 +376,7 @@
           <item>
            <widget class="QSpinBox" name="SBNtdc">
             <property name="value">
-             <number>48</number>
+             <number>56</number>
             </property>
            </widget>
           </item>
@@ -414,8 +414,14 @@
               <bold>true</bold>
              </font>
             </property>
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
             <property name="text">
              <string>FEB</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::PlainText</enum>
             </property>
            </widget>
           </item>
@@ -694,7 +700,7 @@
          <property name="title">
           <string>SCURVE</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_10">
+         <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
@@ -728,11 +734,18 @@
           <item row="0" column="4">
            <widget class="QPushButton" name="PBScurve">
             <property name="text">
-             <string>Start</string>
+             <string>Scurve</string>
             </property>
            </widget>
           </item>
           <item row="0" column="5">
+           <widget class="QPushButton" name="PBDAC">
+            <property name="text">
+             <string>DAC</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -745,14 +758,14 @@
             </property>
            </spacer>
           </item>
-          <item row="0" column="6">
+          <item row="0" column="7">
            <widget class="QLabel" name="label_20">
             <property name="text">
              <string>ASIC</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="7">
+          <item row="0" column="8">
            <widget class="QSpinBox" name="SBPR2">
             <property name="value">
              <number>3</number>
@@ -774,6 +787,9 @@
             <property name="maximum">
              <number>1023</number>
             </property>
+            <property name="singleStep">
+             <number>0</number>
+            </property>
             <property name="value">
              <number>420</number>
             </property>
@@ -786,10 +802,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="5">
+          <item row="1" column="6">
            <widget class="QSpinBox" name="SBHighThreshold">
             <property name="minimum">
-             <number>2</number>
+             <number>1</number>
             </property>
             <property name="maximum">
              <number>1023</number>
@@ -799,7 +815,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="6" colspan="2">
+          <item row="1" column="7" colspan="2">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -812,14 +828,14 @@
             </property>
            </spacer>
           </item>
-          <item row="1" column="8">
+          <item row="1" column="9">
            <widget class="QLabel" name="label_11">
             <property name="text">
              <string>Step</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="9">
+          <item row="1" column="10">
            <widget class="QSpinBox" name="SBStep">
             <property name="value">
              <number>1</number>
@@ -852,7 +868,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="4">
+          <item row="2" column="4" colspan="2">
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
