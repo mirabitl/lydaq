@@ -65,6 +65,7 @@ public:
   void triggerCalibRegister(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void triggerReloadCalib(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSet6bDac(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void tdcCal6bDac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetVthTime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetMode(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void tdcSetDelays(Mongoose::Request &request, Mongoose::JsonResponse &response);
