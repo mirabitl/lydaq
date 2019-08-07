@@ -41,6 +41,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("STATUS", boost::bind(&lydaq::WiznetManager::c_status, this, _1, _2));
   _fsm->addCommand("DIFLIST", boost::bind(&lydaq::WiznetManager::c_diflist, this, _1, _2));
   _fsm->addCommand("SET6BDAC", boost::bind(&lydaq::WiznetManager::c_set6bdac, this, _1, _2));
+  _fsm->addCommand("CAL6BDAC", boost::bind(&lydaq::WiznetManager::c_cal6bdac, this, _1, _2));
   _fsm->addCommand("SETVTHTIME", boost::bind(&lydaq::WiznetManager::c_setvthtime, this, _1, _2));
   _fsm->addCommand("SETONEVTHTIME", boost::bind(&lydaq::WiznetManager::c_set1vthtime, this, _1, _2));
   _fsm->addCommand("SETMASK", boost::bind(&lydaq::WiznetManager::c_setMask, this, _1, _2));
@@ -436,20 +437,32 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
 }
 void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
 {
-
+  LOG4CXX_INFO(_logFeb, "CAL6BDAC called "<<mask<<" Shift "<<dacShift);
   //::usleep(50000);
-
+  std::map<uint64_t,uint16_t*> ascopy;
   // Modify ASIC SLC
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
   {
 
+    if (ascopy.find(it->first)==ascopy.end())
+      {
+	uint16_t* b=new uint16_t[32];
+	std::pair<uint64_t,uint16_t*> p(it->first,b);
+	ascopy.insert(p);
+      }
+    auto ic=ascopy.find(it->first);
     for (int i = 0; i < 32; i++)
     {
+      ic->second[i]=it->second.get6bDac(i);
       if ((mask>>i)&1)
 	{
 	  uint32_t dac=it->second.get6bDac(i);
-	  if (dac+dacShift>0)
-	    it->second.set6bDac(i, dac+dacShift);
+	  int32_t ndac=dac+dacShift;
+	  if (ndac<0) ndac=0;
+	  if (ndac>63) ndac=63;
+	  std::cout<<"channel "<<i<<" DAC "<<dac<<" shifted to "<<ndac<<std::endl;
+
+	  it->second.set6bDac(i, ndac);
 	}
     }
   }
@@ -463,6 +476,17 @@ void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+    {
+	
+      auto ic=ascopy.find(it->first);
+      for (int i = 0; i < 32; i++)
+
+	it->second.set6bDac(i,ic->second[i]);
+      
+    }
+  for (auto it =ascopy.begin(); it != ascopy.end(); it++) delete it->second;
+  
   ::usleep(50000);
 }
 void lydaq::WiznetManager::c_asics(Mongoose::Request &request, Mongoose::JsonResponse &response)

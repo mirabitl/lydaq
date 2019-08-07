@@ -129,6 +129,8 @@ uint32_t lydaq::TdcConfigAccess::slcBytes() { return _slcBytes; }
 std::map<uint64_t, lydaq::PR2> &lydaq::TdcConfigAccess::asicMap() { return _asicMap; }
 void lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
 {
+std::cout<<"entering TDCConfigAccess.cc  lydaq::TdcConfigAccess::prepareSlowControl"<<std::endl;
+
   // Initialise
   _slcBytes = 0;
   uint64_t eid = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32;
@@ -195,7 +197,7 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     {
       LOG4CXX_INFO(_logLdaq, "  Web access" << stateName);
       char *wp = getenv("CONFDB_WEB");
-      LOG4CXX_INFO(_logLdaq, "  Web access->" << wp);
+      LOG4CXX_INFO(_logLdaq, "  Web access 1->" << wp);
       _state = State::getState_WebServer(stateName);
     }
     catch (ILCException::Exception e)
@@ -312,7 +314,13 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     prs.setusebcompensation(itMR->getInt("USEBCOMPENSATION"));
 
     // PR2B
+#ifdef USE_PR2A
+      LOG4CXX_INFO(_logLdaq, " PR2A!!");
+#endif
+  
 #ifndef USE_PR2A
+      LOG4CXX_INFO(_logLdaq, " PR2B!!");
+ 
     prs.setPA_ccomp_0(itMR->getInt("PA_CCOMP_0"));
     prs.setPA_ccomp_1(itMR->getInt("PA_CCOMP_1"));
     prs.setPA_ccomp_2(itMR->getInt("PA_CCOMP_2"));

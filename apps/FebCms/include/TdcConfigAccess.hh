@@ -7,6 +7,8 @@
  * \version 1.0
 */
 #define USE_PR2B
+//#define USE_PR2A
+
 #ifdef USE_PR2A
 #include "PRSlow.hh"
 #define PR2 PRSlow
