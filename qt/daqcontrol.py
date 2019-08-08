@@ -1061,7 +1061,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          time.sleep(1)
+          time.sleep(0.5)
           self.trig_reloadcalib()
           self.trig_resume()
           self.trig_status()
@@ -1127,7 +1127,7 @@ class fdaqClient:
               ssj=sj["answer"]
               lastEvent=int(ssj["event"])
               print firstEvent,lastEvent,xi
-              time.sleep(1)
+              time.sleep(0.5)
               nloop=nloop+1
               if (nloop>20):
                   break
@@ -1153,7 +1153,7 @@ class fdaqClient:
           firmware=firmwaret
       if (mode=="FEB1"):
           firmware=firmwaret1
-      nevmax=200
+      nevmax=50
 
       ###
       self.daq_start()
