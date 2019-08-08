@@ -140,6 +140,26 @@ class TdcAccess:
                 a.setModified(1)
             except Exception, e:
                 print e.getMessage()
+    def ChangeInputDac(self, idif, iasic, ich, dac):
+        """
+        Change the InputDAC value to dac  of the asic #asic on the TDCDIF #dif       
+        """
+
+        for a in self.asics:
+            if (a.getInt("DIF_ID") != idif):
+                continue
+            if (a.getInt("HEADER") != iasic):
+                continue
+
+            vg = a.getIntVector("INPUTDAC")
+            vg[ich] = dac
+            print " Input Dac changed", idif, iasic, ich, dac
+            try:
+                a.setIntVector("INPUTDAC", vg)
+            except Exception, e:
+                print e.getMessage()
+            a.setModified(1)
+
 
     def Change6BDac(self, idif, iasic, ich, dac):
         """
