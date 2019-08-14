@@ -3,7 +3,7 @@ import os
 from pymongo import MongoClient
 import json
 from bson.objectid import ObjectId
-
+import time
 
 def IP2Int(ip):
     o = map(int, ip.split('.'))
@@ -55,7 +55,7 @@ class MongoRoc:
         self.state["asics"]=self.bson_id
         resstate=self.db.states.insert_one(self.state)
         print resstate
-    def uploadNewState(self):
+    def uploadNewState(self,comment="NEW"):
         # First append modified ASICS
         for i in range(len(self.asiclist)):
             if (self.asiclist[i]["_id"]!=None):
@@ -66,8 +66,31 @@ class MongoRoc:
         for  i in range(len(self.asiclist)):
             self.bson_id.append(self.asiclist[i]["_id"])
         self.state["asics"]=self.bson_id
+        self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate
+    def uploadConfig(self,name,fname,comment,version=1):
+        s={}
+        s["content"]=json.loads(open(fname).read())
+        s["name"]=name
+        s["time"]=time.time()
+        s["comment"]=comment
+        s["version"]=version
+        resconf=self.db.configurations.insert_one(s)
+        print resconf
+    def states(self):
+        res=self.db.states.find({})
+        for x in res:
+            if ("comment" in x):
+                print x["name"],x["version"],x["comment"]
+            else:
+                print x["name"],x["version"] 
+    def configurations(self):
+        res=self.db.configurations.find({})
+        for x in res:
+            if ("comment" in x):
+                print time.ctime(x["time"]),x["version"],x["name"],x["comment"]
+
     def download(self,statename,version):
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
