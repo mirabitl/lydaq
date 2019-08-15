@@ -32,7 +32,7 @@ grp_action.add_argument('--upload-config',action='store_true',help=' Upload new 
 grp_action.add_argument('--configurations', action='store_true',help='List all the available configurations')
 grp_action.add_argument('--states', action='store_true',help='List all the available states')
 grp_action.add_argument('--download', action='store_true',
-                        help='download the state specified in --state=state --version=version')
+                        help='download the state specified in --state=state or --name=config name --version=version')
 # Arguments
 parser.add_argument('--version', action='store',type=int,default=1,dest='version',help='DB state version' )
 parser.add_argument('--state', action='store', type=str,
@@ -76,14 +76,21 @@ if (results.upload_config):
 
 if (results.download):
     r_cmd = 'download'
-    if (results.state == None):
-        print 'Please specify the state --state=name'
+    if (results.state != None):
+        if (results.version == None):
+            print 'Please specify the version --version=ver'
+            exit(0)
+        _wdd.download(results.state,results.version)
         exit(0)
-    if (results.version == None):
-        print 'Please specify the state --version=ver'
+    if (results.name != None):
+        if (results.version == None):
+            print 'Please specify the version --version=ver'
+            exit(0)
+        _wdd.downloadConfig(results.name,results.version)
         exit(0)
-    _wdd.download(results.state,results.version)
-    exit(0)
+    else:
+        print " Specify either --name for configuration or --state for ASICs"
+        exit(0)
 if (results.states):
     r_cmd = 'states'
     _wdd.states()

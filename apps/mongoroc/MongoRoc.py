@@ -91,6 +91,16 @@ class MongoRoc:
             if ("comment" in x):
                 print time.ctime(x["time"]),x["version"],x["name"],x["comment"]
 
+    def downloadConfig(self,cname,version):
+        res=self.db.configurations.find({'name':cname,'version':version})
+        for x in res:
+            print x["name"],x["version"],x["comment"]
+            #var=raw_input()
+            slc=x["content"]
+            f=open("/dev/shm/%s_%s.json" % (cname,version),"w+")
+            f.write(json.dumps(slc))
+            f.close()
+            return slc
     def download(self,statename,version):
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
