@@ -678,3 +678,108 @@ class TdcAccess:
             return
 
  
+    def toJson(self):
+        asiclist=[]
+        for asi in self.asics:
+            asic={}
+            
+            asic["dif"]=asi.getInt('DIF_ID')
+            asic["num"]=asi.getInt('HEADER')
+            asic["_id"]=None
+            _jasic={}
+            if (asi.getString("ASIC_TYPE")=="PR2B"):
+                _jasic["PA_ccomp_0"]=asi.getInt('PA_CCOMP_0')
+                _jasic["PA_ccomp_1"]=asi.getInt('PA_CCOMP_1')
+                _jasic["PA_ccomp_2"]=asi.getInt('PA_CCOMP_2')
+                _jasic["PA_ccomp_3"]=asi.getInt('PA_CCOMP_3')
+                _jasic["Choice_Trigger_Out"]=asi.getInt('CHOICE_TRIGGER_OUT')
+                
+            _jasic["header"]=asi.getInt('HEADER')
+            _jasic["EN_bias_discri"]=asi.getInt('EN_BIAS_DISCRI')
+            _jasic["Cf2_200fF"]=asi.getInt('CF2_200FF')
+            _jasic["Cf3_100fF"]=asi.getInt('CF3_100FF')
+            _jasic["DacDelay"]=asi.getInt('DACDELAY')
+            _jasic["PP_bias_ramp_delay"]=asi.getInt('PP_BIAS_RAMP_DELAY')
+            _jasic["ON_OFF_2mA"]=asi.getInt('ON_OFF_2MA')
+            _jasic["EN_bias_pa"]=asi.getInt('EN_BIAS_PA')
+            _jasic["PP_bias_6bit_dac"]=asi.getInt('PP_BIAS_6BIT_DAC')
+            _jasic["EN_bias_discri_charge"]=asi.getInt('EN_BIAS_DISCRI_CHARGE')
+            _jasic["EN_dout_oc"]=asi.getInt('EN_DOUT_OC')
+            _jasic["ON_OFF_otaQ"]=asi.getInt('ON_OFF_OTAQ')
+            _jasic["DIS_razchn_ext"]=asi.getInt('DIS_RAZCHN_EXT')
+            _jasic["EN_bias_dac_delay"]=asi.getInt('EN_BIAS_DAC_DELAY')
+            _jasic["PP_slow_lvds_rec"]=asi.getInt('PP_SLOW_LVDS_REC')
+            _jasic["EN10bDac"]=asi.getInt('EN10BDAC')
+            _jasic["PP_bias_sca"]=asi.getInt('PP_BIAS_SCA')
+            _jasic["usebcompensation"]=asi.getInt('USEBCOMPENSATION')
+            _jasic["VthDiscriCharge"]=asi.getInt('VTHDISCRICHARGE')
+            _jasic["EN_bias_discri_adc_charge"]=asi.getInt('EN_BIAS_DISCRI_ADC_CHARGE')
+            _jasic["PP_bias_discri_adc_charge"]=asi.getInt('PP_BIAS_DISCRI_ADC_CHARGE')
+            _jasic["EN_slow_lvds_rec"]=asi.getInt('EN_SLOW_LVDS_REC')
+            _jasic["sel_starb_ramp_adc_ext"]=asi.getInt('SEL_STARB_RAMP_ADC_EXT')
+            _jasic["DIS_triggers"]=asi.getInt('DIS_TRIGGERS')
+            _jasic["ON_OFF_input_dac"]=asi.getInt('ON_OFF_INPUT_DAC')
+            _jasic["EN_bias_sca"]=asi.getInt('EN_BIAS_SCA')
+            _jasic["EN_bias_6bit_dac"]=asi.getInt('EN_BIAS_6BIT_DAC')
+            _jasic["PP_transmitter"]=asi.getInt('PP_TRANSMITTER')
+            _jasic["PP_temp_sensor"]=asi.getInt('PP_TEMP_SENSOR')
+            _jasic["EN_transmit"]=asi.getInt('EN_TRANSMIT')
+            _jasic["PP_bias_charge"]=asi.getInt('PP_BIAS_CHARGE')
+            _jasic["PP_bias_discri_adc_time"]=asi.getInt('PP_BIAS_DISCRI_ADC_TIME')
+            _jasic["ON_OFF_ota_mux"]=asi.getInt('ON_OFF_OTA_MUX')
+            _jasic["cmd_polarity"]=asi.getInt('CMD_POLARITY')
+            _jasic["PP_bias_dac_delay"]=asi.getInt('PP_BIAS_DAC_DELAY')
+            _jasic["Cf1_2p5pF"]=asi.getInt('CF1_2P5PF')
+            _jasic["PP_fast_lvds_rec"]=asi.getInt('PP_FAST_LVDS_REC')
+            _jasic["EN_bias_ramp_delay"]=asi.getInt('EN_BIAS_RAMP_DELAY')
+            _jasic["PP10bDac"]=asi.getInt('PP10BDAC')
+            _jasic["EN_bias_charge"]=asi.getInt('EN_BIAS_CHARGE')
+            _jasic["EN_fast_lvds_rec"]=asi.getInt('EN_FAST_LVDS_REC')
+            _jasic["PP_bias_tdc"]=asi.getInt('PP_BIAS_TDC')
+            _jasic["Cf0_1p25pF"]=asi.getInt('CF0_1P25PF')
+            _jasic["EN_transmitter"]=asi.getInt('EN_TRANSMITTER')
+            _jasic["EN_adc"]=asi.getInt('EN_ADC')
+            _jasic["EN_NOR32_charge"]=asi.getInt('EN_NOR32_CHARGE')
+            _jasic["EN_80M"]=asi.getInt('EN_80M')
+            _jasic["DIS_trig_mux"]=asi.getInt('DIS_TRIG_MUX')
+            _jasic["PP_bias_discri_charge"]=asi.getInt('PP_BIAS_DISCRI_CHARGE')
+            _jasic["ON_OFF_1mA"]=asi.getInt('ON_OFF_1MA')
+            _jasic["ON_OFF_ota_probe"]=asi.getInt('ON_OFF_OTA_PROBE')
+            _jasic["PP_discri_delay"]=asi.getInt('PP_DISCRI_DELAY')
+            _jasic["EN_discri_delay"]=asi.getInt('EN_DISCRI_DELAY')
+            _jasic["latch"]=asi.getInt('LATCH')
+            _jasic["EN_bias_discri_adc_time"]=asi.getInt('EN_BIAS_DISCRI_ADC_TIME')
+            _jasic["EN_NOR32_time"]=asi.getInt('EN_NOR32_TIME')
+            _jasic["EN_temp_sensor"]=asi.getInt('EN_TEMP_SENSOR')
+            _jasic["PP_bias_pa"]=asi.getInt('PP_BIAS_PA')
+            _jasic["PP_adc"]=asi.getInt('PP_ADC')
+            _jasic["PP_bias_discri"]=asi.getInt('PP_BIAS_DISCRI')
+            _jasic["VthTime"]=asi.getInt('VTHTIME')
+            _jasic["SEL_80M"]=asi.getInt('SEL_80M')
+            _jasic["EN_bias_tdc"]=asi.getInt('EN_BIAS_TDC')
+            _jasic["DIS_razchn_int"]=asi.getInt('DIS_RAZCHN_INT')
+            d6b = asi.getIntVector('DAC6B')
+            didac = asi.getIntVector('INPUTDAC')
+            didacc = asi.getIntVector('INPUTDACCOMMAND')
+            dmdc = asi.getIntVector('MASKDISCRICHARGE')
+            dmdt = asi.getIntVector('MASKDISCRITIME')
+            _jasic["InputDac"] =[];
+            for i in range(32):
+                _jasic["InputDac"].append(didac[i])
+            _jasic["6bDac"] = []
+            for i in range(32):
+                _jasic["6bDac"].append(d6b[i])
+            _jasic["MaskDiscriCharge"] =[];
+            for i in range(32):
+                _jasic["MaskDiscriCharge"].append(dmdc[i])
+            _jasic["MaskDiscriTime"] =[];
+            for i in range(32):
+                _jasic["MaskDiscriTime"].append(dmdt[i])
+
+            _jasic["InputDacCommand"] =[];
+            for i in range(32):
+                _jasic["InputDacCommand"].append(didacc[i])
+
+            asic["slc"]=_jasic
+            asiclist.append(asic)
+        return asiclist
