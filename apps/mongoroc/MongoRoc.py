@@ -69,6 +69,25 @@ class MongoRoc:
         self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate
+    def uploadFromOracle(self,asiclist,statename,version,comment="NEW"):
+        self.state["name"]=statename
+        self.state["version"]=version
+        self.state["asics"]=[]
+        for i in range(len(asiclist)):
+            self.asiclist.append(asiclist[i])
+        # First append modified ASICS
+        for i in range(len(self.asiclist)):
+            if (self.asiclist[i]["_id"]!=None):
+                continue
+            del self.asiclist[i]["_id"]
+            result=self.db.asics.insert_one(self.asiclist[i])
+            self.asiclist[i]["_id"]=result.inserted_id
+        for  i in range(len(self.asiclist)):
+            self.bson_id.append(self.asiclist[i]["_id"])
+        self.state["asics"]=self.bson_id
+        self.state["comment"]=comment
+        resstate=self.db.states.insert_one(self.state)
+        print resstate
     def uploadConfig(self,name,fname,comment,version=1):
         s={}
         s["content"]=json.loads(open(fname).read())
