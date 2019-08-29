@@ -6,7 +6,9 @@
  * \author L.Mirabito
  * \version 1.0
 */
-#define USE_PR2A
+#define USE_PR2B
+//#define USE_PR2A
+
 #ifdef USE_PR2A
 #include "PRSlow.hh"
 #define PR2 PRSlow
@@ -40,6 +42,8 @@ public:
   void parseJson();
   /// Parse a JSON url
   void parseJsonUrl(std::string jsf);
+  /// Download and parse MongoDb version
+  void parseMongoDb(std::string state,uint32_t version);
 
   /// FEB specific slow control buffers
   uint16_t *slcBuffer();

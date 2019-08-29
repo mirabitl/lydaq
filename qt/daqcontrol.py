@@ -143,7 +143,7 @@ def parseReturn(command,sr,res=None,verbose=False):
         #print "== %10s %10s %10s %10s %12s %12s %10s %10s %10s ==" % ('Spill','Busy1','Busy2','Busy3','SpillOn','SpillOff','Beam','Mask','EcalMask')
         #print " %10d %10d %10d %10d  %12d %12d %12d %10d %10d " % (ssj['spill'],ssj['busy1'],ssj['busy2'],ssj['busy3'],ssj['spillon'],ssj['spilloff'],ssj['beam'],ssj['mask'],ssj['ecalmask'])
 
-        
+       
 def executeFSM(host,port,prefix,cmd,params):
    if (params!=None):
        myurl = "http://"+host+ ":%d" % (port)
@@ -161,12 +161,15 @@ def executeFSM(host,port,prefix,cmd,params):
        #    lq["content"][x]=y
        lq["command"]=cmd           
        lqs=urllib.urlencode(lq)
+       print 
        #print lqs
        saction = '/%s/FSM?%s' % (prefix,lqs)
        myurl=myurl+saction
-       #print myurl
+       print myurl
        req=urllib2.Request(myurl)
+       print req
        r1=urllib2.urlopen(req)
+       print r1
        return r1.read()
 
 def executeCMD(host,port,prefix,cmd,params):
@@ -688,9 +691,12 @@ class fdaqClient:
 
   def daq_initialise(self):
       lcgi={}
+      #print "daqhost = ", self.daqhost
+      #print "daqport = ", self.daqport
+      #print "lcgi = ", lcgi
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","INITIALISE",lcgi)
       rep=json.loads(sr)
-      #print rep
+      #print  rep
       #print "COUCOU"
       return json.dumps(rep)
 
@@ -989,6 +995,15 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SET6BDAC",lcgi)
       rep =json.loads(sr)
       return json.dumps(rep)
+  
+  def tdc_cal6bdac(self,mask,shift):
+      lcgi={}
+      lcgi["mask"]=mask
+      lcgi["shift"]=shift
+      
+      sr=executeCMD(self.daqhost,self.daqport,"FDAQ","CAL6BDAC",lcgi)
+      rep =json.loads(sr)
+      return json.dumps(rep)
 
 
   def tdc_setvthtime(self,value):
@@ -1021,18 +1036,24 @@ class fdaqClient:
 
 
 
-  def daq_calibdac(self,ntrg,ncon,dacmin,dacmax,mask):
+  def daq_calibdac(self,ntrg,ncon,ncoff,dacmin,dacmax,mask,step=5,vth=480):
       self.trig_pause()
-      self.trig_spillon(30)
-      self.trig_spilloff(1000000)
+      self.trig_spillon(ncon)
+      self.trig_spilloff(ncoff)
       self.trig_spillregister(4)
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
       self.trig_status()
       #self.tdc_setmask(63)
+      dacm=(dacmin-dacmax)/2
+      dacrange=dacmax-dacmin+1
+      for idac in range(dacrange):
+          if ( not self.scurve_running):
+              break;
 
-      for idac in range(dacmin,dacmax+1):
-          self.tdc_set6bdac(idac)
+          self.trig_pause()
+          self.tdc_setvthtime(vth)
+          self.tdc_cal6bdac(mask,idac+dacm)
           #self.tdc_setmask(mask)
           self.daq_setrunheader(1,idac)
           # check current evb status
@@ -1040,7 +1061,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          time.sleep(1)
+          time.sleep(0.5)
           self.trig_reloadcalib()
           self.trig_resume()
           self.trig_status()
@@ -1052,7 +1073,7 @@ class fdaqClient:
               ssj=sj["answer"]
               lastEvent=int(ssj["event"])
               print firstEvent,lastEvent,idac
-              time.sleep(1)
+              time.sleep(0.5)
               nloop=nloop+1
               if (nloop>20):
                   break
@@ -1083,7 +1104,7 @@ class fdaqClient:
           self.tdc_setvthtime(xi)
           #name = input("What's your name? ")
           self.curvth=xi
-          time.sleep(1)
+          time.sleep(0.1)
          
           #self.tdc_setmask(mask)
           #self.daq_setrunheader(2,(thmax-vth*step))
@@ -1093,7 +1114,7 @@ class fdaqClient:
           sj=json.loads(sr)
           ssj=sj["answer"]
           firstEvent=int(ssj["event"])
-          time.sleep(1)
+          time.sleep(0.1)
           
           self.trig_reloadcalib()
           self.trig_resume()
@@ -1106,9 +1127,9 @@ class fdaqClient:
               ssj=sj["answer"]
               lastEvent=int(ssj["event"])
               print firstEvent,lastEvent,xi
-              time.sleep(1)
+              time.sleep(0.5)
               nloop=nloop+1
-              if (nloop>4):
+              if (nloop>20):
                   break
       self.trig_calibon(0)
       self.trig_pause()
@@ -1122,7 +1143,7 @@ class fdaqClient:
       firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
       # return chamber FEB1
       # Buggy firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
-      firmwaret1=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
+      firmwaret1=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
       self.scurve_running=True
       if (mode=="OLD"):
           firmware=firmware1
@@ -1132,7 +1153,7 @@ class fdaqClient:
           firmware=firmwaret
       if (mode=="FEB1"):
           firmware=firmwaret1
-      
+      nevmax=50
 
       ###
       self.daq_start()
@@ -1144,7 +1165,7 @@ class fdaqClient:
           mask=0
           for i in firmware:
               mask=mask|(1<<i)
-          self.daq_scurve(100,spillon,spilloff,beg,las,mask,step)
+          self.daq_scurve(nevmax,spillon,spilloff,beg,las,mask,step)
           self.daq_normalstop()
           return
       if (ch==1023):
@@ -1157,7 +1178,7 @@ class fdaqClient:
               if ( not self.scurve_running):
                   break;
               self.tdc_setmask((1<<ist),asic)
-              self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ist),step)
+              self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
       ipr=0
@@ -1167,30 +1188,64 @@ class fdaqClient:
           ipr=(31-ch/2)
       ipr=ch
       self.tdc_setmask((1<<ipr),asic)
-      self.daq_scurve(100,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
-      # channel 1
-      #self.tdc_setmask((1<<0))
-      #self.daq_scurve(100,200,280,420,4294967295,4)
-      # channel 3
-      #self.tdc_setmask((1<<1))
-      #self.daq_scurve(100,200,270,430,4294967295,4)
-      # channel 5
-      #self.tdc_setmask((1<<2))
-      #self.daq_scurve(100,200,280,420,4294967295,4)
-      # channel 7
-      #self.tdc_setmask((1<<3))
-      #self.daq_scurve(100,200,320,430,4294967295,2)
-      # channel 9
-      #self.tdc_setmask((1<<4))
-      #self.daq_scurve(100,200,280,420,4294967295,4)
-      # channel 13
-      #self.tdc_setmask((1<<6))
-      #self.daq_scurve(100,200,280,420,4294967295,4)
       
 
       #self.daq_stop()
+      
+  def daq_fullcalib(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
+      ### petiroc to scan OLD
+      firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
+      # Coaxial chamber COAX
+      firmwarec=[0,1,2,3,4,5,6,7,8,9,10,19,20,21,22,23,24,25,26,27,28,29,30,31]
+      # Return chamber FEB0
+      firmwaret=[31,29,27,25,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6]
+      # return chamber FEB1
+      # Buggy firmwaret1=[21,20,23,22,25,24,27,26,29,28,31,30,1,0,3,2,5,4,7,6,10,8,15,14,12]
+      firmwaret1=[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,26,28,30]
+      self.scurve_running=True
+      if (mode=="OLD"):
+          firmware=firmware1
+      if (mode=="COAX"):
+          firmware=firmwarec
+      if (mode=="FEB0"):
+          firmware=firmwaret
+      if (mode=="FEB1"):
+          firmware=firmwaret1
+      nevmax=50
+
+      ###
+      print "starting Calib",ch,spillon,spilloff,beg,las,step,mode
+      self.daq_start()
+      #### commenter en dessous
+      if (ch==255):
+          self.tdc_setmask(0XFFFFFFFF,asic)
+          mask=0
+          for i in firmware:
+              mask=mask|(1<<i)
+          self.daq_calibdac(nevmax,spillon,spilloff,beg,las,mask,step)
+          self.daq_normalstop()
+          return
+      if (ch==1023):
+          for ist in firmware:
+              if ( not self.scurve_running):
+                  break;
+              self.tdc_setmask((1<<ist),asic)
+              self.daq_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
+          self.daq_normalstop()
+          return
+      ipr=0
+      if (ch%2==1):
+          ipr=ch/2
+      else:
+          ipr=(31-ch/2)
+      ipr=ch
+      self.tdc_setmask((1<<ipr),asic)
+      self.daq_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.daq_normalstop()
+      return
       
 
   def slow_create(self):
@@ -1468,7 +1523,7 @@ class fdaqClient:
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
-  def lut_draw(self,tdc,channel,canvas=None):
+  def lut_draw(self,tdc,channel,canvas=None,feb=15):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -1479,7 +1534,7 @@ class fdaqClient:
       print sr
       
       s=json.loads(sr)
-      ar=s["answer"]["LUT"]["192.168.10.11"]["content"]
+      ar=s["answer"]["LUT"]["192.168.10.%d" % feb]["content"]
       lut=[]
       xi=[]
       idx=0
@@ -1541,6 +1596,62 @@ class fdaqClient:
       if (standalone):
           v=raw_input()
       return (h,tdorig,tdlen)
+  def lut_dump(self,tdc,feb=15):
+      f=open("summary_LUT_%d.txt" % feb,"w+")
+      if (len(self.tdchost)<tdc+1):
+          return "non existing tdc"
+      lcgi={}
+      for channel in range(56):
+        lcgi["value"]=channel
+        sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"GETLUT",lcgi)
+        print sr
+      
+        s=json.loads(sr)
+        ar=s["answer"]["LUT"]["192.168.10.%d" % feb]["content"]
+        lut=[]
+        xi=[]
+        idx=0
+        a=0
+        xmi=9999
+        xma=0
+        #print "N",ar[5]
+        N=int(ar[5])
+        if (N==0):
+            N=149
+        idx=0
+        tdlen=0
+        tdorig=9999
+        for i in range(6,2*N+6):
+            x=int(ar[i])
+            ##print x
+            if (idx%2 ==0):
+                a=(x<<8)
+            else:
+                a=a+x
+                if (a>32768):
+                    break
+                if (a==0 and idx/2>140):
+                    break
+
+                if (a==32768 and tdlen==0):
+                    tdlen=idx/2
+                    #lut.append(a/128.*2.5/256.)
+                    #print idx/2,a,tdorig,tdlen
+                if (a==0 and tdorig>0):
+                    tdorig=idx/2+1
+                lut.append(a)
+                xi.append(idx/2)
+                if (idx/2 < xmi):
+                    xmi=idx/2
+                if (idx/2 > xma):
+                    xma=idx/2
+                a=0
+            idx=idx+1
+        f.write("Channel %d %d\n" % (channel,idx))
+        for x in lut:
+            f.write("%d " % x)
+        f.write("\n Delay line length %d %d\n" % (tdorig,tdlen))
+      return
 
   def  histo_draw(self,name):
         # If the changed item is not checked, don't bother checking others

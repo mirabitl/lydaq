@@ -3,7 +3,7 @@ import os
 from pymongo import MongoClient
 import json
 from bson.objectid import ObjectId
-
+import time
 
 def IP2Int(ip):
     o = map(int, ip.split('.'))
@@ -40,7 +40,22 @@ class MongoRoc:
             asic["_id"]=None
             print asic["dif"],asic["num"],asic["_id"]," is added"
             self.asiclist.append(asic)
-    def uploadNewState(self):
+    def uploadFromFile(self,fname):
+        f=open(fname)
+        sf=json.loads(f.read())
+        f.close()
+        self.state["name"]=sf["state"]
+        self.state["version"]=sf["version"]
+        for x in sf["asics"]:
+            result=self.db.asics.insert_one(x)
+            x["_id"]=result.inserted_id
+        self.bson_id=[]
+        for  i in range(len(sf["asics"])):
+            self.bson_id.append(sf["asics"][i]["_id"])
+        self.state["asics"]=self.bson_id
+        resstate=self.db.states.insert_one(self.state)
+        print resstate
+    def uploadNewState(self,comment="NEW"):
         # First append modified ASICS
         for i in range(len(self.asiclist)):
             if (self.asiclist[i]["_id"]!=None):
@@ -51,8 +66,60 @@ class MongoRoc:
         for  i in range(len(self.asiclist)):
             self.bson_id.append(self.asiclist[i]["_id"])
         self.state["asics"]=self.bson_id
+        self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate
+    def uploadFromOracle(self,asiclist,statename,version,comment="NEW"):
+        self.state["name"]=statename
+        self.state["version"]=version
+        self.state["asics"]=[]
+        for i in range(len(asiclist)):
+            self.asiclist.append(asiclist[i])
+        # First append modified ASICS
+        for i in range(len(self.asiclist)):
+            if (self.asiclist[i]["_id"]!=None):
+                continue
+            del self.asiclist[i]["_id"]
+            result=self.db.asics.insert_one(self.asiclist[i])
+            self.asiclist[i]["_id"]=result.inserted_id
+        for  i in range(len(self.asiclist)):
+            self.bson_id.append(self.asiclist[i]["_id"])
+        self.state["asics"]=self.bson_id
+        self.state["comment"]=comment
+        resstate=self.db.states.insert_one(self.state)
+        print resstate
+    def uploadConfig(self,name,fname,comment,version=1):
+        s={}
+        s["content"]=json.loads(open(fname).read())
+        s["name"]=name
+        s["time"]=time.time()
+        s["comment"]=comment
+        s["version"]=version
+        resconf=self.db.configurations.insert_one(s)
+        print resconf
+    def states(self):
+        res=self.db.states.find({})
+        for x in res:
+            if ("comment" in x):
+                print x["name"],x["version"],x["comment"]
+            else:
+                print x["name"],x["version"] 
+    def configurations(self):
+        res=self.db.configurations.find({})
+        for x in res:
+            if ("comment" in x):
+                print time.ctime(x["time"]),x["version"],x["name"],x["comment"]
+
+    def downloadConfig(self,cname,version):
+        res=self.db.configurations.find({'name':cname,'version':version})
+        for x in res:
+            print x["name"],x["version"],x["comment"]
+            #var=raw_input()
+            slc=x["content"]
+            f=open("/dev/shm/%s_%s.json" % (cname,version),"w+")
+            f.write(json.dumps(slc))
+            f.close()
+            return slc
     def download(self,statename,version):
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
@@ -61,6 +128,8 @@ class MongoRoc:
             self.state["version"]=x["version"]
             #var=raw_input()
             slc={}
+            slc["state"]=statename
+            slc["version"]=version
             slc["asics"]=[]
             self.asiclist=[]
             for y in x["asics"]:
@@ -174,7 +243,7 @@ class MongoRoc:
         return _jasic
 
 
-    def uploadChanges(self,statename):
+    def uploadChanges(self,statename,comment):
         """
         Upload a new version
         The state name will be, old_state_name_xx where xx is the new index (starting from 00)
@@ -201,6 +270,7 @@ class MongoRoc:
             self.bson_id.append(a["_id"])
         self.state["asics"]=self.bson_id
         self.state["version"]=last+1
+        self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate,self.state["version"],self.state["name"]
     def getDIFList(self):
@@ -334,7 +404,7 @@ class MongoRoc:
                 a["slc"]["6bDac"][ich]=dac
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
     def Correct6BDac(self, idif, iasic, cor):
         """
         Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
@@ -347,13 +417,14 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
+                print a["slc"]["6bDac"]
                 for ich in range(32):
-                    print " Dac changed", idif, iasic, ich, vg[ich], cor[ich]
+                    print " Dac changed", idif, iasic, ich, cor[ich]
                     a["slc"]["6bDac"][ich] = a["slc"]["6bDac"][ich]+cor[ich]
-
+                print a["slc"]["6bDac"]
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
 
 
     def ChangeMask(self, idif, iasic, ich, mask):
@@ -368,11 +439,8 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
-                a["slc"]["VthTime"]=VthTime
-                for ich in range(32):
-                    a["slc"]["MaskDiscriTime"][ich] = (mask>>ich)&1
-
+                a["slc"]["MaskDiscriTime"][ich] = mask
                 a["_id"]=None
             except Exception, e:
-                print e.getMessage()
+                print e
 

@@ -76,6 +76,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _fsm->addCommand("CALIBREGISTER",boost::bind(&FullDaq::triggerCalibRegister,this,_1,_2));
     _fsm->addCommand("RELOADCALIB",boost::bind(&FullDaq::triggerReloadCalib,this,_1,_2));
     _fsm->addCommand("SET6BDAC",boost::bind(&FullDaq::tdcSet6bDac,this,_1,_2));
+    _fsm->addCommand("CAL6BDAC",boost::bind(&FullDaq::tdcCal6bDac,this,_1,_2));
     _fsm->addCommand("SETVTHTIME",boost::bind(&FullDaq::tdcSetVthTime,this,_1,_2));
     _fsm->addCommand("SETTDCMODE",boost::bind(&FullDaq::tdcSetMode,this,_1,_2));
     _fsm->addCommand("SETTDCDELAYS",boost::bind(&FullDaq::tdcSetDelays,this,_1,_2));
@@ -1367,6 +1368,24 @@ void FullDaq::tdcSet6bDac(Mongoose::Request &request, Mongoose::JsonResponse &re
       tdc->sendCommand("SET6BDAC",sp.str());
     }
   response["DAC6B"]=nc;
+  response["STATUS"]="DONE";
+  return;
+}
+void FullDaq::tdcCal6bDac(Mongoose::Request &request, Mongoose::JsonResponse &response)//uint32_t nc)
+{
+
+
+  uint32_t mask = atol(request.get("mask", "4294967295").c_str());
+  int32_t shift = atol(request.get("shift", "0").c_str());
+  for (auto tdc:_tdcClients)
+    {
+      std::stringstream sp;
+      sp<<"&mask="<<mask;
+      sp<<"&shift="<<shift;
+      tdc->sendCommand("CAL6BDAC",sp.str());
+    }
+  response["DAC6B"]=shift;
+  response["MASK"]=mask;
   response["STATUS"]="DONE";
   return;
 }

@@ -52,6 +52,7 @@ public:
   /// DIFLIST Command handler
   void c_diflist(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// SET6BDAC Command handler
+  void c_cal6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_set6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// SETMASK Command handler
   void c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
@@ -67,6 +68,7 @@ public:
   void c_set1vthtime(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// DOWNLOADDB Command handler
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_asics(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// GETLUT command handler
   void c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response);
   /// TDC Calibration  command handlers
@@ -81,6 +83,8 @@ public:
 
   /// Change 6BDAC (all FEBs,all Asics)
   void set6bDac(uint8_t dac);
+  /// 
+  void cal6bDac(uint32_t mask,int32_t dacShift);
   /// Change Mask (all febs, ASIC mask)
   void setMask(uint32_t mask, uint8_t asic = 255);
   /// Sof trigger (obsolete)

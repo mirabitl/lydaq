@@ -41,10 +41,12 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("STATUS", boost::bind(&lydaq::WiznetManager::c_status, this, _1, _2));
   _fsm->addCommand("DIFLIST", boost::bind(&lydaq::WiznetManager::c_diflist, this, _1, _2));
   _fsm->addCommand("SET6BDAC", boost::bind(&lydaq::WiznetManager::c_set6bdac, this, _1, _2));
+  _fsm->addCommand("CAL6BDAC", boost::bind(&lydaq::WiznetManager::c_cal6bdac, this, _1, _2));
   _fsm->addCommand("SETVTHTIME", boost::bind(&lydaq::WiznetManager::c_setvthtime, this, _1, _2));
   _fsm->addCommand("SETONEVTHTIME", boost::bind(&lydaq::WiznetManager::c_set1vthtime, this, _1, _2));
   _fsm->addCommand("SETMASK", boost::bind(&lydaq::WiznetManager::c_setMask, this, _1, _2));
   _fsm->addCommand("DOWNLOADDB", boost::bind(&lydaq::WiznetManager::c_downloadDB, this, _1, _2));
+  _fsm->addCommand("ASICS", boost::bind(&lydaq::WiznetManager::c_asics, this, _1, _2));
 
   _fsm->addCommand("SETMODE", boost::bind(&lydaq::WiznetManager::c_setMode, this, _1, _2));
   _fsm->addCommand("SETDELAY", boost::bind(&lydaq::WiznetManager::c_setDelay, this, _1, _2));
@@ -115,6 +117,17 @@ void lydaq::WiznetManager::c_set6bdac(Mongoose::Request &request, Mongoose::Json
   LOG4CXX_INFO(_logFeb, "Set6bdac called with dac=" << nc);
 
   this->set6bDac(nc & 0xFF);
+  response["6BDAC"] = _jControl;
+}
+void lydaq::WiznetManager::c_cal6bdac(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  uint32_t mask = atol(request.get("mask", "4294967295").c_str());
+  int32_t shift = atol(request.get("shift", "0").c_str());
+  LOG4CXX_INFO(_logFeb, "cal6bdac called with mask=" << mask<<" Shift:"<<shift);
+
+  this->cal6bDac(mask,shift);
   response["6BDAC"] = _jControl;
 }
 void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -290,7 +303,10 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
   if (jTDC.isMember("db"))
   {
     Json::Value jTDCdb = jTDC["db"];
-    _tca->parseDb(jTDCdb["state"].asString(), jTDCdb["mode"].asString());
+    if (jTDCdb["mode"].asString().compare("mongo")!=0)
+      _tca->parseDb(jTDCdb["state"].asString(), jTDCdb["mode"].asString());
+    else
+      _tca->parseMongoDb(jTDCdb["state"].asString(), jTDCdb["version"].asUInt());
   }
   if (_tca->asicMap().size() == 0)
   {
@@ -397,7 +413,7 @@ void lydaq::WiznetManager::configure(zdaq::fsmmessage *m)
 void lydaq::WiznetManager::set6bDac(uint8_t dac)
 {
 
-  ::sleep(1);
+  //::sleep(1);
 
   // Modify ASIC SLC
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
@@ -417,13 +433,85 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
-  ::sleep(1);
+  ::usleep(50000);
 }
+void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
+{
+  LOG4CXX_INFO(_logFeb, "CAL6BDAC called "<<mask<<" Shift "<<dacShift);
+  //::usleep(50000);
+  std::map<uint64_t,uint16_t*> ascopy;
+  // Modify ASIC SLC
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+  {
+
+    if (ascopy.find(it->first)==ascopy.end())
+      {
+	uint16_t* b=new uint16_t[32];
+	std::pair<uint64_t,uint16_t*> p(it->first,b);
+	ascopy.insert(p);
+      }
+    auto ic=ascopy.find(it->first);
+    for (int i = 0; i < 32; i++)
+    {
+      ic->second[i]=it->second.get6bDac(i);
+      if ((mask>>i)&1)
+	{
+	  uint32_t dac=it->second.get6bDac(i);
+	  int32_t ndac=dac+dacShift;
+	  if (ndac<0) ndac=0;
+	  if (ndac>63) ndac=63;
+	  std::cout<<"channel "<<i<<" DAC "<<dac<<" shifted to "<<ndac<<std::endl;
+
+	  it->second.set6bDac(i, ndac);
+	}
+    }
+  }
+  // Now loop on slowcontrol socket and send packet
+  for (auto x : _wiznet->controlSockets())
+  {
+
+    _tca->prepareSlowControl(x.second->hostTo());
+
+    _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+    this->readShm(x.second->hostTo(), x.second->portTo());
+  }
+
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+    {
+	
+      auto ic=ascopy.find(it->first);
+      for (int i = 0; i < 32; i++)
+
+	it->second.set6bDac(i,ic->second[i]);
+      
+    }
+  for (auto it =ascopy.begin(); it != ascopy.end(); it++) delete it->second;
+  
+  ::usleep(50000);
+}
+void lydaq::WiznetManager::c_asics(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+  Json::Value jlist;;
+  for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
+  {
+    Json::Value jasic;
+    uint32_t iasic=it->first & 0xFF;
+    jasic["num"] = iasic;
+    uint32_t difid= ((it->first)>>32 & 0xFFFFFFFF);
+    jasic["dif"] = difid;
+    it->second.toJson();
+    jasic["slc"]=it->second.getJson();
+    jlist.append(jasic);
+  }
+  response["asics"]=jlist;
+}
+
 
 void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
 {
 
-  ::sleep(1);
+  //::sleep(1);
   // Change all Asics VthTime
   uint32_t umask;
   uint32_t asica = asic;
@@ -464,7 +552,7 @@ void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 
-  ::sleep(1);
+  ::usleep(50000);
 }
 
 void lydaq::WiznetManager::setVthTime(uint32_t vth)
@@ -552,7 +640,7 @@ void lydaq::WiznetManager::getCalibrationStatus()
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x225, 0);
-    ::sleep(1);
+    ::usleep(100000);
     this->readShm(x.second->hostTo(), x.second->portTo());
   }
 }

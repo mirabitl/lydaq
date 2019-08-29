@@ -415,7 +415,7 @@ public:
     int ier;
     do
     {
-      char b;
+      uint32_t b;
       ier = fscanf(fp, "%x", &b);
       memcpy(&buf[79 - slcBytes], &b, 1);
       printf("%d %x %x\n", 79 - slcBytes, buf[79 - slcBytes], _l[(79 - slcBytes) / 4]);

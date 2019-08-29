@@ -15,6 +15,9 @@
 #include "fsmwebCaller.hh"
 #include "WiznetMessageHandler.hh"
 #include <ILCConfDB.h>
+#include <stdlib.h>
+
+
 
 using namespace lydaq;
 lydaq::TdcConfigAccess::TdcConfigAccess()
@@ -37,6 +40,39 @@ lydaq::TdcConfigAccess::TdcConfigAccess()
 
 #endif
 }
+
+void lydaq::TdcConfigAccess::parseMongoDb(std::string state,uint32_t version)
+{
+  std::stringstream scmd;
+  scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
+  system(scmd.str().c_str());
+  std::stringstream sname;
+  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  Json::Reader reader;
+  std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
+  //      Json::Value _jall;
+  bool parsingSuccessful = reader.parse(ifs, _jall, false);
+  if (!_jall.isMember("asics"))
+  {
+    std::cout << " No DIF tag found " << std::endl;
+    return;
+  }
+ 
+  const Json::Value &asics = _jall["asics"];
+  
+  for (Json::ValueConstIterator ita = asics.begin(); ita != asics.end(); ++ita)
+    {
+      const Json::Value &asic = *ita;
+      uint32_t ipadr = asic["dif"].asUInt();
+      uint8_t header = asic["num"].asUInt();
+      lydaq::PR2 prs;
+      prs.setJson(asic);
+      uint64_t eid = ((uint64_t) ipadr) << 32 | header;
+      _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
+    }
+  
+}
+
 void lydaq::TdcConfigAccess::parseJsonFile(std::string jsf)
 {
   Json::Reader reader;
@@ -93,6 +129,8 @@ uint32_t lydaq::TdcConfigAccess::slcBytes() { return _slcBytes; }
 std::map<uint64_t, lydaq::PR2> &lydaq::TdcConfigAccess::asicMap() { return _asicMap; }
 void lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
 {
+std::cout<<"entering TDCConfigAccess.cc  lydaq::TdcConfigAccess::prepareSlowControl"<<std::endl;
+
   // Initialise
   _slcBytes = 0;
   uint64_t eid = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32;
@@ -159,7 +197,7 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     {
       LOG4CXX_INFO(_logLdaq, "  Web access" << stateName);
       char *wp = getenv("CONFDB_WEB");
-      LOG4CXX_INFO(_logLdaq, "  Web access->" << wp);
+      LOG4CXX_INFO(_logLdaq, "  Web access 1->" << wp);
       _state = State::getState_WebServer(stateName);
     }
     catch (ILCException::Exception e)
@@ -276,7 +314,13 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
     prs.setusebcompensation(itMR->getInt("USEBCOMPENSATION"));
 
     // PR2B
+#ifdef USE_PR2A
+      LOG4CXX_INFO(_logLdaq, " PR2A!!");
+#endif
+  
 #ifndef USE_PR2A
+      LOG4CXX_INFO(_logLdaq, " PR2B!!");
+ 
     prs.setPA_ccomp_0(itMR->getInt("PA_CCOMP_0"));
     prs.setPA_ccomp_1(itMR->getInt("PA_CCOMP_1"));
     prs.setPA_ccomp_2(itMR->getInt("PA_CCOMP_2"));

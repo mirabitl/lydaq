@@ -27,6 +27,20 @@ class Scurve(QtCore.QThread):
     def run(self):
         self.daq.daq_fullscurve(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
         #self.terminate()
+class CalibDac(QtCore.QThread):
+    def __init__(self,daq,ch,son,soff,beg,las,step,asic):
+        QtCore.QThread.__init__(self)
+        self.daq =daq
+        self.ch = ch
+        self.son = son
+        self.soff = soff
+        self.beg = beg
+        self.las = las
+        self.step = step
+        self.asic=asic
+    def run(self):
+        self.daq.daq_fullcalib(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
+        #self.terminate()
         
 class AllStatus(QtCore.QThread):
     def __init__(self,daq):
@@ -96,6 +110,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.PBDownload.clicked.connect(self.action_daq_download)
         # SCurve
         self.PBScurve.clicked.connect(self.action_daq_scurve)
+        self.PBDAC.clicked.connect(self.action_daq_calibdac)
         # MDCC
         self.PBMdccSet.clicked.connect(self.action_mdcc_set_registers)
         self.PBMdccResetCounters.clicked.connect(self.action_mdcc_reset_counters)
@@ -140,6 +155,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         #calibration
         self.PBLutcalib.clicked.connect(self.action_lutcalib)
         self.PBLutdraw.clicked.connect(self.action_lutdraw)
+        self.PBLUT.clicked.connect(self.action_lutdump)
         self.PBTestmask.clicked.connect(self.action_tdc_testmask)
         
         
@@ -350,6 +366,22 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         l= self.daq.daq_state()
         self.state=l
         self.LADAQState.setText(l)
+    def action_daq_calibdac(self):
+        self.scurve=CalibDac(self.daq,self.SBChannel.value(),self.SBWindow.value(),100000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value(),self.SBPR2.value())
+        self.scurve.start()
+        if (self.allstatus.stop):
+            self.allstatus.stop=False
+            self.allstatus.start()
+
+        #r1=self.daq.daq_fullscurve(self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
+        #sr=json.loads(r1)
+        self.LADAQStatus.setText("CALIB")
+        #print sr
+        r= self.daq.daq_list()
+        self.PTEDaq.document().setPlainText(r)
+        l= self.daq.daq_state()
+        self.state=l
+        self.LADAQState.setText(l)
 
     def action_trig_status(self):
         r1=self.daq.trig_status()
@@ -524,9 +556,11 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         for i in range(self.SBNtdc.value()):
             self.daq.lut_calib(0,i)
     def action_lutdraw(self):
-        v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas)
+        v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas,self.SBFEB.value())
         self.luts.append(v[0])
-
+        print self.luts
+    def action_lutdump(self):
+        self.daq.lut_dump(0,self.SBFEB.value())
     def action_tdc_testmask(self):
         self.daq.tdc_testmask(0,int(str(self.LEMaskTDC.text()),16))
         r= self.daq.daq_list()
