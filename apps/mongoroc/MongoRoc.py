@@ -134,7 +134,7 @@ class MongoRoc:
     def download(self,statename,version):
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
-            print x["name"],x["version"],x["asics"]
+            print x["name"],x["version"],len(x["asics"])," asics"
             self.state["name"]=x["name"]
             self.state["version"]=x["version"]
             #var=raw_input()
@@ -557,4 +557,4 @@ class MongoRoc:
         _jasic["PAGAIN"]=dv
         _jasic["CTEST"]=ct
 
-        return d
+        return _jasic
