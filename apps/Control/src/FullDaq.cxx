@@ -686,6 +686,29 @@ void FullDaq::configure(zdaq::fsmmessage* m)
   for (auto tdc:_GRICClients)
     {
       tdc->sendTransition("CONFIGURE");
+            LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"sending command GRIC STATUS ");
+      tdc->sendCommand("STATUS");
+      if (!tdc->answer().empty())
+	{
+	  //std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
+	  Json::Value rep=Json::Value::null;
+	  if ( tdc->answer().isMember("answer"))
+	    rep=tdc->answer()["answer"];
+	  if (rep.isMember("GRICSTATUS"))
+	    {
+	      //std::cout<<rep["DIFLIST"]<<"\n";
+	      const Json::Value& jdevs=rep["GRICSTATUS"];
+	      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+		{
+		  Json::Value jd;
+		  jd["detid"]=(*it)["detid"];
+		  jd["sourceid"]=(*it)["sourceid"];
+		  jsou.append(jd);
+		} 
+	    }
+	}
+      else
+	LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<"No answer from STATUS in GRIC!!!!");
     }
 
   // Configure and Checking tdc
