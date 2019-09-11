@@ -10,6 +10,7 @@
 #include "debug.hh"
 #include "ReadoutLogger.hh"
 using namespace std;
+#define MBSIZE 0x100000
 namespace lydaq {
 
 class GricMpi
@@ -45,7 +46,7 @@ public:
   void connect(zmq::context_t* c,std::string dest);
 private:
   uint32_t _adr,_idx,_chlines;
-  uint8_t _buf[0x1000000];
+  uint8_t _buf[MBSIZE];
   
 
   uint64_t _lastABCID;
