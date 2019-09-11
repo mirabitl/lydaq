@@ -161,15 +161,15 @@ def executeFSM(host,port,prefix,cmd,params):
        #    lq["content"][x]=y
        lq["command"]=cmd           
        lqs=urllib.urlencode(lq)
-       print 
+       #print 
        #print lqs
        saction = '/%s/FSM?%s' % (prefix,lqs)
        myurl=myurl+saction
-       print myurl
+       #print myurl
        req=urllib2.Request(myurl)
-       print req
+       #print req
        r1=urllib2.urlopen(req)
-       print r1
+       #print r1
        return r1.read()
 
 def executeCMD(host,port,prefix,cmd,params):

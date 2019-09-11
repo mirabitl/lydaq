@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <vector>
 #include <map>
+#include "ReadoutLogger.hh"
 
 #include <err.h>
 
@@ -102,7 +103,7 @@ void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (lytdc
   // build id
 
   uint64_t id=( (uint64_t) lydaq::MpiMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
-  std::cout<<"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec<<std::endl;
+  LOG4CXX_DEBUG(_logFeb,"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec);
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
 
   if (itsock==_sockMap.end())
@@ -175,7 +176,8 @@ void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (lytdc
       break;
     _npacket++;
     // if (_npacket%1000 ==1)
-    fprintf(stderr,"%s Packet %ld Receive %ld bytes from %lx \n",__PRETTY_FUNCTION__,_npacket,ier,id);
+    LOG4CXX_DEBUG(_logFeb,"Packet "<<_npacket<<" receive "<<ier<<" bytes from"<<std::hex<<id<<std::dec);
+    //fprintf(stderr,"%s Packet %ld Receive %ld bytes from %lx \n",__PRETTY_FUNCTION__,_npacket,ier,id);
     break;
     size_remain -=ier;
     
