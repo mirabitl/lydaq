@@ -2,7 +2,7 @@
 cd /opt/
 sudo chmod o+w /opt
 #########  DEBIAN LIBRARIES Needed
-sudo apt-get -y install git subversion scons cmake g++ openssh-server default-jdk  liblog4cxx-dev libboost-dev libboost-system-dev libboost-filesystem-dev  libboost-thread-dev swig python-dev libftdi-dev  libxerces-c-dev libaio1 uuid-dev libdbi-dev libxml2-dev  libjsoncpp-dev libsqlite3-dev  libmotif-dev libmotif-common python-setuptools python-lxml dpkg-dev make binutils libx11-dev libxpm-dev libxft-dev libxext-dev gfortran libssl-dev libpcre3-dev         xlibmesa-glu-dev libglew1.5-dev libftgl-dev libfftw3-dev graphviz-dev libavahi-compat-libdnssd-dev  libldap2-dev python-dev libxml2-dev libkrb5-dev         libgsl0-dev libqt4-dev  libcurl4-gnutls-dev libaio1 pyqt4-dev-tools libcurl4-gnutls-dev  libzmq3-dev python-socks curl wget
+sudo apt-get -y install git subversion scons cmake g++ openssh-server default-jdk  liblog4cxx-dev libboost-dev libboost-system-dev libboost-filesystem-dev  libboost-thread-dev swig python-dev libftdi-dev  libxerces-c-dev libaio1 uuid-dev libdbi-dev libxml2-dev  libjsoncpp-dev libsqlite3-dev  libmotif-dev libmotif-common python-setuptools python-lxml dpkg-dev make binutils libx11-dev libxpm-dev libxft-dev libxext-dev gfortran libssl-dev libpcre3-dev         xlibmesa-glu-dev libglew1.5-dev libftgl-dev libfftw3-dev graphviz-dev libavahi-compat-libdnssd-dev  libldap2-dev python-dev libxml2-dev libkrb5-dev         libgsl0-dev libqt4-dev  libcurl4-gnutls-dev libaio1 pyqt4-dev-tools libcurl4-gnutls-dev  libzmq3-dev python-socks curl wget python-requests
 ######### Install and compile ROOT
 
 mkdir /opt/dhcal
@@ -100,4 +100,9 @@ sudo service start ljc.service
 cp $LYDAQROOT/etc/.pythonrc /opt/dhcal/etc
 sudo cp /opt/dhcal/etc/*.py /usr/lib/python2.7/dist-packages/
 sudo /etc/init.d/mystartup.sh start
+
+cd  $LYDAQROOT/apps/mongoroc
+sudo cp MongoRoc.py /usr/lib/python2.7/dist-packages/
+sudo cp mgroc /opt/dhcal/bin/
+
 sudo chmod o-w /opt
