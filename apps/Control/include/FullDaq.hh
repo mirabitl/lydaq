@@ -5,7 +5,9 @@
 #include <string>
 #include <vector>
 #include <json/json.h>
+#ifdef TOMUVOL
 #include "TmvAccessSql.hh"
+#endif
 #include <zmq.hpp>
 namespace lydaq
 {
@@ -99,8 +101,10 @@ private:
   uint32_t _ctrlreg,_run;
   Json::Value _jConfigContent;
   // Add-ons for Tomuvol
+  #ifdef TOMUVOL
   TmvAccessSql _tmv;
-
+  #endif
+  
   // Add-ons for survey
    boost::thread_group g_survey;
   bool _survey;

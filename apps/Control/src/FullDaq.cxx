@@ -417,7 +417,7 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 void FullDaq::prepare(zdaq::fsmmessage* m)
 {
   // Tomuvol patch
-
+  #ifdef TOMUVOL
    if (this->parameters().isMember("tmvdb"))
      {
        Json::Value jtmv=this->parameters()["tmvdb"];
@@ -426,6 +426,7 @@ void FullDaq::prepare(zdaq::fsmmessage* m)
 	   _tmv.connect(jtmv["account"].asString());
 	 }
      }
+   #endif
   if (this->parameters().isMember("s_ctrlreg"))
     {
       uint32_t ctrlreg=0;
@@ -770,10 +771,12 @@ void FullDaq::start(zdaq::fsmmessage* m)
         _run=10000;
       LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" new run "<<_run);
    // Tomuvol patch
+      #ifdef TOMUVOL
       if (this->parameters().isMember("tmvdb"))
 	{
 	  _tmv.initRunTable(_run);
 	}
+      #endif
    // Start the DIFs
   boost::thread_group g;
   for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
@@ -866,11 +869,12 @@ void FullDaq::stop(zdaq::fsmmessage* m)
     }
    LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP waiting for DIF Status ");
    // Tomuvol patch
+   #ifdef TOMUVOL
    if (this->parameters().isMember("tmvdb"))
 	{
 	  _tmv.endRunTable();
 	}
-
+   #endif
    m->setAnswer(toJson(this->difstatus()));  
 }
 
