@@ -11,5 +11,5 @@ cd Genesys;scons install -j2;cd -
 cd Zup;scons install -j2;cd -
 cd Wiener;scons install -j2;cd -
 cd utils/netLink;scons install -j2;cd -
-cd TmvDb;scons install -j2;cd -
+#cd TmvDb;scons install -j2;cd -
 cd FebInj;scons install -j2;cd -
