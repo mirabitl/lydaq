@@ -11,11 +11,12 @@ cd /opt/dhcal
 if [ -d "/opt/dhcal/root" ]; then
  echo "ROOT already installed"
 else
+    mkdir -p /opt/dhcal/root
  wget http://root.cern.ch/download/root_v6.18.02.source.tar.gz
  tar zxvf root_v6.18.02.source.tar.gz 
  cd root-6.18.02
  cd build
- cmake ..
+ cmake -DCMAKE_INSTALL_PREFIX=/opt/dhcal/root ..
  make -j4
  # regarder le cmake install prefix pour pointer sur /opt/dhcal/root
  sudo make install
