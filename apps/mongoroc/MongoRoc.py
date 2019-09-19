@@ -34,6 +34,7 @@ class MongoRoc:
         febid=IP2Int(ipname)
         for i in range(nasic):
             asic={}
+            asic["address"]=ipname
             asic["dif"]=febid
             asic["num"]=i+1
             asic["slc"]=self.initPR2(i+1,asictype)
@@ -41,16 +42,22 @@ class MongoRoc:
             print asic["dif"],asic["num"],asic["_id"]," is added"
             self.asiclist.append(asic)
             
-    def addDIF(self,difid,nasic):
+    def addDIF(self,difid,nasic,address="USB"):
+        if (adress != "USB"):
+            id=IP2Int(address)
+        else:
+            id=difid
         for i in range(nasic):
             asic={}
-            asic["dif"]=difid
+            asic["address"]=address
+            asic["dif"]=id
             asic["num"]=i+1
             asic["slc"]=self.initHR2(i+1,128)
             asic["_id"]=None
-            print asic["dif"],asic["num"],asic["_id"]," is added"
+            print asic["address"],asic["dif"],asic["num"],asic["_id"]," is added"
             self.asiclist.append(asic)
 
+    
     def uploadFromFile(self,fname):
         f=open(fname)
         sf=json.loads(f.read())
@@ -143,8 +150,12 @@ class MongoRoc:
             slc["version"]=version
             slc["asics"]=[]
             self.asiclist=[]
-            for y in x["asics"]:
-                resa=self.db.asics.find_one({'_id':y})
+            #for y in x["asics"]:
+            #    resa=self.db.asics.find_one({'_id':y})
+            #print x["asics"]
+            resl=self.db.asics.find({'_id': {'$in': x["asics"]}})
+            
+            for resa in resl:
                 self.asiclist.append(resa)
                 s={}
                 s["slc"]=resa["slc"]
@@ -284,22 +295,7 @@ class MongoRoc:
         self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
         print resstate,self.state["version"],self.state["name"]
-    def getDIFList(self):
-        """
-        return the list of DIF in the current setup
-        """
-        dl = []
-        for x in self.difConf.getVector():
-            dl.append(x.getInt("ID"))
-        return dl
-
-    def dumpStateNames(self):
-        """
-        print the list of states in the DB
-        """
-        for x in Setup_getSetupNames():
-            print x
-
+        
 
     def addAsic(self, dif_num, header,version="A"):
         """
@@ -314,7 +310,7 @@ class MongoRoc:
         self.asicConf.add(thePR2)
 
  
-    def ChangeLatch(self, Latch, idif=0, iasic=0):
+    def PR2_ChangeLatch(self, Latch, idif=0, iasic=0):
         """
         Change the Latch mode of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
@@ -330,7 +326,7 @@ class MongoRoc:
             except Exception, e:
                 print e.getMessage()
 
-    def ChangeVthTime(self, VthTime, idif=0, iasic=0):
+    def PR2_ChangeVthTime(self, VthTime, idif=0, iasic=0):
         """
         Change the VTHTIME  of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
@@ -347,7 +343,7 @@ class MongoRoc:
                 print e.getMessage()
 
 
-    def ChangeDacDelay(self, delay, idif=0, iasic=0):
+    def PR2_ChangeDacDelay(self, delay, idif=0, iasic=0):
         """
         Change the DACDELAY  of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
@@ -363,7 +359,7 @@ class MongoRoc:
             except Exception, e:
                 print e.getMessage()
 
-    def ChangeAllEnabled(self, idif=0, iasic=0):
+    def PR2_ChangeAllEnabled(self, idif=0, iasic=0):
         """
         Change all the ENable signals  of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
@@ -401,7 +397,7 @@ class MongoRoc:
             except Exception, e:
                 print e.getMessage()
 
-    def Change6BDac(self, idif, iasic, ich, dac):
+    def PR2_Change6BDac(self, idif, iasic, ich, dac):
         """
         Change the 6BDAC value to dac  of the asic #asic on the TDCDIF #dif       
         """
@@ -416,7 +412,7 @@ class MongoRoc:
                 a["_id"]=None
             except Exception, e:
                 print e
-    def Correct6BDac(self, idif, iasic, cor):
+    def PR2_Correct6BDac(self, idif, iasic, cor):
         """
         Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
         cor is an array of 32 value , 
@@ -438,7 +434,7 @@ class MongoRoc:
                 print e
 
 
-    def ChangeMask(self, idif, iasic, ich, mask):
+    def PR2_ChangeMask(self, idif, iasic, ich, mask):
         """
         Change PETIROC2 MASKDISCRITIME parameter for one channel
         Careful: 1 = inactive, 0=active
@@ -454,7 +450,7 @@ class MongoRoc:
                 a["_id"]=None
             except Exception, e:
                 print e
-
+# HR2 access
     def initHR2(self,num,gain=128):
         """
         HardRoc 2  initialisation
@@ -558,3 +554,173 @@ class MongoRoc:
         _jasic["CTEST"]=ct
 
         return _jasic
+
+
+    def HR2_unsetPowerPulsing(self):
+        """
+        Unset Power pulsing on all ASICs
+        """
+        for a in self.asiclist: 
+
+            a["slc"]["CLKMUX"]=1;a["_id"]=None
+            a["slc"]["SCON"]=1;a["_id"]=None
+            a["slc"]["OTAQ_PWRADC"]=1;a["_id"]=None
+            a["slc"]["PWRONW"]=1;a["_id"]=None
+            a["slc"]["PWRONSS"]=1;a["_id"]=None
+            a["slc"]["PWRONBUFF"]=1;a["_id"]=None
+            a["slc"]["PWRONPA"]=1;a["_id"]=None
+            a["slc"]["DISCRI0"]=1;a["_id"]=None
+            a["slc"]["DISCRI1"]=1;a["_id"]=None
+            a["slc"]["DISCRI2"]=1;a["_id"]=None
+            a["slc"]["OTABGSW"]=1;a["_id"]=None
+            a["slc"]["DACSW"]=1;a["_id"]=None
+            a["slc"]["PWRONFSB0"]=1;a["_id"]=None
+            a["slc"]["PWRONFSB1"]=1;a["_id"]=None
+            a["slc"]["PWRONFSB2"]=1;a["_id"]=None
+
+
+
+    def HR2_setPowerPulsing(self):
+        """
+        set Power pulsing on all ASICs
+        """
+        for a in self.asics: 
+
+            a["slc"]["CLKMUX"]=0;a["_id"]=None
+            a["slc"]["SCON"]=0;a["_id"]=None
+            a["slc"]["OTAQ_PWRADC"]=0;a["_id"]=None
+            a["slc"]["PWRONW"]=0;a["_id"]=None
+            a["slc"]["PWRONSS"]=0;a["_id"]=None
+            a["slc"]["PWRONBUFF"]=0;a["_id"]=None
+            a["slc"]["PWRONPA"]=0;a["_id"]=None
+            a["slc"]["DISCRI0"]=0;a["_id"]=None
+            a["slc"]["DISCRI1"]=1;a["_id"]=None
+            a["slc"]["DISCRI2"]=1;a["_id"]=None
+            a["slc"]["OTABGSW"]=0;a["_id"]=None
+            a["slc"]["DACSW"]=0;a["_id"]=None
+            a["slc"]["PWRONFSB0"]=0;a["_id"]=None
+            a["slc"]["PWRONFSB1"]=1;a["_id"]=None
+            a["slc"]["PWRONFSB2"]=1;a["_id"]=None
+            print a.getInt("DISCRI0")
+            a.setModified(1)
+ 
+
+    def HR2_ChangeThreshold(self,B0,B1,B2,idif=0,iasic=0):
+        """
+        change thresholds B0,B1,B2 on DIF idif and asic iasic.
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            try:
+                a["slc"]["B0"]=B0;a["_id"]=None;
+                a["slc"]["B1"]=B1;a["_id"]=None;
+                a["slc"]["B2"]=B2;a["_id"]=None;
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
+    def HR2_ChangeGain(self,idif,iasic,ipad,scale):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+
+            a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
+            a["_id"]=None
+            print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+
+    def HR2_SetGain(self,idif,iasic,ipad,vnew):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+
+            a["slc"]["PAGAIN"][ipad]=vnew
+            a["_id"]=None
+            print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+   
+
+    def HR2_SetAsicGain(self,idif,iasic,vnew):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            for ipad in range(0,64):
+                a["slc"]["PAGAIN"][ipad]=vnew
+                a["_id"]=None
+                print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+
+
+
+    def HR2_RescaleGain(self,gain0,gain1,idif=0,iasic=0):
+        """
+        Modify gain of all asics by a factor gain1/gain0 on HR2
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        scale=gain1*1./gain0
+        print " Rescale factor",scale
+
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            for ipad in range(0,64):
+                a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
+            a["_id"]=None
+            
+    def HR2_SetMask(self,list,idif=0,iasic=0):
+        m=0xFFFFFFFFFFFFFFFF
+        for i in list:
+            m=m &~(1<<i);
+        sm="0x%lx" % m
+        self.ChangeMask(sm,sm,sm,idif,iasic)
+        
+    def HR2_ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
+        """
+        Set the mask 0,1,2 to M0,M1,M2 on DIF idif and ASIC iasic
+        if idif is 0 all difs are concerned
+        if iasic is 0 all asics are concerned
+        """
+        print M0,M1,M2,idif,iasic
+        im0n=int(M0,16)
+        im1n=int(M1,16)
+        im2n=int(M2,16)
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            for ipad in range(0,64):
+                a["slc"]["MASK0"][ipad]=a["slc"]["MASK0"][ipad]& (im0n>>ipad)
+                a["slc"]["MASK1"][ipad]=a["slc"]["MASK1"][ipad]& (im1n>>ipad)
+                a["slc"]["MASK2"][ipad]=a["slc"]["MASK2"][ipad]& (im2n>>ipad)
+            a["_id"]=None
+
+
+      

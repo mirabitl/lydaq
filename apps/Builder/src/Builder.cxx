@@ -41,8 +41,17 @@ void lydaq::dsBuilder::configure(zdaq::fsmmessage* m)
 
   
   Json::Value jc=m->content();
+  
   if (jc.isMember("dif"))
     _merger->setNumberOfDataSource(jc["dif"].asInt());
+
+  if (m->content().isMember("purge"))
+    {
+      this->parameters()["purge"] = m->content()["purge"];
+    }
+  
+  if (this->parameters().isMember("purge"))
+    _merger->setPurge(this->parameters()["purge"].asInt()==1);
   
     
   const Json::Value& books = jc["stream"];

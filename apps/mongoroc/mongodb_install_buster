@@ -1,0 +1,17 @@
+sudo apt install wget gnupg
+wget -qO - https://www.mongodb.org/static/pgp/server-4.0.asc | sudo apt-key add -
+echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+sudo apt update
+
+echo "deb http://deb.debian.org/debian/ stretch main" | sudo tee /etc/apt/sources.list.d/debian-stretch.list
+
+sudo apt update
+sudo apt install libcurl3
+sudo apt install mongodb-org
+mongod --version
+sudo systemctl status mongod
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+sudo apt install python-pymongo
+

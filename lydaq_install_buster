@@ -1,0 +1,108 @@
+#!/bin/bash
+cd /opt/
+sudo chmod o+w /opt
+#########  DEBIAN LIBRARIES Needed
+sudo apt-get -y install git subversion scons cmake g++ openssh-server default-jdk  liblog4cxx-dev libboost-dev libboost-system-dev libboost-filesystem-dev  libboost-thread-dev swig python-dev libftdi-dev  libxerces-c-dev libaio1 uuid-dev libdbi-dev libxml2-dev  libjsoncpp-dev libsqlite3-dev  libmotif-dev libmotif-common python-setuptools python-lxml dpkg-dev make binutils libx11-dev libxpm-dev libxft-dev libxext-dev gfortran libssl-dev libpcre3-dev         xlibmesa-glu-dev libglew1.5-dev libftgl-dev libfftw3-dev graphviz-dev libavahi-compat-libdnssd-dev  libldap2-dev python-dev libxml2-dev libkrb5-dev         libgsl0-dev libqt4-dev  libcurl4-gnutls-dev libaio1 pyqt4-dev-tools libcurl4-gnutls-dev  libzmq3-dev python-socks curl wget python-requests
+######### Install and compile ROOT
+
+mkdir /opt/dhcal
+chmod 777 /opt/dhcal
+cd /opt/dhcal
+if [ -d "/opt/dhcal/root" ]; then
+ echo "ROOT already installed"
+else
+    mkdir -p /opt/dhcal/root
+ wget http://root.cern.ch/download/root_v6.18.02.source.tar.gz
+ tar zxvf root_v6.18.02.source.tar.gz 
+ cd root-6.18.02
+ cd build
+ cmake -DCMAKE_INSTALL_PREFIX=/opt/dhcal/root ..
+ make -j4
+ # regarder le cmake install prefix pour pointer sur /opt/dhcal/root
+ sudo make install
+ export ROOTSYS=/opt/dhcal/root
+fi
+mkdir -p /opt/dhcal/etc
+mkdir -p /opt/dhcal/bin
+mkdir -p /opt/dhcal/lib
+######### Install LCIO
+cd /opt/dhcal/
+export LCIODIR=/opt/dhcal/lcio/v02-00
+if [ -d "$LCIODIR" ]; then
+ echo "LCIO already installed"
+else
+ svn co svn://svn.freehep.org/lcio/tags/v02-00 lcio/v02-00
+ cd lcio/v02-00
+ mkdir build
+ cd build
+ cmake ..   
+ make install
+fi
+######### INSTALL ZDAQ and LYDAQ
+cd /opt
+if [ -d "/opt/zdaq" ]; then
+  cd /opt/zdaq
+  git pull
+else
+  git clone http://github.com/mirabitl/zdaq
+fi
+
+if [ -d "/opt/lydaq" ]; then
+  cd /opt/lydaq
+  git pull
+else
+  git clone http://github.com/mirabitl/lydaq
+fi
+export ZDAQROOT=/opt/zdaq
+export LYDAQROOT=/opt/lydaq
+
+#### Mongoose and ZMQ
+cd $ZDAQROOT/extras
+. mongoose.install 
+cd $ZDAQROOT/extras
+. zmq.install.buster
+#### CAEN
+cd $LYDAQROOT/drivers/utils/packages
+./install
+#### ILCCONFDB
+cd  $LYDAQROOT/drivers/utils/
+cp ilcconfdb ~/.ssh/
+cp ssh_config ~/.ssh/config
+chmod 600 ~/.ssh/ilcconfdb
+ssh-add ~/.ssh/ilcconfdb 
+ssh-agent 
+cd /opt/
+git clone git@gitlab.in2p3.fr:gbaulieu/ILCConfDB.git
+cd ILCConfDB/ILCConfDB/src
+
+# modifier le Makefile pour le DGLIB....
+make 
+sudo make install
+sudo ln -s /opt/ILCConfDB/ILCConfDB/include/occi11/ /usr/include/ILCConfDB/
+sudo ln -s /usr/lib/libocci.so.11.1 /usr/lib/libocci.so
+sudo ln -s /usr/lib/libclntsh.so.11.1 /usr/lib/libclntsh.so
+
+#### ZDAQ
+cd $ZDAQROOT
+scons -j4
+#### LYDAQ
+cd $LYDAQROOT
+. compile
+/opt/lydaq/deploy.sh localhost
+sudo cp $ZDAQROOT/etc/difdim.cfg /etc
+sudo cp $ZDAQROOT/etc/ljc.conf /etc
+sudo cp $ZDAQROOT/etc/Log4cxxConfig.xml /etc
+cp $LYDAQROOT/etc/* /opt/dhcal/etc
+cp /opt/dhcal/etc/ljcd.sh /opt/dhcal/bin
+sudo cp /opt/dhcal/etc/ljc.service /etc/systemd/system/
+sudo service enable ljc.service
+sudo service start ljc.service
+cp $LYDAQROOT/etc/.pythonrc /opt/dhcal/etc
+sudo cp /opt/dhcal/etc/*.py /usr/lib/python2.7/dist-packages/
+sudo /etc/init.d/mystartup.sh start
+
+cd  $LYDAQROOT/apps/mongoroc
+sudo cp MongoRoc.py /usr/lib/python2.7/dist-packages/
+sudo cp mgroc /opt/dhcal/bin/
+
+sudo chmod o-w /opt
