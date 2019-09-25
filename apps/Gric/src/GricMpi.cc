@@ -343,7 +343,8 @@ void lydaq::GricMpi::processSensorGric()
   idx+=(length-14);
   if (_dsData!=NULL)
     {
-      memcpy((unsigned char*) _dsData->payload(),temp,idx);
+      //memcpy((unsigned char*) _dsData->payload(),temp,idx);
+      memcpy((unsigned char*) _dsData->payload(),_buf,length);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
 	LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);

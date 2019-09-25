@@ -93,8 +93,8 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
   // Initialise
   _slcBytes=0;
   uint64_t eid=((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32;
-  // Loop on 4 Asic maximum
-  for (int ias=24;ias>=1;ias--)
+  // Loop on 48 Asic maximum
+  for (int ias=48;ias>=1;ias--)
     {
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
@@ -207,7 +207,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
        LOG4CXX_INFO(_logLdaq," HR2Slow created");
       // Fill it
 
-
+      prs.setHEADER(itMR->getInt("HEADER"));
       prs.setEN_OTAQ(itMR->getInt("EN_OTAQ"));
       printf("%d\n",__LINE__);
       prs.setDACSW(itMR->getInt("DACSW"));
