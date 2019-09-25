@@ -554,6 +554,7 @@ void lydaq::GricManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2)
       it->second.setB0(b0);
       it->second.setB1(b1);
       it->second.setB2(b2);
+      //it->second.setHEADER(0x56);
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
