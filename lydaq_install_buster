@@ -16,7 +16,7 @@ else
  tar zxvf root_v6.18.02.source.tar.gz 
  cd root-6.18.02
  cd build
- cmake -DCMAKE_INSTALL_PREFIX=/opt/dhcal/root ..
+ cmake -DCMAKE_INSTALL_PREFIX=/opt/dhcal/root -Ddavix=OFF ..
  make -j4
  # regarder le cmake install prefix pour pointer sur /opt/dhcal/root
  sudo make install

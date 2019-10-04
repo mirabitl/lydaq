@@ -1,92 +1,69 @@
 #ifndef _MessageHandler_h_
 #define _MessageHandler_h_
-/*!
-* \file MessageHandler.hh
- * \brief Handelers of netlink library events
- * \author L.Mirabito
- * \version 1.0
-*/
+
 #include <netlink/socket.h>
 #include <netlink/socket_group.h>
 #include <string>
-#include "debug.hh"
+#undef DEBUG_PRINT_ENABLED 
 
-/*! \namespace lytdc
-  *
-  * \brief namespace grouping all netlink handlers used for FebCms
-*/
-namespace lytdc
-{
+#if DEBUG_PRINT_ENABLED
+#define DEBUG printf
+#else
+#define DEBUG(format, args...) ((void)0)
+#endif
+#define INFO_PRINT_ENABLED 0
 
-/*!
-* \brief purely virtual class to handle FEB messages
-*/
+#if INFO_PRINT_ENABLED
+#define INFO printf
+#else
+#define INFO(format, args...) ((void)0)
+#endif
+namespace lytdc {
 class MessageHandler
 {
 public:
-  virtual void processMessage(NL::Socket *socket) { ; }
-  virtual void removeSocket(NL::Socket *sock) { ; }
+  virtual void processMessage(NL::Socket* socket) throw (std::string){;}
+  virtual void removeSocket(NL::Socket* sock){;}
 };
 
-/**
- * \brief Net link accept handler
- * 
- * */
-class OnAccept : public NL::SocketGroupCmd
+
+class OnAccept: public NL::SocketGroupCmd 
 {
 
 public:
-  OnAccept(MessageHandler *msh);
-  void exec(NL::Socket *socket, NL::SocketGroup *group, void *reference);
-
+  OnAccept(MessageHandler* msh);
+  void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference) ;
 private:
-  MessageHandler *_msh;
+  MessageHandler* _msh;
 };
 
-/**
- * \brief Buffer processing handler
- * */
-class OnRead : public NL::SocketGroupCmd
+
+class OnRead: public NL::SocketGroupCmd 
 {
 public:
-  OnRead(MessageHandler *msh);
-  void exec(NL::Socket *socket, NL::SocketGroup *group, void *reference);
-
+  OnRead(MessageHandler* msh);
+  void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
 public:
   unsigned char _readBuffer[0x10000];
-
 private:
-  MessageHandler *_msh;
+  MessageHandler* _msh;
 };
 
-/**
- * \brief Server disconnection
- * */
-class OnDisconnect : public NL::SocketGroupCmd
+
+class OnDisconnect: public NL::SocketGroupCmd 
 {
-public:
-  OnDisconnect(MessageHandler *msh);
-  void exec(NL::Socket *socket, NL::SocketGroup *group, void *reference);
-  bool disconnected() { return _disconnect; }
-
+ public:
+  OnDisconnect(MessageHandler* msh);
+  void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
 private:
-  MessageHandler *_msh;
-  bool _disconnect;
+  MessageHandler* _msh;
 };
 
-/** 
- * \brief Client Disconnected 
- * */
 
-class OnClientDisconnect : public NL::SocketGroupCmd
+
+class OnClientDisconnect: public NL::SocketGroupCmd 
 {
-public:
-  OnClientDisconnect();
-  void exec(NL::Socket *socket, NL::SocketGroup *group, void *reference);
-  bool disconnected() { return _disconnect; }
-
-private:
-  bool _disconnect;
+  void exec(NL::Socket* socket, NL::SocketGroup* group, void* reference);
 };
-}; // namespace lytdc
+};
 #endif
