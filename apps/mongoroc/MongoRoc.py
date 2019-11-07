@@ -5,6 +5,10 @@ import json
 from bson.objectid import ObjectId
 import time
 
+
+
+
+
 def IP2Int(ip):
     o = map(int, ip.split('.'))
     res = (16777216 * o[3]) + (65536 * o[2]) + (256 * o[1]) + o[0]
@@ -43,8 +47,8 @@ class MongoRoc:
             self.asiclist.append(asic)
             
     def addDIF(self,difid,nasic,address="USB"):
-        if (adress != "USB"):
-            id=IP2Int(address)
+        if (address != "USB"):
+            id=(IP2Int(address)>>16)
         else:
             id=difid
         for i in range(nasic):
@@ -118,6 +122,8 @@ class MongoRoc:
     def states(self):
         res=self.db.states.find({})
         for x in res:
+            if (not ("name" in x)):
+                continue
             if ("comment" in x):
                 print x["name"],x["version"],x["comment"]
             else:
@@ -616,13 +622,10 @@ class MongoRoc:
                 continue
             if (iasic != 0 and a["num"] != iasic):
                 continue
-            try:
-                a["slc"]["B0"]=B0;a["_id"]=None;
-                a["slc"]["B1"]=B1;a["_id"]=None;
-                a["slc"]["B2"]=B2;a["_id"]=None;
-                a.setModified(1)
-            except Exception, e:
-                print e.getMessage()
+
+            a["slc"]["B0"]=B0;a["_id"]=None;
+            a["slc"]["B1"]=B1;a["_id"]=None;
+            a["slc"]["B2"]=B2;a["_id"]=None;
 
     def HR2_ChangeGain(self,idif,iasic,ipad,scale):
         """
@@ -676,6 +679,7 @@ class MongoRoc:
 
 
 
+                
     def HR2_RescaleGain(self,gain0,gain1,idif=0,iasic=0):
         """
         Modify gain of all asics by a factor gain1/gain0 on HR2
@@ -693,6 +697,39 @@ class MongoRoc:
             for ipad in range(0,64):
                 a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
             a["_id"]=None
+
+    def HR2_slowShaper(self):
+        """
+        Set SW100 F and K to 1
+        """
+        for a in self.asiclist:
+            
+            a["slc"]["SW100F0"]=1
+            a["slc"]["SW100K0"]=1
+            a["slc"]["SW50F0"]=0
+            a["slc"]["SW50K0"]=0
+
+            a["slc"]["SW100F1"]=1
+            a["slc"]["SW100K1"]=1
+            a["slc"]["SW50F1"]=0
+            a["slc"]["SW50K1"]=0
+
+            a["slc"]["SW100F2"]=1
+            a["slc"]["SW100K2"]=1
+            a["slc"]["SW50F2"]=0
+            a["slc"]["SW50K2"]=0
+            a["_id"]=None
+
+    def HR2_ChangeCTest(self,channel,ctest,idif=0,iasic=0):
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            a["slc"]["CTEST"][channel]=ctest
+            a["_id"]=None
+
+
             
     def HR2_SetMask(self,list,idif=0,iasic=0):
         m=0xFFFFFFFFFFFFFFFF
@@ -724,3 +761,10 @@ class MongoRoc:
 
 
       
+def instance():
+    # create the default access
+    f=open("/etc/.mongoroc.json")
+    s=json.loads(f.read())
+    _wdd=MongoRoc(s["host"],s["port"],s["db"],s["user"],s["pwd"])
+    f.close()
+    return _wdd
