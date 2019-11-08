@@ -328,6 +328,18 @@ void lydaq::LMdccServer::c_setspillregister(Mongoose::Request &request, Mongoose
   response["VALUE"]=nc;
 
 }
+void lydaq::LMdccServer::c_setexternaltrigger(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logMDCC,__PRETTY_FUNCTION__<<"Spill register called ");
+  if (_mdcc==NULL)    {response["STATUS"]="NO Mdcc created"; return;}
+  uint32_t nc=atol(request.get("value","0").c_str());
+  _mdcc->setExternalTrigger(nc);
+
+  response["STATUS"]="DONE";
+  response["VALUE"]=nc;
+
+}
+
 void lydaq::LMdccServer::c_setregister(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logMDCC,__PRETTY_FUNCTION__<<"Set register called ");
@@ -410,7 +422,7 @@ void lydaq::LMdccServer::c_status(Mongoose::Request &request, Mongoose::JsonResp
   rc["calib"]=_mdcc->calibCount();
   rc["spillreg"]=_mdcc->spillRegister();
   rc["trigdelay"]=_mdcc->triggerDelay();
-  rc["trigbusy"]=_mdcc->triggerBusy();
+  rc["external"]=_mdcc->externalTrigger();
   response["COUNTERS"]=rc;
   response["STATUS"]="DONE";
 
@@ -445,6 +457,7 @@ void lydaq::LMdccServer::cmd(zdaq::fsmmessage* m)
       rc["spillon"]=_mdcc->spillOn();
       rc["spilloff"]=_mdcc->spillOff();
       rc["ecalmask"]=_mdcc->ecalmask();
+      rc["external"]=_mdcc->externalTrigger();
       rc["beam"]=_mdcc->beam();
       m->setAnswer(rc);
 
@@ -555,6 +568,7 @@ lydaq::LMdccServer::LMdccServer(std::string name) : zdaq::baseApplication(name),
  _fsm->addCommand("SETREG",boost::bind(&lydaq::LMdccServer::c_setregister,this,_1,_2));
  _fsm->addCommand("GETREG",boost::bind(&lydaq::LMdccServer::c_getregister,this,_1,_2));
 
+ _fsm->addCommand("SETEXTERNAL",boost::bind(&lydaq::LMdccServer::c_setexternaltrigger,this,_1,_2));
  
   
 

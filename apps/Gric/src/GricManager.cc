@@ -201,8 +201,9 @@ void lydaq::GricManager::c_setthresholds(Mongoose::Request &request, Mongoose::J
   uint32_t b0=atol(request.get("B0","250").c_str());
   uint32_t b1=atol(request.get("B1","250").c_str());
   uint32_t b2=atol(request.get("B2","250").c_str());
+  uint32_t idif=atol(request.get("DIF","0").c_str());
   
-  this->setThresholds(b0,b1,b2);
+  this->setThresholds(b0,b1,b2,idif);
   response["THRESHOLD0"]=b0;
   response["THRESHOLD1"]=b1;
   response["THRESHOLD2"]=b2;
@@ -424,7 +425,7 @@ void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
 	{
 	  usleep(1000);
 	  cnt++;
-	  if (cnt>4000)
+	  if (cnt>1000)
 	    {
 	      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" no return after "<<cnt);
 	      return;
@@ -529,6 +530,7 @@ void lydaq::GricManager::configureHR2()
       _hca->prepareSlowControl(x.second->hostTo());
 
       this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
 
     }
@@ -545,12 +547,18 @@ void lydaq::GricManager::configure(zdaq::fsmmessage* m)
 
 }
 
-void lydaq::GricManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2)
+void lydaq::GricManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif)
 {
 
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changin thresholds: "<<b0<<","<<b1<<","<<b2);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
+      if (idif!=0)
+	{
+	  uint32_t ip=(((it->first)>>32&0XFFFFFFFF)>>16)&0xFFFF;
+	  printf("%x %x %x \n",(it->first>>32),ip,idif);
+	  if (idif!=ip) continue;
+	}
       it->second.setB0(b0);
       it->second.setB1(b1);
       it->second.setB2(b2);

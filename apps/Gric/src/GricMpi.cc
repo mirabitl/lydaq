@@ -123,7 +123,7 @@ bool lydaq::GricMpi::processPacket()
 
 	 // Write Event
    _chlines=(ntohs(_sBuf[0])-16)/20;
-	 LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Writing completed Event"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<_id);
+   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Writing completed Event"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<std::hex<<_id<<std::dec);
 	 // To be done
 	 this->processEventGric();
 	 //fprintf(stderr,"Event send \n");

@@ -43,7 +43,7 @@ public:
   void sendSlowControl(std::string host,uint32_t port,uint8_t* slc);
   void configureHR2();
   void configure(zdaq::fsmmessage* m);
-  void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2);
+  void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif=0);
   void setGain(uint16_t gain);
   void setMask(uint32_t level,uint64_t mask);
   void setChannelMask(uint16_t level,uint16_t channel,uint16_t val);
