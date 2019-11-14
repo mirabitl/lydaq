@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import json
 from bson.objectid import ObjectId
 import time
-
+import prettyjson as pj
 
 
 
@@ -141,7 +141,7 @@ class MongoRoc:
             #var=raw_input()
             slc=x["content"]
             f=open("/dev/shm/%s_%s.json" % (cname,version),"w+")
-            f.write(json.dumps(slc))
+            f.write(json.dumps(slc, indent=2, sort_keys=True))
             f.close()
             return slc
     def download(self,statename,version):
@@ -163,14 +163,19 @@ class MongoRoc:
             
             for resa in resl:
                 self.asiclist.append(resa)
+                #print resa
                 s={}
                 s["slc"]=resa["slc"]
                 s["num"]=resa["num"]
                 s["dif"]=resa["dif"]
+                if ( "address" in s):
+                    s["address"]=resa["address"]
                 #print res["dif"]
                 slc["asics"].append(s)
             f=open("/dev/shm/%s_%s.json" % (statename,version),"w+")
-            f.write(json.dumps(slc))
+            #f.write(json.dumps(slc,indent=2, sort_keys=True))
+            f.write(json.dumps(slc,sort_keys=True))
+            #f.write(pj.prettyjson(slc, maxlinelength=255))
             f.close()
             return slc
     def initPR2(self, num,version="PR2"):
