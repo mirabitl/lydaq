@@ -244,12 +244,19 @@ void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::Js
   response["STATUS"] = "DONE";
 
   std::string dbstate = request.get("state", "NONE");
+  uint32_t version=atol(request.get("version","0").c_str());
+
   Json::Value jTDC = this->parameters()["tdc"];
   if (jTDC.isMember("db"))
   {
     Json::Value jTDCdb = jTDC["db"];
     _tca->clear();
-    _tca->parseDb(dbstate, jTDCdb["mode"].asString());
+    if (jTDCdb["mode"].asString().compare("mongo")!=0)
+      _tca->parseDb(dbstate, jTDCdb["mode"].asString());
+    else
+      _tca->parseMongoDb(dbstate, version);
+
+    
   }
   LOG4CXX_INFO(_logFeb, "DownloadDB called  for " << dbstate);
 
