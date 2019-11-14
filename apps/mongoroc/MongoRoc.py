@@ -168,7 +168,7 @@ class MongoRoc:
                 s["slc"]=resa["slc"]
                 s["num"]=resa["num"]
                 s["dif"]=resa["dif"]
-                if ( "address" in s):
+                if ( "address" in resa):
                     s["address"]=resa["address"]
                 #print res["dif"]
                 slc["asics"].append(s)
