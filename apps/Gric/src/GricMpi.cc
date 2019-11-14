@@ -53,7 +53,7 @@ int16_t lydaq::GricMpi::checkBuffer(uint8_t* b,uint32_t maxidx)
 	 return -1;
        }
    }
- 
+ return -3; 
 }
 
 

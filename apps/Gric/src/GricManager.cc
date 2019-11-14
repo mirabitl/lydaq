@@ -279,12 +279,19 @@ void lydaq::GricManager::c_downloadDB(Mongoose::Request &request, Mongoose::Json
 
   
   std::string dbstate=request.get("state","NONE");
+  uint32_t version=atol(request.get("version","0").c_str());
   Json::Value jTDC=this->parameters()["gric"];
    if (jTDC.isMember("db"))
      {
        Json::Value jTDCdb=jTDC["db"];
        _hca->clear();
-       _hca->parseDb(dbstate,jTDCdb["mode"].asString());
+
+       if (jTDCdb["mode"].asString().compare("mongo")!=0)
+	 _hca->parseDb(dbstate,jTDCdb["mode"].asString());
+       else
+	 _hca->parseMongoDb(dbstate,version);
+
+	 
      }
   response["DBSTATE"]=dbstate;
 }
@@ -350,7 +357,11 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
               Json::Value jGRICdb=jGRIC["db"];
        LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jGRICdb["state"].asString()<<jGRICdb["mode"].asString());
 
-       _hca->parseDb(jGRICdb["state"].asString(),jGRICdb["mode"].asString());
+              
+	if (jGRICdb["mode"].asString().compare("mongo")!=0)	
+	  _hca->parseDb(jGRICdb["state"].asString(),jGRICdb["mode"].asString());
+	else
+	  _hca->parseMongoDb(jGRICdb["state"].asString(),jGRICdb["version"].asUInt());
       
      }
    if (_hca->asicMap().size()==0)

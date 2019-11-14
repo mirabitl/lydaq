@@ -35,6 +35,38 @@ lydaq::HR2ConfigAccess::HR2ConfigAccess()
 
 #endif
 }
+void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
+{
+  std::stringstream scmd;
+  scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
+  system(scmd.str().c_str());
+  std::stringstream sname;
+  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  Json::Reader reader;
+  std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
+  //      Json::Value _jall;
+  bool parsingSuccessful = reader.parse(ifs, _jall, false);
+  if (!_jall.isMember("asics"))
+  {
+    std::cout << " No DIF tag found " << std::endl;
+    return;
+  }
+ 
+  const Json::Value &asics = _jall["asics"];
+  
+  for (Json::ValueConstIterator ita = asics.begin(); ita != asics.end(); ++ita)
+    {
+      const Json::Value &asic = *ita;
+      std::string ipadr = asic["address"].asString();
+      uint8_t header = asic["num"].asUInt();
+      lydaq::HR2Slow prs;
+      prs.setJson(asic["slc"]);
+      uint64_t eid = ((uint64_t)  lydaq::MpiMessageHandler::convertIP(ipadr)) << 32 | header;
+      _asicMap.insert(std::pair<uint64_t, lydaq::HR2Slow>(eid, prs));
+    }
+  
+}
+
 void lydaq::HR2ConfigAccess::parseJsonFile(std::string jsf)
 {
   Json::Reader reader;

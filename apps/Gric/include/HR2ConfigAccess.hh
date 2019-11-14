@@ -16,6 +16,7 @@ class HR2ConfigAccess
 public:
   HR2ConfigAccess();
   ~HR2ConfigAccess(){;}
+  void parseMongoDb(std::string state,uint32_t version);
   void parseJsonFile(std::string jsf);
   void parseJson();
   void parseJsonUrl(std::string jsf);
