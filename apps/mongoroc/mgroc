@@ -17,13 +17,9 @@ import MongoRoc as mg
 
 
 # create the default access
-f=open("/etc/.mongoroc.json")
-s=json.loads(f.read())
-_wdd=mg.MongoRoc(s["host"],s["port"],s["db"],s["user"],s["pwd"])
-f.close()
 
-
-
+_wdd=mg.instance()
+#print "COUCOU"
 parser = argparse.ArgumentParser()
 
 # configure all the actions

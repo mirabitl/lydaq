@@ -325,6 +325,7 @@ namespace lydaq {
 	  if (getBit(618+i*3+level)==1)
 	    mask|=(1<<i);
 	}
+      return mask;
     }
     void setMASK(uint8_t level,uint64_t mask)
     {

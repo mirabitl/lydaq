@@ -1077,6 +1077,22 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
 	 response["DOWNLOADBD"]=_dbstate;
        }
      else
+       if (_GRICClients.size()>0)
+	 {
+	   	 _dbstate=statereq;
+	 this->parameters()["db"]["dbstate"]=statereq;
+	 this->parameters()["db"]["state"]=statereq;
+	 
+	 for (auto grc:_GRICClients)
+	   {
+	     std::stringstream sp;sp<<"&state="<<statereq;
+	     grc->sendCommand("DOWNLOADDB",sp.str());
+	   }
+	 response["STATUS"]="DONE";
+	 response["DOWNLOADBD"]=_dbstate;
+
+	 }
+     else
        {
 	 LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No DB client"); response["STATUS"]="NO DB Client";return;
        }

@@ -53,6 +53,30 @@ class GricAccess:
             a.setInt('PWRONFSB2',1)
             print a.getInt('DISCRI0')
             a.setModified(1)
+            
+    def slowShaper(self):
+        """
+        Unset Power pulsing on all ASICs
+        """
+        for a in self.asics: 
+            print a.getInt('DISCRI0')
+            a.setInt('SW100F0',1)
+            a.setInt('SW100K0',1)
+            a.setInt('SW50F0',0)
+            a.setInt('SW50K0',0)
+
+            a.setInt('SW100F1',1)
+            a.setInt('SW100K1',1)
+            a.setInt('SW50F1',0)
+            a.setInt('SW50K1',0)
+
+            a.setInt('SW100F2',1)
+            a.setInt('SW100K2',1)
+            a.setInt('SW50F2',0)
+            a.setInt('SW50K2',0)
+
+            print a.getInt('DISCRI0')
+            a.setModified(1)
 
     def setPowerPulsing(self):
         """
@@ -106,6 +130,23 @@ class GricAccess:
                 a.setInt("B0",B0);
                 a.setInt("B1",B1);
                 a.setInt("B2",B2);
+                a.setModified(1)
+            except Exception, e:
+                print e.getMessage()
+
+    def ChangeHeader(self,headern,idif=0,iasic=0):
+        """
+        change thresholds B0,B1,B2 on DIF idif and asic iasic.
+        If not specified all Asics of a given DIF is changed
+        if idif is not specified all Asics of all Difs are changed
+        """
+        for a in self.asics:
+            if (idif !=0 and a.getInt("DIF_ID") != idif ):
+                continue;
+            if (iasic !=0 and a.getInt("HEADER") != iasic):
+                continue;
+            try:
+                a.setInt("HEADER",headern);
                 a.setModified(1)
             except Exception, e:
                 print e.getMessage()
@@ -236,7 +277,26 @@ class GricAccess:
             m=m &~(1<<i);
         sm="0x%lx" % m
         self.ChangeMask(sm,sm,sm,idif,iasic)
-        
+    def ChangeCTEST(self,CTEST,idif=0,iasic=0):
+        for a in self.asics:
+            if (idif!=0 and a.getInt("DIF_ID") != idif):
+                continue;
+            if (iasic!=0 and a.getInt("HEADER") != iasic):
+                 continue;
+            print a.getInt('DIF_ID'),a.getInt('HEADER'),a.getString("CTEST")
+            try:
+                a.setString("CTEST",CTEST);
+                a.setInt("TRIG0B",1)
+                a.setInt("TRIG1B",1)
+                a.setInt("TRIG2B",1)
+                a.setModified(1)
+
+            except Exception, e:
+                print e.getMessage()
+            print a.getInt('DIF_ID'),a.getInt('HEADER'),a.getString("CTEST")
+
+
+
     def ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
         """
         Set the mask 0,1,2 to M0,M1,M2 on DIF idif and ASIC iasic
@@ -640,6 +700,7 @@ class GricAccess:
         d.setString('MASK2','0XFFFFFFFFFFFFFFFF')
         d.setString('MASK1','0XFFFFFFFFFFFFFFFF')
         d.setString('MASK0','0XFFFFFFFFFFFFFFFF')
+        d.setString('CTEST','0X0')
         d.setInt('RS_OR_DISCRI',1)
         d.setInt('DISCRI1',0)
         d.setInt('DISCRI2',0)

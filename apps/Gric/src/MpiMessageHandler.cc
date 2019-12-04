@@ -50,6 +50,7 @@ std::map<uint32_t,std::string> lydaq::MpiMessageHandler::scanNetwork(std::string
   std::stringstream ss;
   ss<<"echo $(seq 254) | xargs -P255 -I% -d\" \" ping -W 1 -c 1 "<<base<<"% | grep -E \"[0-1].*?:\" | awk '{print $4}' | awk 'BEGIN{FS=\":\"}{print $1}'";
   std::string res=lmexec(ss.str().c_str());
+  std::cout<<ss.str()<<std::endl;
   std::cout<<"Ethernet board on "<<base <<" \n"<<res;
   //getchar();
   std::stringstream ss1(res.c_str());

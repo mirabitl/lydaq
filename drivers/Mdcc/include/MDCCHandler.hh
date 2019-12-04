@@ -57,7 +57,9 @@ namespace lydaq
     uint32_t triggerDelay();
     void setTriggerBusy(uint32_t nc);
     uint32_t triggerBusy();
-
+    
+    void setExternalTrigger(uint32_t nc);
+    uint32_t externalTrigger();
   
   private : 
     lydaq::FtdiUsbDriver* _driver;

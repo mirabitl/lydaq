@@ -57,8 +57,8 @@ int hih8000::Read()
   digitalWrite (4, 1) ;  // capteur sur la partir etroite de la carte
   if ((i2c_smbus_write_quick(_fd, 0)) != 0)
   {
-    printf("Error writing bit to i2c slave\n");
-    exit(1);
+    printf("Error writing bit to i2c slave 1 \n");
+    // exit(1);
   }
   usleep(100000);
   if (read(_fd, buf, 4) < 0)
@@ -87,7 +87,7 @@ int hih8000::Read()
   if ((i2c_smbus_write_quick(_fd, 0)) != 0)
   {
     printf("Error writing bit to i2c slave\n");
-    exit(1);
+    //exit(1);
   }
   usleep(100000);
   if (read(_fd, buf, 4) < 0)

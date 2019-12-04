@@ -56,7 +56,7 @@ namespace lydaq
 
     void c_setregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_getregister(Mongoose::Request &request, Mongoose::JsonResponse &response);
-    
+    void c_setexternaltrigger(Mongoose::Request &request, Mongoose::JsonResponse &response);
   private:
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;

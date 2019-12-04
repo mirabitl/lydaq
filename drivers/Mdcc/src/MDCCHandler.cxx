@@ -139,6 +139,8 @@ uint32_t lydaq::MDCCHandler::triggerDelay(){this->readRegister(0xE);}
 void lydaq::MDCCHandler::setTriggerBusy(uint32_t nc){this->writeRegister(0xF,nc);}
 uint32_t lydaq::MDCCHandler::triggerBusy(){this->readRegister(0xF);}
 
+void lydaq::MDCCHandler::setExternalTrigger(uint32_t nc){this->writeRegister(0x1A,nc);}
+uint32_t lydaq::MDCCHandler::externalTrigger(){this->readRegister(0x1A);}
 
 void lydaq::MDCCHandler::reloadCalibCount(){
 

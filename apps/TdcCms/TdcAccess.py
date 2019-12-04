@@ -70,7 +70,7 @@ class TdcAccess:
 
     def ChangePAC(self,A0,A1,A2,A3, idif=0, iasic=0):
         """
-        Change the VTHTIME  of the asic #asic on the TDCDIF #dif
+        Change the bits of capacitors PA_COMP_0 to 3 of the asic #asic on the TDCDIF #dif
         If 0 all hardware is changed
         """
         for a in self.asics:
@@ -142,7 +142,7 @@ class TdcAccess:
                 print e.getMessage()
     def ChangeInputDac(self, idif, iasic, ich, dac):
         """
-        Change the InputDAC value to dac  of the asic #asic on the TDCDIF #dif       
+        Change the InputDAC value to #dac for channel #ich  of the asic #asic on the TDCDIF #dif       
         """
 
         for a in self.asics:
@@ -163,7 +163,7 @@ class TdcAccess:
 
     def Change6BDac(self, idif, iasic, ich, dac):
         """
-        Change the 6BDAC value to dac  of the asic #asic on the TDCDIF #dif       
+        Change the 6BDAC value to #dac for channel #ich  of the asic #asic on the TDCDIF #dif       
         """
 
         for a in self.asics:
@@ -183,8 +183,8 @@ class TdcAccess:
 
     def Correct6BDac(self, idif, iasic, cor):
         """
-        Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
-        cor is an array of 32 value , 
+        Change the 6BDAC values   of the asic #asic on the TDCDIF #dif
+        #cor is an array of 32 value , 
         6BDAC[i]=6BDAC[i]+cor[i]
         """
 
@@ -207,8 +207,11 @@ class TdcAccess:
 
     def ChangeMask(self, idif, iasic, ich, mask):
         """
-        Change PETIROC2 MASKDISCRITIME parameter for one channel
+        Change PETIROC2 MASKDISCRITIME parameter for one channel #ich
         Careful: 1 = inactive, 0=active
+        
+        done for the asic #iasic on the TDCDIF #idif
+        
         """
 
         for a in self.asics:
@@ -229,8 +232,8 @@ class TdcAccess:
     def SetEnabled(self, idif=0, iasic=0, status=1):
         """
         Change ENABLED status of the ASIC tagged by idif and iasic to the value status
-         if idif is 0 all difs are concerned
-         if iasic is 0 all asics are concerned
+         if #idif is 0 all difs are concerned
+         if #iasic is 0 all asics are concerned
          status is 1 by default
         """
         for a in self.asics:
@@ -368,8 +371,8 @@ class TdcAccess:
 
     def addDIF(self, ipaddr, nb_asic, version="A",lda_address="ff:ff:ff:ff:ff:ff", lda_channel=0, dcc_channel=0, xmlfile=None):
         """
-        Add a new DIF and load asics conf from file if any
-        dif_num = DIF ID = LSB of the ipaddr in integer
+        Add a new FEB and load asics conf from file if any
+        ipaddr = IPV4 address, the DIF ID = MSW of the ipaddr in integer
         nb_asic = Number of ASICs
         lda_address = LDA MAC address (ff:ff:ff:ff:ff:ff)
         lda_channel = LDA Channel (0)
@@ -399,7 +402,7 @@ class TdcAccess:
 
     def initDif(self, addr):
         """
-        Default TDCDIF initialisation
+        Default FEB initialisation
         """
         d = Dif("TDCDIF")
         d.setString('NAME', "TDC%d" % ((IP2Int(addr) >> 16) & 0xFFFF))
@@ -550,6 +553,10 @@ class TdcAccess:
     def initPR2(self, dif, num,version="A"):
         """
         PETIROC 2  initialisation
+
+        dif = MSW of IPV4 address
+        num = ASIC number
+        version='A' or 'B', version of PETIROC2
         """
 	#print "***** init HR2"
         asi=None
@@ -679,6 +686,9 @@ class TdcAccess:
 
  
     def toJson(self):
+        """
+        JSON dump of the state (mongodb migration)
+        """
         asiclist=[]
         for asi in self.asics:
             asic={}
