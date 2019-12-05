@@ -140,11 +140,18 @@ class MongoRoc:
             print x["name"],x["version"],x["comment"]
             #var=raw_input()
             slc=x["content"]
-            f=open("/dev/shm/%s_%s.json" % (cname,version),"w+")
+            os.system("mkdir -p /dev/shm/mgroc")
+            fname="/dev/shm/mgroc/%s_%s.json" % (cname,version)
+            f=open(fname,"w+")
             f.write(json.dumps(slc, indent=2, sort_keys=True))
             f.close()
             return slc
-    def download(self,statename,version):
+    def download(self,statename,version,toFileOnly=False):
+        os.system("mkdir -p /dev/shm/mgroc")
+        fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
+        if os.path.isfile(fname) and toFileOnly:
+            print '%s already download, Exiting' % fname
+            return None
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
             print x["name"],x["version"],len(x["asics"])," asics"
@@ -172,7 +179,13 @@ class MongoRoc:
                     s["address"]=resa["address"]
                 #print res["dif"]
                 slc["asics"].append(s)
-            f=open("/dev/shm/%s_%s.json" % (statename,version),"w+")
+
+            #os.system("mkdir -p /dev/shm/mgroc")
+            #fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
+            #if os.path.isfile(fname):
+            #    print '%s already download' % fname
+            #else:
+            f=open(fname,"w+")
             #f.write(json.dumps(slc,indent=2, sort_keys=True))
             f.write(json.dumps(slc,sort_keys=True))
             #f.write(pj.prettyjson(slc, maxlinelength=255))
