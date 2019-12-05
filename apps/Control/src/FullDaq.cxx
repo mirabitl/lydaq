@@ -1061,6 +1061,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
     }
   else
    {
+      uint32_t version=atoi(request.get("version","0").c_str());
      // Tdc
      if (_tdcClients.size()>0)
        {
@@ -1070,7 +1071,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
 	 
 	 for (auto tdc:_tdcClients)
 	   {
-	     std::stringstream sp;sp<<"&state="<<statereq;
+	     std::stringstream sp;sp<<"&state="<<statereq<<"&version="<<version;
 	     tdc->sendCommand("DOWNLOADDB",sp.str());
 	   }
 	 response["STATUS"]="DONE";
@@ -1085,7 +1086,7 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
 	 
 	 for (auto grc:_GRICClients)
 	   {
-	     std::stringstream sp;sp<<"&state="<<statereq;
+	     std::stringstream sp;sp<<"&state="<<statereq<<"&version="<<version;
 	     grc->sendCommand("DOWNLOADDB",sp.str());
 	   }
 	 response["STATUS"]="DONE";
