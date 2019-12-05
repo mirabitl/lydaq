@@ -41,7 +41,7 @@ void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
   scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
   system(scmd.str().c_str());
   std::stringstream sname;
-  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  sname<<"/dev/shm/mgroc/"<<state<<"_"<<version<<".json";
   Json::Reader reader;
   std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
   //      Json::Value _jall;
