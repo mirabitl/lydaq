@@ -30,6 +30,14 @@ class MongoRoc:
         self.state = {}
         self.asiclist = []
         self.bson_id=[]
+
+    def reset(self):
+        """
+        Reset connection to download another state
+        """
+        self.state = {}
+        self.asiclist = []
+        self.bson_id=[] 
     def createNewState(self,name):
         self.state["name"]=name
         self.state["version"]=1
@@ -754,7 +762,7 @@ class MongoRoc:
         for i in list:
             m=m &~(1<<i);
         sm="0x%lx" % m
-        self.ChangeMask(sm,sm,sm,idif,iasic)
+        self.HR2_ChangeMask(sm,sm,sm,idif,iasic)
         
     def HR2_ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
         """
