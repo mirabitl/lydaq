@@ -1,12 +1,12 @@
-#ifndef _LDIFServer_h
+#ifndef _DIFManager_h
 
-#define _LDIFServer_h
+#define _DIFManager_h
 #include <iostream>
 
 #include <string.h>
 #include<stdio.h>
 #include "baseApplication.hh"
-#include "LDIF.hh"
+#include "DIFInterface.hh"
 #include "DIFReadoutConstant.hh"
 using namespace std;
 #include <sstream>
@@ -18,11 +18,11 @@ using namespace std;
 #include "ReadoutLogger.hh"
 namespace lydaq
 {
-  class LDIFServer  : zdaq::baseApplication
+  class DIFManager  : zdaq::baseApplication
   {
   
   public:
-    LDIFServer(std::string name);
+    DIFManager(std::string name);
     void registerdb(zdaq::fsmmessage* m);
     void dbcache(std::string server,std::vector<uint32_t> vids);
     void scan(zdaq::fsmmessage* m);
@@ -38,10 +38,10 @@ namespace lydaq
     void setGain(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
     void prepareDevices();
-    void startDIFThread(LDIF* d);
+    void startDIFThread(DIFInterface* d);
     // DimRpc interface
     std::map<uint32_t,FtdiDeviceInfo*>& getFtdiMap(){ return theFtdiDeviceInfoMap_;}
-    std::map<uint32_t,LDIF*>& getDIFMap(){ return theDIFMap_;}
+    std::map<uint32_t,DIFInterface*>& getDIFMap(){ return _DIFInterfaceMap;}
       
     FtdiDeviceInfo* getFtdiDeviceInfo(uint32_t i) { if ( theFtdiDeviceInfoMap_.find(i)!=theFtdiDeviceInfoMap_.end()) return theFtdiDeviceInfoMap_[i]; else return NULL;}
 
@@ -49,7 +49,7 @@ namespace lydaq
 
   private:
     std::map<uint32_t,FtdiDeviceInfo*> theFtdiDeviceInfoMap_;	
-    std::map<uint32_t,LDIF*> theDIFMap_;
+    std::map<uint32_t,lydaq::DIFInterface*> _DIFInterfaceMap;
     std::string _dbstate;
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;

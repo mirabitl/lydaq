@@ -1,6 +1,6 @@
-#ifndef _LDIF_h
+#ifndef _DIFInterface_h
 
-#define _LDIF_h
+#define _DIFInterface_h
 #include <iostream>
 
 #include <string.h>
@@ -25,13 +25,11 @@ typedef struct
   uint32_t type;
 } FtdiDeviceInfo;
 namespace lydaq {
-class LDIF
+class DIFInterface
 {
 public:
-  LDIF(FtdiDeviceInfo *ftd);
-  ~LDIF();
-  // registration to Dim Info and creation of DimServices 
-  void registration();
+  DIFInterface(FtdiDeviceInfo *ftd);
+  ~DIFInterface();
   void setTransport(zdaq::zmPusher* p);
   // initialise
   void initialise(zdaq::zmPusher* p=NULL);
@@ -67,11 +65,6 @@ public:
   inline bool running() const { return _running;}
   inline uint32_t detectorId() const {return _detid;}
   inline void publishState(std::string s){setState(s);}
-  //Threshold and gain
-  void setThreshold(uint32_t B0,uint32_t B1,uint32_t B2,SingleHardrocV2ConfigurationFrame& ConfigHR2);
-  void setGain(uint32_t gain,SingleHardrocV2ConfigurationFrame& ConfigHR2);
-  void setThreshold(uint32_t B0,uint32_t B1,uint32_t B2);
-  void setGain(uint32_t gain);
 
   static uint32_t getBufferDIF(unsigned char* cb,uint32_t idx=0);
   static uint32_t getBufferDTC(unsigned char* cb,uint32_t idx=0);
