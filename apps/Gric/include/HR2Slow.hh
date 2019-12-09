@@ -46,6 +46,7 @@ namespace lydaq {
     void toJson()
     {
       _jasic.clear();
+      _jasic["ENABLED"]=1;
       _jasic["EN_OTAQ"]=getEN_OTAQ();
       _jasic["DACSW"]=getDACSW();
       _jasic["SEL0"]=getSEL0();
@@ -474,8 +475,14 @@ namespace lydaq {
     bool getDISCRI0(){return getBit(614);}
     void setDISCRI0(bool on){setBitState(614,on);}
 
-
-
+    bool isEnabled()
+    {
+      if (_jasic.isMember("ENABLED"))
+	return (_jasic["ENABLED"]==1);
+      else
+	return true;
+    }
+    void setEnable(bool i) {_jasic["ENABLED"]=i;}
     void invertBits(HR2Slow* r)
     {
 

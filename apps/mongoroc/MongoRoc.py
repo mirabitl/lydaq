@@ -30,6 +30,14 @@ class MongoRoc:
         self.state = {}
         self.asiclist = []
         self.bson_id=[]
+
+    def reset(self):
+        """
+        Reset connection to download another state
+        """
+        self.state = {}
+        self.asiclist = []
+        self.bson_id=[] 
     def createNewState(self,name):
         self.state["name"]=name
         self.state["version"]=1
@@ -140,11 +148,18 @@ class MongoRoc:
             print x["name"],x["version"],x["comment"]
             #var=raw_input()
             slc=x["content"]
-            f=open("/dev/shm/%s_%s.json" % (cname,version),"w+")
+            os.system("mkdir -p /dev/shm/mgroc")
+            fname="/dev/shm/mgroc/%s_%s.json" % (cname,version)
+            f=open(fname,"w+")
             f.write(json.dumps(slc, indent=2, sort_keys=True))
             f.close()
             return slc
-    def download(self,statename,version):
+    def download(self,statename,version,toFileOnly=False):
+        os.system("mkdir -p /dev/shm/mgroc")
+        fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
+        if os.path.isfile(fname) and toFileOnly:
+            print '%s already download, Exiting' % fname
+            return None
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
             print x["name"],x["version"],len(x["asics"])," asics"
@@ -172,7 +187,13 @@ class MongoRoc:
                     s["address"]=resa["address"]
                 #print res["dif"]
                 slc["asics"].append(s)
-            f=open("/dev/shm/%s_%s.json" % (statename,version),"w+")
+
+            #os.system("mkdir -p /dev/shm/mgroc")
+            #fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
+            #if os.path.isfile(fname):
+            #    print '%s already download' % fname
+            #else:
+            f=open(fname,"w+")
             #f.write(json.dumps(slc,indent=2, sort_keys=True))
             f.write(json.dumps(slc,sort_keys=True))
             #f.write(pj.prettyjson(slc, maxlinelength=255))
@@ -468,6 +489,7 @@ class MongoRoc:
         """
 	#print "***** init HR2"
         _jasic={}
+        _jasic["ENABLED"]=1
         _jasic["HEADER"]=num
         _jasic["QSCSROUTSC"]=1
         _jasic["ENOCDOUT1B"]=1
@@ -741,7 +763,7 @@ class MongoRoc:
         for i in list:
             m=m &~(1<<i);
         sm="0x%lx" % m
-        self.ChangeMask(sm,sm,sm,idif,iasic)
+        self.HR2_ChangeMask(sm,sm,sm,idif,iasic)
         
     def HR2_ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
         """
@@ -762,6 +784,20 @@ class MongoRoc:
                 a["slc"]["MASK0"][ipad]=a["slc"]["MASK0"][ipad]& (im0n>>ipad)
                 a["slc"]["MASK1"][ipad]=a["slc"]["MASK1"][ipad]& (im1n>>ipad)
                 a["slc"]["MASK2"][ipad]=a["slc"]["MASK2"][ipad]& (im2n>>ipad)
+            a["_id"]=None
+            
+    def HR2_setEnable(self,enable,idif=0,iasic=0):
+        """
+        Set the ENABLED tag on DIF idif and ASIC iasic
+        if idif is 0 all difs are concerned
+        if iasic is 0 all asics are concerned
+        """
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            a["slc"]["ENABLED"]=enable
             a["_id"]=None
 
 

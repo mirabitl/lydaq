@@ -667,12 +667,13 @@ class fdaqClient:
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","GETPARAM",lcgi)
       print sr
-  def daq_downloaddb(self,state):
+  def daq_downloaddb(self,state,version):
       lcgi={}
       print "Downloading ",state
       if ("db" in self.daq_par):
         self.daq_par["db"]["dbstate"]=state
       lcgi["state"]=state
+      lcgi["version"]=version
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","DOWNLOADDB",lcgi)
       rep=json.loads(sr)
       return json.dumps(rep)

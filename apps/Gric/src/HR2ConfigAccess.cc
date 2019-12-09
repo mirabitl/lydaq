@@ -41,7 +41,7 @@ void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
   scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
   system(scmd.str().c_str());
   std::stringstream sname;
-  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  sname<<"/dev/shm/mgroc/"<<state<<"_"<<version<<".json";
   Json::Reader reader;
   std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
   //      Json::Value _jall;
@@ -131,6 +131,11 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
       if (im==_asicMap.end()) continue;
+      if (!im->second.isEnabled())
+	{
+	  printf("\t ===> DIF %lx ,Asic %d disabled\n",eid>>32,ias);
+	  continue;
+	}
       printf("DIF %lx ,Asic %d Found\n",eid>>32,ias); 
       memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
       _slcBytes+=109;

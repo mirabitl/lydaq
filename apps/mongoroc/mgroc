@@ -76,7 +76,7 @@ if (results.download):
         if (results.version == None):
             print 'Please specify the version --version=ver'
             exit(0)
-        _wdd.download(results.state,results.version)
+        _wdd.download(results.state,results.version,True)
         exit(0)
     if (results.name != None):
         if (results.version == None):

@@ -287,6 +287,8 @@ parser.add_argument('--asic', action='store', type=int,
                     dest='asic', default=None, help='asic header of Petiroc')
 parser.add_argument('--feb', action='store', type=int,
                     dest='feb', default=None, help='FEB id')
+parser.add_argument('--dbversion', action='store', type=int,
+                    dest='dbversion', default=None, help='DB state version')
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='Raw Json output')
 
@@ -571,7 +573,10 @@ elif(results.daq_downloaddb):
     else:
         print 'Please specify the state --dbstate=STATE'
         exit(0)
-    fdc.daq_downloaddb(results.dbstate)
+    version=0
+    if (results.dbversion != None):
+        version = results.dbversion
+    fdc.daq_downloaddb(results.dbstate,version)
     exit(0)
 elif(results.daq_ctrlreg):
     r_cmd = 'setControlRegister'
@@ -586,7 +591,8 @@ elif(results.daq_ctrlreg):
 
 elif(results.trig_status):
     r_cmd = 'triggerStatus'
-    fdc.trig_status()
+    res=fdc.trig_status()
+    print res
     exit(0)
 
 elif(results.trig_beam):
