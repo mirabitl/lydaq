@@ -131,6 +131,11 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
       if (im==_asicMap.end()) continue;
+      if (!im->second.isEnabled())
+	{
+	  printf("\t ===> DIF %lx ,Asic %d disabled\n",eid>>32,ias);
+	  continue;
+	}
       printf("DIF %lx ,Asic %d Found\n",eid>>32,ias); 
       memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
       _slcBytes+=109;
