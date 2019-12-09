@@ -489,6 +489,7 @@ class MongoRoc:
         """
 	#print "***** init HR2"
         _jasic={}
+        _jasic["ENABLED"]=1
         _jasic["HEADER"]=num
         _jasic["QSCSROUTSC"]=1
         _jasic["ENOCDOUT1B"]=1
@@ -783,6 +784,20 @@ class MongoRoc:
                 a["slc"]["MASK0"][ipad]=a["slc"]["MASK0"][ipad]& (im0n>>ipad)
                 a["slc"]["MASK1"][ipad]=a["slc"]["MASK1"][ipad]& (im1n>>ipad)
                 a["slc"]["MASK2"][ipad]=a["slc"]["MASK2"][ipad]& (im2n>>ipad)
+            a["_id"]=None
+            
+    def HR2_setEnable(self,enable,idif=0,iasic=0):
+        """
+        Set the ENABLED tag on DIF idif and ASIC iasic
+        if idif is 0 all difs are concerned
+        if iasic is 0 all asics are concerned
+        """
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            a["slc"]["ENABLED"]=enable
             a["_id"]=None
 
 
