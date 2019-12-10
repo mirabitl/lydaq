@@ -57,11 +57,13 @@ class MongoRoc:
     def addDIF(self,difid,nasic,address="USB"):
         if (address != "USB"):
             id=(IP2Int(address)>>16)
+            ipa=address
         else:
             id=difid
+            ipa="0.0.0.%d" % difid
         for i in range(nasic):
             asic={}
-            asic["address"]=address
+            asic["address"]=ipa
             asic["dif"]=id
             asic["num"]=i+1
             asic["slc"]=self.initHR2(i+1,128)
