@@ -375,7 +375,7 @@ void lydaq::DIFReadout::DoSetAnalogConfigureRegister(uint32_t tdata)
 }
 
 static unsigned char vframe[HARDROCV2_SLC_FRAME_SIZE]; 
-int32_t lydaq::DIFReadout::configureChips(SingleHardrocV2ConfigurationFrame* slow) throw( LocalHardwareException ) 
+int32_t lydaq::DIFReadout::configureChips(SingleHardrocV2ConfigurationFrame* slow) //throw( LocalHardwareException ) 
 {
   // send configure command
   unsigned short tCRC;

@@ -29,7 +29,7 @@ namespace lydaq
     void DoGetTemperatureReadoutAutoStatus(uint32_t *tvalue);
     void DoSetEventsBetweenTemperatureReadout(uint32_t tvalue);
     void DoSetAnalogConfigureRegister(uint32_t tdata);
-    int32_t configureChips(SingleHardrocV2ConfigurationFrame* slow) throw( LocalHardwareException );
+    int32_t configureChips(SingleHardrocV2ConfigurationFrame* slow) ;//throw( LocalHardwareException );
     uint32_t DoHardrocV2ReadoutDigitalData(unsigned char* CurrentDIFDigitalData);
   protected:
     std::string theName_;

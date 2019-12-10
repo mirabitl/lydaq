@@ -36,14 +36,14 @@ int32_t CHardrocRegisterWrite(struct ftdi_context *ftdic,uint32_t address, uint3
 	return ret;
 }	
 
-lydaq::FtdiDIFDriver::FtdiDIFDriver(char * deviceIdentifier,uint32_t productid )    throw (LocalHardwareException) : lydaq::FtdiUsbDriver(deviceIdentifier,productid) 
+lydaq::FtdiDIFDriver::FtdiDIFDriver(char * deviceIdentifier,uint32_t productid )    : lydaq::FtdiUsbDriver(deviceIdentifier,productid) 
 {
 
 
 }
 
 
-int32_t FtdiDIFDriver :: NbAsicsWrite(uint32_t tnumber,uint32_t l1,uint32_t l2,uint32_t l3,uint32_t l4 )    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: NbAsicsWrite(uint32_t tnumber,uint32_t l1,uint32_t l2,uint32_t l3,uint32_t l4 )    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x05;
 	//printf ("nb of asics = %d\n",tnumber);
@@ -55,7 +55,7 @@ int32_t FtdiDIFDriver :: NbAsicsWrite(uint32_t tnumber,uint32_t l1,uint32_t l2,u
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: UsbSetDIFID(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: UsbSetDIFID(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x01;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -63,7 +63,7 @@ int32_t FtdiDIFDriver :: UsbSetDIFID(uint32_t tnumber)    throw (LocalHardwareEx
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetDIFID(uint32_t *tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetDIFID(uint32_t *tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x01;
 	try	{		UsbRegisterRead(taddress,tnumber);			}
@@ -75,7 +75,7 @@ int32_t FtdiDIFDriver :: GetDIFID(uint32_t *tnumber)    throw (LocalHardwareExce
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocSetGeneratorDivision(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocSetGeneratorDivision(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x200;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -87,7 +87,7 @@ int32_t FtdiDIFDriver :: HardrocSetGeneratorDivision(uint32_t tnumber)    throw 
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: NbAsicsRead(uint32_t *tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: NbAsicsRead(uint32_t *tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x05;
 
@@ -102,7 +102,7 @@ int32_t FtdiDIFDriver :: NbAsicsRead(uint32_t *tnumber)    throw (LocalHardwareE
 
 
 
-int32_t FtdiDIFDriver :: HardrocPwonDacDelayRead(uint32_t *tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocPwonDacDelayRead(uint32_t *tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x41;
 
@@ -115,7 +115,7 @@ int32_t FtdiDIFDriver :: HardrocPwonDacDelayRead(uint32_t *tnumber)    throw (Lo
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocPwonDacDelayWrite(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocPwonDacDelayWrite(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x41;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -127,7 +127,7 @@ int32_t FtdiDIFDriver :: HardrocPwonDacDelayWrite(uint32_t tnumber)    throw (Lo
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocPwonAEndDelayRead(uint32_t *tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocPwonAEndDelayRead(uint32_t *tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x40;
 
@@ -140,7 +140,7 @@ int32_t FtdiDIFDriver :: HardrocPwonAEndDelayRead(uint32_t *tnumber)    throw (L
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocPwonAEndDelayWrite(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocPwonAEndDelayWrite(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x40;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -152,7 +152,7 @@ int32_t FtdiDIFDriver :: HardrocPwonAEndDelayWrite(uint32_t tnumber)    throw (L
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocSLCStatusRead(uint32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocSLCStatusRead(uint32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x06;
 	try	
@@ -168,7 +168,7 @@ int32_t FtdiDIFDriver :: HardrocSLCStatusRead(uint32_t *tstatus)    throw (Local
 
 }	
 
-int32_t FtdiDIFDriver :: HardrocSLCCRCStatusRead(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocSLCCRCStatusRead(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x06;
 	uint32_t tdata;
@@ -184,7 +184,7 @@ int32_t FtdiDIFDriver :: HardrocSLCCRCStatusRead(void)    throw (LocalHardwareEx
 	return -1;	
 }	
 
-int32_t FtdiDIFDriver :: HardrocSLCLoadStatusRead(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocSLCLoadStatusRead(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x06;
 	uint32_t tdata;
@@ -201,7 +201,7 @@ int32_t FtdiDIFDriver :: HardrocSLCLoadStatusRead(void)    throw (LocalHardwareE
 	return -1;	
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringEnable(int32_t status)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringEnable(int32_t status)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -222,7 +222,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringEnable(int32_t status)   throw (LocalHardw
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetDIFGain (int32_t gain)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetDIFGain (int32_t gain)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -243,7 +243,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetDIFGain (int32_t gain)   throw (LocalHa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetSlabGain(int32_t gain)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetSlabGain(int32_t gain)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -264,7 +264,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetSlabGain(int32_t gain)   throw (LocalHa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetSequencer(int32_t status)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetSequencer(int32_t status)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -285,7 +285,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetSequencer(int32_t status)   throw (Loca
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetAVDDshdn (int32_t status)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetAVDDshdn (int32_t status)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -306,7 +306,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetAVDDshdn (int32_t status)   throw (Loca
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetDVDDshdn (int32_t status)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetDVDDshdn (int32_t status)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -327,7 +327,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetDVDDshdn (int32_t status)   throw (Loca
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringSetConvertedChannels (int32_t channel)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringSetConvertedChannels (int32_t channel)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	uint32_t tstatus;
@@ -348,7 +348,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringSetConvertedChannels (int32_t channel)   t
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringGetConfigRegister(uint32_t *status)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringGetConfigRegister(uint32_t *status)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;					
 	try	{		UsbRegisterRead(taddress,status);			}
@@ -361,7 +361,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringGetConfigRegister(uint32_t *status)   thro
 }	
 
 int32_t FtdiDIFDriver :: DIFMonitoringGetTemperature(uint32_t *Temperature)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 
@@ -376,7 +376,7 @@ throw (LocalHardwareException)
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringGetDIFCurrent(uint32_t *DIFCurrent)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringGetDIFCurrent(uint32_t *DIFCurrent)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x12;
 
@@ -390,7 +390,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringGetDIFCurrent(uint32_t *DIFCurrent)    thr
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringGetSlabCurrent(uint32_t *SlabCurrent)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringGetSlabCurrent(uint32_t *SlabCurrent)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x13;
 
@@ -404,7 +404,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringGetSlabCurrent(uint32_t *SlabCurrent)    t
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: DIFMonitoringGetChannel4Monitoring(uint32_t *Ch4Value)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: DIFMonitoringGetChannel4Monitoring(uint32_t *Ch4Value)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x14;
 
@@ -418,7 +418,7 @@ int32_t FtdiDIFDriver :: DIFMonitoringGetChannel4Monitoring(uint32_t *Ch4Value) 
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocCommandSLCWrite(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandSLCWrite(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x01;
 	
@@ -430,7 +430,7 @@ int32_t FtdiDIFDriver :: HardrocCommandSLCWrite(void)    throw (LocalHardwareExc
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: HardrocCommandSLCWriteLocal(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandSLCWriteLocal(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x11;
 	
@@ -442,7 +442,7 @@ int32_t FtdiDIFDriver :: HardrocCommandSLCWriteLocal(void)    throw (LocalHardwa
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: HardrocCommandSLCWriteByte(unsigned char  tbyte)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandSLCWriteByte(unsigned char  tbyte)    //throw (LocalHardwareException)
 {
 	try	{		write(tbyte);		}
 	catch (LocalHardwareException& e)
@@ -454,7 +454,7 @@ int32_t FtdiDIFDriver :: HardrocCommandSLCWriteByte(unsigned char  tbyte)    thr
 }	
 
 
-int32_t FtdiDIFDriver :: HardrocCommandSLCWriteCRC(unsigned char  *tbyte)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandSLCWriteCRC(unsigned char  *tbyte)    //throw (LocalHardwareException)
 {
 	try	{		MonWritenAmoi(tbyte,2);		}
 	catch (LocalHardwareException& e)
@@ -466,7 +466,7 @@ int32_t FtdiDIFDriver :: HardrocCommandSLCWriteCRC(unsigned char  *tbyte)    thr
 }	
 
 int32_t FtdiDIFDriver :: CommandSLCWriteSingleSLCFrame(unsigned char  *tbyte,uint32_t n)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try	{		MonWritenAmoi(tbyte,n);		}
 	catch (LocalHardwareException& e)
@@ -480,7 +480,7 @@ throw (LocalHardwareException)
 
 
 int32_t FtdiDIFDriver :: HardrocCommandLemoPulse(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress= 0x06;
 	
@@ -495,7 +495,7 @@ throw (LocalHardwareException)
 
 
 int32_t FtdiDIFDriver :: FT245Reset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try
 	{
@@ -511,7 +511,7 @@ throw (LocalHardwareException)
 
 // OK HR2 et MR
 int32_t FtdiDIFDriver :: FPGAReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -541,7 +541,7 @@ throw (LocalHardwareException)
 
 // OK
 int32_t FtdiDIFDriver :: HardrocReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -569,7 +569,7 @@ throw (LocalHardwareException)
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: BCIDReset(void)   throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: BCIDReset(void)   //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -598,7 +598,7 @@ int32_t FtdiDIFDriver :: BCIDReset(void)   throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: SCReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -630,7 +630,7 @@ throw (LocalHardwareException)
 // puis sc_sr_reset = 1
 // puis select = 1
 int32_t FtdiDIFDriver :: SCSRReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -697,7 +697,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: SRReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -726,7 +726,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: SCReportReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -755,7 +755,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: DIFCptReset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -771,7 +771,7 @@ throw (LocalHardwareException)
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetPowerAnalog(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerAnalog(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -784,7 +784,7 @@ int32_t FtdiDIFDriver :: SetPowerAnalog(int32_t tstatus)    throw (LocalHardware
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerAnalog(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerAnalog(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -796,7 +796,7 @@ int32_t FtdiDIFDriver :: GetPowerAnalog(int32_t *tstatus)    throw (LocalHardwar
 }	
 
 
-int32_t FtdiDIFDriver :: SetPowerADC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerADC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -809,7 +809,7 @@ int32_t FtdiDIFDriver :: SetPowerADC(int32_t tstatus)    throw (LocalHardwareExc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerADC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerADC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -820,7 +820,7 @@ int32_t FtdiDIFDriver :: GetPowerADC(int32_t *tstatus)    throw (LocalHardwareEx
 	return 0;
 }	
 /*cc 3011
-int32_t FtdiDIFDriver :: SetPowerSS(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerSS(int32_t tstatus)    //throw (LocalHardwareException)
 {
 uint32_t taddress=0x03;
 uint32_t tdata;
@@ -833,7 +833,7 @@ catch (LocalHardwareException& e)  { LOG4CXX_ERROR(_logDIF," "<<e.message());thr
 return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerSS(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerSS(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 uint32_t taddress=0x03;
 uint32_t tdata;
@@ -844,7 +844,7 @@ catch (LocalHardwareException& e) { LOG4CXX_ERROR(_logDIF," "<<e.message());thro
 return 0;
 }	
 */
-int32_t FtdiDIFDriver :: SetPowerDigital(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerDigital(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -858,7 +858,7 @@ int32_t FtdiDIFDriver :: SetPowerDigital(int32_t tstatus)    throw (LocalHardwar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerDigital(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerDigital(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -869,7 +869,7 @@ int32_t FtdiDIFDriver :: GetPowerDigital(int32_t *tstatus)    throw (LocalHardwa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetPowerDAC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerDAC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -882,7 +882,7 @@ int32_t FtdiDIFDriver :: SetPowerDAC(int32_t tstatus)    throw (LocalHardwareExc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerDAC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerDAC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -893,7 +893,7 @@ int32_t FtdiDIFDriver :: GetPowerDAC(int32_t *tstatus)    throw (LocalHardwareEx
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: ResetCounter(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: ResetCounter(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -909,7 +909,7 @@ int32_t FtdiDIFDriver :: ResetCounter(int32_t tstatus)    throw (LocalHardwareEx
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: ClearAnalogSR(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: ClearAnalogSR(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -925,7 +925,7 @@ int32_t FtdiDIFDriver :: ClearAnalogSR(int32_t tstatus)    throw (LocalHardwareE
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetSCChoice(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetSCChoice(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -938,7 +938,7 @@ int32_t FtdiDIFDriver :: SetSCChoice(int32_t tstatus)    throw (LocalHardwareExc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetSCChoice(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetSCChoice(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -949,7 +949,7 @@ int32_t FtdiDIFDriver :: GetSCChoice(int32_t *tstatus)    throw (LocalHardwareEx
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetCalibrationMode(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetCalibrationMode(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -962,7 +962,7 @@ int32_t FtdiDIFDriver :: SetCalibrationMode(int32_t tstatus)    throw (LocalHard
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetCalibrationMode(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetCalibrationMode(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -973,7 +973,7 @@ int32_t FtdiDIFDriver :: GetCalibrationMode(int32_t *tstatus)    throw (LocalHar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetSetupWithCCC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetSetupWithCCC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -986,7 +986,7 @@ int32_t FtdiDIFDriver :: SetSetupWithCCC(int32_t tstatus)    throw (LocalHardwar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetSetupWithCCC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetSetupWithCCC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -997,7 +997,7 @@ int32_t FtdiDIFDriver :: GetSetupWithCCC(int32_t *tstatus)    throw (LocalHardwa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetSetupWithDCC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetSetupWithDCC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1010,7 +1010,7 @@ int32_t FtdiDIFDriver :: SetSetupWithDCC(int32_t tstatus)    throw (LocalHardwar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetSetupWithDCC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetSetupWithDCC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1021,7 +1021,7 @@ int32_t FtdiDIFDriver :: GetSetupWithDCC(int32_t *tstatus)    throw (LocalHardwa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetAcqTest(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetAcqTest(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1034,7 +1034,7 @@ int32_t FtdiDIFDriver :: SetAcqTest(int32_t tstatus)    throw (LocalHardwareExce
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetAcqTest(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetAcqTest(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1045,7 +1045,7 @@ int32_t FtdiDIFDriver :: GetAcqTest(int32_t *tstatus)    throw (LocalHardwareExc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: Set4VforSC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: Set4VforSC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1058,7 +1058,7 @@ int32_t FtdiDIFDriver :: Set4VforSC(int32_t tstatus)    throw (LocalHardwareExce
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: Get4VforSC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: Get4VforSC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1069,7 +1069,7 @@ int32_t FtdiDIFDriver :: Get4VforSC(int32_t *tstatus)    throw (LocalHardwareExc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetMode4VforSC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetMode4VforSC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1082,7 +1082,7 @@ int32_t FtdiDIFDriver :: SetMode4VforSC(int32_t tstatus)    throw (LocalHardware
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetMode4VforSC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetMode4VforSC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1093,7 +1093,7 @@ int32_t FtdiDIFDriver :: GetMode4VforSC(int32_t *tstatus)    throw (LocalHardwar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetModeDCCCCC(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetModeDCCCCC(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1106,7 +1106,7 @@ int32_t FtdiDIFDriver :: SetModeDCCCCC(int32_t tstatus)    throw (LocalHardwareE
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetModeDCCCCC(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetModeDCCCCC(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1121,7 +1121,7 @@ int32_t FtdiDIFDriver :: GetModeDCCCCC(int32_t *tstatus)    throw (LocalHardware
 
 
 
-int32_t FtdiDIFDriver :: SetHold(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetHold(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1134,7 +1134,7 @@ int32_t FtdiDIFDriver :: SetHold(int32_t tstatus)    throw (LocalHardwareExcepti
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetHold(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetHold(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1145,7 +1145,7 @@ int32_t FtdiDIFDriver :: GetHold(int32_t *tstatus)    throw (LocalHardwareExcept
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetTimeoutDigitalReadout(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetTimeoutDigitalReadout(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1158,7 +1158,7 @@ int32_t FtdiDIFDriver :: SetTimeoutDigitalReadout(int32_t tstatus)    throw (Loc
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetTimeoutDigitalReadout(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetTimeoutDigitalReadout(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1169,7 +1169,7 @@ int32_t FtdiDIFDriver :: GetTimeoutDigitalReadout(int32_t *tstatus)    throw (Lo
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetPowerPulsing(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPowerPulsing(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1182,7 +1182,7 @@ int32_t FtdiDIFDriver :: SetPowerPulsing(int32_t tstatus)    throw (LocalHardwar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetPowerPulsing(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetPowerPulsing(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1193,7 +1193,7 @@ int32_t FtdiDIFDriver :: GetPowerPulsing(int32_t *tstatus)    throw (LocalHardwa
 	return 0;
 }
 
-int32_t FtdiDIFDriver :: SetRealPowerPulsing(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetRealPowerPulsing(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1206,7 +1206,7 @@ int32_t FtdiDIFDriver :: SetRealPowerPulsing(int32_t tstatus)    throw (LocalHar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetRealPowerPulsing(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetRealPowerPulsing(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1217,7 +1217,7 @@ int32_t FtdiDIFDriver :: GetRealPowerPulsing(int32_t *tstatus)    throw (LocalHa
 	return 0;
 }
 
-int32_t FtdiDIFDriver :: SetDIFCommandsONOFF(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetDIFCommandsONOFF(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1230,7 +1230,7 @@ int32_t FtdiDIFDriver :: SetDIFCommandsONOFF(int32_t tstatus)    throw (LocalHar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetDIFCommandsONOFF(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetDIFCommandsONOFF(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1241,7 +1241,7 @@ int32_t FtdiDIFDriver :: GetDIFCommandsONOFF(int32_t *tstatus)    throw (LocalHa
 	return 0;
 }
 
-int32_t FtdiDIFDriver :: SetDROBtMode(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetDROBtMode(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1254,7 +1254,7 @@ int32_t FtdiDIFDriver :: SetDROBtMode(int32_t tstatus)    throw (LocalHardwareEx
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetDROBtMode(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetDROBtMode(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1265,7 +1265,7 @@ int32_t FtdiDIFDriver :: GetDROBtMode(int32_t *tstatus)    throw (LocalHardwareE
 	return 0;
 }
 
-int32_t FtdiDIFDriver :: SetClockFrequency(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetClockFrequency(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1278,7 +1278,7 @@ int32_t FtdiDIFDriver :: SetClockFrequency(int32_t tstatus)    throw (LocalHardw
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetClockFrequency(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetClockFrequency(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1292,7 +1292,7 @@ int32_t FtdiDIFDriver :: GetClockFrequency(int32_t *tstatus)    throw (LocalHard
 
 
 
-int32_t lydaq::FtdiDIFDriver::SetControlRegister(int32_t tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::SetControlRegister(int32_t tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	
@@ -1305,7 +1305,7 @@ int32_t lydaq::FtdiDIFDriver::SetControlRegister(int32_t tvalue)    throw (Local
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::GetControlRegister(uint32_t *tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::GetControlRegister(uint32_t *tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	
@@ -1322,7 +1322,7 @@ int32_t lydaq::FtdiDIFDriver::GetControlRegister(uint32_t *tvalue)    throw (Loc
 
 
 
-int32_t FtdiDIFDriver :: HardrocSetPowerPulsing(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocSetPowerPulsing(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1347,7 +1347,7 @@ int32_t FtdiDIFDriver :: HardrocSetPowerPulsing(int32_t tstatus)    throw (Local
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocGetPowerPulsing(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocGetPowerPulsing(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1362,7 +1362,7 @@ int32_t FtdiDIFDriver :: HardrocGetPowerPulsing(int32_t *tstatus)    throw (Loca
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetSCClockFrequency(int32_t tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetSCClockFrequency(int32_t tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1386,7 +1386,7 @@ int32_t FtdiDIFDriver :: SetSCClockFrequency(int32_t tstatus)    throw (LocalHar
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetSCClockFrequency(int32_t *tstatus)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetSCClockFrequency(int32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1500,7 +1500,7 @@ int32_t FtdiDIFDriver ::HardrocFastFlushDigitalFIFO(void)
 }	
 
 int32_t FtdiDIFDriver :: HardrocStartDigitalAcquisitionCommand(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x02;
 	
@@ -1514,7 +1514,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: HardrocStopDigitalAcquisitionCommand(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x23;
 	
@@ -1529,7 +1529,7 @@ throw (LocalHardwareException)
 
 
 int32_t FtdiDIFDriver :: HardrocStartDigitalReadoutCommand(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	
@@ -1543,7 +1543,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: HardrocSendRamfullExtCommand(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x21;
 	
@@ -1557,7 +1557,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: HardrocSendExternalTriggerCommand(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x22;
 	
@@ -1571,7 +1571,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiDIFDriver :: HardrocSendMezzanine11Command(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x50;
 	
@@ -1587,7 +1587,7 @@ throw (LocalHardwareException)
 // *********** analog readout ************
 
 int32_t  FtdiDIFDriver :: HardrocSetTimerHoldRegister(int32_t thold)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	int32_t taddress=0x20;
 	uint32_t tdata;
@@ -1602,7 +1602,7 @@ throw (LocalHardwareException)
 	return 0;
 }
 
-int32_t  lydaq::FtdiDIFDriver::HardrocGetTimerHoldRegister(uint32_t *thold)    throw (LocalHardwareException)
+int32_t  lydaq::FtdiDIFDriver::HardrocGetTimerHoldRegister(uint32_t *thold)    //throw (LocalHardwareException)
 {
 	int32_t taddress=0x20;
 
@@ -1617,7 +1617,7 @@ int32_t  lydaq::FtdiDIFDriver::HardrocGetTimerHoldRegister(uint32_t *thold)    t
 	return 0;
 }
 
-int32_t  FtdiDIFDriver :: HardrocStartAnalogAcq(void)    throw (LocalHardwareException)
+int32_t  FtdiDIFDriver :: HardrocStartAnalogAcq(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x04;
 	
@@ -1630,7 +1630,7 @@ int32_t  FtdiDIFDriver :: HardrocStartAnalogAcq(void)    throw (LocalHardwareExc
 	return 0;
 }
 
-int32_t  FtdiDIFDriver :: HardrocSoftwareTriggerAnalogAcq(void)    throw (LocalHardwareException)
+int32_t  FtdiDIFDriver :: HardrocSoftwareTriggerAnalogAcq(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x41;
 	
@@ -1643,7 +1643,7 @@ int32_t  FtdiDIFDriver :: HardrocSoftwareTriggerAnalogAcq(void)    throw (LocalH
 	return 0;
 }
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutMode(int32_t tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutMode(int32_t tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1667,7 +1667,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutMode(int32_t tmode)    t
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutMode(int32_t *tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutMode(int32_t *tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1682,7 +1682,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutMode(int32_t *tmode)    
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutStartMode(int32_t tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutStartMode(int32_t tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1706,7 +1706,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetNumericalReadoutStartMode(int32_t tmode)
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutStartMode(int32_t *tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutStartMode(int32_t *tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1722,7 +1722,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetNumericalReadoutStartMode(int32_t *tmode
 }	
 
 int32_t lydaq::FtdiDIFDriver::HardrocSetSCOverVoltageDefault(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	uint32_t tdata;
@@ -1746,7 +1746,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t lydaq::FtdiDIFDriver::HardrocGetSCOverVoltage(int32_t *tmode)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	uint32_t tdata;
@@ -1762,7 +1762,7 @@ throw (LocalHardwareException)
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetTestAllAsicsDefault(void)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetTestAllAsicsDefault(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1783,7 +1783,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetTestAllAsicsDefault(void)    throw (Loca
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetTestAllAsics(int32_t *tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetTestAllAsics(int32_t *tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress =0x03;
 	uint32_t tdata;
@@ -1798,7 +1798,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetTestAllAsics(int32_t *tmode)    throw (L
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetEnablePowerPulsing(int32_t tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetEnablePowerPulsing(int32_t tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1818,7 +1818,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetEnablePowerPulsing(int32_t tmode)    thr
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetEnablePowerPulsing(int32_t *tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetEnablePowerPulsing(int32_t *tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1832,7 +1832,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetEnablePowerPulsing(int32_t *tmode)    th
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetEnableTimeoutDigitalReadout(int32_t tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetEnableTimeoutDigitalReadout(int32_t tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1852,7 +1852,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetEnableTimeoutDigitalReadout(int32_t tmod
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetEnableTimeoutDigitalReadout(int32_t *tmode)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetEnableTimeoutDigitalReadout(int32_t *tmode)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x03;
 	uint32_t tdata;
@@ -1866,7 +1866,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetEnableTimeoutDigitalReadout(int32_t *tmo
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetStatusRegister(uint32_t *tstatus)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetStatusRegister(uint32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x04;
 	try	{		UsbRegisterRead(taddress,tstatus);	}
@@ -1874,7 +1874,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetStatusRegister(uint32_t *tstatus)    thr
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetMemFull(uint32_t *tstatus)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetMemFull(uint32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	
@@ -1885,7 +1885,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetMemFull(uint32_t *tstatus)    throw (Loc
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetRamFullCpt(uint32_t *tstatus)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetRamFullCpt(uint32_t *tstatus)    //throw (LocalHardwareException)
 {
 	uint32_t taddress = 0x09;
 	
@@ -1900,7 +1900,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetRamFullCpt(uint32_t *tstatus)    throw (
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocSetSCDebugRegister(int32_t tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocSetSCDebugRegister(int32_t tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x19;
 	
@@ -1913,7 +1913,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocSetSCDebugRegister(int32_t tvalue)    throw
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::HardrocGetSCDebugRegister(uint32_t *tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::HardrocGetSCDebugRegister(uint32_t *tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x19;
 	
@@ -1930,7 +1930,7 @@ int32_t lydaq::FtdiDIFDriver::HardrocGetSCDebugRegister(uint32_t *tvalue)    thr
 
 
 
-int32_t lydaq::FtdiDIFDriver::SetChipTypeRegister(int32_t tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::SetChipTypeRegister(int32_t tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x0;
 	
@@ -1943,7 +1943,7 @@ int32_t lydaq::FtdiDIFDriver::SetChipTypeRegister(int32_t tvalue)    throw (Loca
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::GetChipTypeRegister(uint32_t *tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::GetChipTypeRegister(uint32_t *tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x0;
 	
@@ -1958,7 +1958,7 @@ int32_t lydaq::FtdiDIFDriver::GetChipTypeRegister(uint32_t *tvalue)    throw (Lo
 	return 0;
 }	
 /*cc 3011
-int32_t lydaq::FtdiDIFDriver::SetResetCounter(int32_t tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::SetResetCounter(int32_t tvalue)    //throw (LocalHardwareException)
 {
 uint32_t taddress=0x03;
 uint32_t tampon;
@@ -1973,7 +1973,7 @@ catch (LocalHardwareException& e) {LOG4CXX_ERROR(_logDIF," "<<e.message());throw
 return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::GetResetCounter(uint32_t *tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::GetResetCounter(uint32_t *tvalue)    //throw (LocalHardwareException)
 {
 uint32_t taddress=0x03;
 	
@@ -1989,7 +1989,7 @@ return 0;
 */
 
 
-int32_t FtdiDIFDriver :: SetPwrToPwrARegister(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPwrToPwrARegister(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x40;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -2001,7 +2001,7 @@ int32_t FtdiDIFDriver :: SetPwrToPwrARegister(uint32_t tnumber)    throw (LocalH
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: SetPwrAToPwrDRegister(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPwrAToPwrDRegister(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x41;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -2012,7 +2012,7 @@ int32_t FtdiDIFDriver :: SetPwrAToPwrDRegister(uint32_t tnumber)    throw (Local
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: SetPwrDToDAQRegister(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPwrDToDAQRegister(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x42;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -2023,7 +2023,7 @@ int32_t FtdiDIFDriver :: SetPwrDToDAQRegister(uint32_t tnumber)    throw (LocalH
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: SetDAQToPwrDRegister(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetDAQToPwrDRegister(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x43;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -2034,7 +2034,7 @@ int32_t FtdiDIFDriver :: SetDAQToPwrDRegister(uint32_t tnumber)    throw (LocalH
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: SetPwrDToPwrARegister(uint32_t tnumber)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetPwrDToPwrARegister(uint32_t tnumber)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x44;
 	try	{		UsbRegisterWrite(taddress,tnumber);			}
@@ -2046,7 +2046,7 @@ int32_t FtdiDIFDriver :: SetPwrDToPwrARegister(uint32_t tnumber)    throw (Local
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: HardrocCommandAskDifTemperature(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandAskDifTemperature(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x09;
 	
@@ -2058,7 +2058,7 @@ int32_t FtdiDIFDriver :: HardrocCommandAskDifTemperature(void)    throw (LocalHa
 	}
 	return 0;
 }	
-int32_t FtdiDIFDriver :: HardrocCommandAskAsuTemperature(void)    throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: HardrocCommandAskAsuTemperature(void)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x08;
 	
@@ -2071,7 +2071,7 @@ int32_t FtdiDIFDriver :: HardrocCommandAskAsuTemperature(void)    throw (LocalHa
 	return 0;
 }	
 
-int32_t FtdiDIFDriver :: GetDIFTemperature(uint32_t *tvalue)    				 	throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetDIFTemperature(uint32_t *tvalue)    				 	//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x11;
 	*tvalue=0;	
@@ -2085,7 +2085,7 @@ int32_t FtdiDIFDriver :: GetDIFTemperature(uint32_t *tvalue)    				 	throw (Loc
 	return 0;	
 }
 
-int32_t FtdiDIFDriver :: SetTemperatureReadoutToAuto(uint32_t tvalue)    				 	throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: SetTemperatureReadoutToAuto(uint32_t tvalue)    				 	//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;
 	uint32_t tdata;
@@ -2109,7 +2109,7 @@ int32_t FtdiDIFDriver :: SetTemperatureReadoutToAuto(uint32_t tvalue)    				 	t
 	}
 	return 0;	
 }
-int32_t FtdiDIFDriver :: GetTemperatureReadoutAutoStatus(uint32_t *tvalue)    				 	throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetTemperatureReadoutAutoStatus(uint32_t *tvalue)    				 	//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x10;
 	uint32_t tdata;
@@ -2124,7 +2124,7 @@ int32_t FtdiDIFDriver :: GetTemperatureReadoutAutoStatus(uint32_t *tvalue)    		
 	return 0;	
 }
 
-int32_t FtdiDIFDriver :: GetASUTemperature(uint32_t *tvalue1,uint32_t *tvalue2)    						throw (LocalHardwareException)
+int32_t FtdiDIFDriver :: GetASUTemperature(uint32_t *tvalue1,uint32_t *tvalue2)    						//throw (LocalHardwareException)
 {
 	uint32_t taddress=0x52;
 	*tvalue1=0;	
@@ -2144,7 +2144,7 @@ int32_t FtdiDIFDriver :: GetASUTemperature(uint32_t *tvalue1,uint32_t *tvalue2) 
 	}	
 }
 
-int32_t lydaq::FtdiDIFDriver::SetEventsBetweenTemperatureReadout(uint32_t tdata)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::SetEventsBetweenTemperatureReadout(uint32_t tdata)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x55;
 	try{	UsbRegisterWrite(taddress,tdata);	}
@@ -2156,7 +2156,7 @@ int32_t lydaq::FtdiDIFDriver::SetEventsBetweenTemperatureReadout(uint32_t tdata)
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::GetEventsBetweenTemperatureReadout(uint32_t *tdata)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::GetEventsBetweenTemperatureReadout(uint32_t *tdata)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x55;
 	try{	UsbRegisterRead(taddress,tdata);	}
@@ -2168,7 +2168,7 @@ int32_t lydaq::FtdiDIFDriver::GetEventsBetweenTemperatureReadout(uint32_t *tdata
 	return 0;
 }	
 
-int32_t lydaq::FtdiDIFDriver::SetAnalogConfigureRegister(uint32_t tdata)    throw (LocalHardwareException)
+int32_t lydaq::FtdiDIFDriver::SetAnalogConfigureRegister(uint32_t tdata)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x60;
 	try{	UsbRegisterWrite(taddress,tdata);	}

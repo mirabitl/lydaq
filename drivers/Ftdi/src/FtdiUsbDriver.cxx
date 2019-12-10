@@ -52,7 +52,7 @@ uint16_t lydaq::FtdiUsbDriver::CrcTable[256] =
 
 #define MY_DEBUG
 
-lydaq::FtdiUsbDriver::FtdiUsbDriver(char * deviceIdentifier, uint32_t productid )     throw (LocalHardwareException)
+lydaq::FtdiUsbDriver::FtdiUsbDriver(char * deviceIdentifier, uint32_t productid )     //throw (LocalHardwareException)
 {
  int ret;
  int ntry=0;
@@ -127,7 +127,7 @@ start:
 	//checkReadWrite(0x100,128);
 }
 
-void lydaq::FtdiUsbDriver::checkReadWrite(uint32_t start,uint32_t count)   throw (LocalHardwareException)
+void lydaq::FtdiUsbDriver::checkReadWrite(uint32_t start,uint32_t count)   //throw (LocalHardwareException)
 {
   int32_t reg=0x1024,ret=0;uint32_t regctrl=0;
   //     printf("single Writing %x ",reg);
@@ -165,7 +165,7 @@ void lydaq::FtdiUsbDriver::checkReadWrite(uint32_t start,uint32_t count)   throw
 	       //getchar();
     }
 } 
-lydaq::FtdiUsbDriver::~FtdiUsbDriver()     throw (LocalHardwareException)
+lydaq::FtdiUsbDriver::~FtdiUsbDriver()     //throw (LocalHardwareException)
 
 {
 	int ret=0;
@@ -188,7 +188,7 @@ lydaq::FtdiUsbDriver::~FtdiUsbDriver()     throw (LocalHardwareException)
 }	
 
 void lydaq::FtdiUsbDriver::FT245Purge( void )
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 
 	int32_t status;
@@ -201,7 +201,7 @@ throw( LocalHardwareException )
 }	
 
 int32_t lydaq::FtdiUsbDriver::read( unsigned char  *resultPtr )
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	uint32_t tbytesread=0;	
 	uint32_t tbytestoread=1;
@@ -253,7 +253,7 @@ throw( LocalHardwareException )
 	return ret;
 }
 void lydaq::FtdiUsbDriver::readn( unsigned char  *resultPtr,int32_t nbbytes )
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	uint32_t tbytesread=0;	
 
@@ -308,7 +308,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::write( unsigned char  data)
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	uint32_t tbyteswritten=0;	
 	uint32_t tbytestowrite=1;
@@ -341,7 +341,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::MonWritenAmoi( unsigned char  *cdata, uint32_t nb)
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	uint32_t tbyteswritten=0;	
 	int32_t tbytestowrite=nb;
@@ -371,7 +371,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::readEEPROM( uint32_t address, 	uint32_t *resultPtr )
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	uint16_t data;
 	int32_t  ret=ftdi_read_eeprom_location (&theFtdi, address, &data);
@@ -385,7 +385,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::writeEEPROM( 	uint32_t address,	uint32_t data)
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	int32_t ret= 	ftdi_write_eeprom_location (&theFtdi, address, data);
 
@@ -397,7 +397,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::resetEEPROM( 	void)
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	int32_t ret=ftdi_erase_eeprom (&theFtdi);
 	if( ret!=0)
@@ -408,7 +408,7 @@ throw( LocalHardwareException )
 }
 
 void lydaq::FtdiUsbDriver::resetBus( ) 
-throw(LocalHardwareException) 
+//throw(LocalHardwareException) 
 {
 	int32_t ret=ftdi_usb_reset(&theFtdi);
 	if (ret!=0)
@@ -418,7 +418,7 @@ throw(LocalHardwareException)
 }
 
 void lydaq::FtdiUsbDriver::readStatus( uint32_t *RXQueue, uint32_t *TXQueue, uint32_t *Event) //Dummy 
-throw( LocalHardwareException ) 
+//throw( LocalHardwareException ) 
 {
 	//   if( FT_GetStatus( 	handleFT245, RXQueue,TXQueue,Event) != FT_OK ) 
 	//     {
@@ -429,7 +429,7 @@ throw( LocalHardwareException )
 }
 
 int32_t FtdiUsbDriver :: UsbReadByte(unsigned char  *tbyte)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try 	{	  read(tbyte);			} 
 	catch (LocalHardwareException& e)
@@ -445,7 +445,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRead4Bytes(uint32_t *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	unsigned char  ttampon[5];
 
@@ -465,7 +465,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRead16Bytes(unsigned char  *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try 	{	  readn(data,16);			} 
 	catch (LocalHardwareException& e)
@@ -478,7 +478,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRead22Bytes(unsigned char  *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try 	{	  readn(data,22);			} 
 	catch (LocalHardwareException& e)
@@ -491,7 +491,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbReadnBytes(unsigned char  *data, int32_t nbbytes)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try 	{	  readn(data,nbbytes);			} 
 	catch (LocalHardwareException& e)
@@ -505,7 +505,7 @@ throw (LocalHardwareException)
 
 
 int32_t FtdiUsbDriver :: UsbRead3Bytes(uint32_t *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	unsigned char  ttampon[5];
 
@@ -524,7 +524,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRead2Bytes(uint32_t *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	unsigned char  ttampon[5];
 	for (int32_t i=0;i<5;i++)
@@ -542,7 +542,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRegisterRead(uint32_t address, uint32_t *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	unsigned char  ttampon[5];
@@ -582,7 +582,7 @@ throw (LocalHardwareException)
 
 //old version with separate write per each byte
 int32_t FtdiUsbDriver :: UsbRegisterRead2(uint32_t address, uint32_t *data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	unsigned char  ttampon;
@@ -639,7 +639,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRegisterWrite(uint32_t address, uint32_t data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	
@@ -684,7 +684,7 @@ throw (LocalHardwareException)
 }	
 
 int32_t FtdiUsbDriver :: UsbRegisterWrite2(uint32_t address, uint32_t data)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	uint32_t taddress;
 	unsigned char  ttampon[7];
@@ -706,7 +706,7 @@ throw (LocalHardwareException)
 	return 0;
 }	
 
-int32_t lydaq::FtdiUsbDriver::UsbGetFirmwareRevision(uint32_t *version)  throw (LocalHardwareException)
+int32_t lydaq::FtdiUsbDriver::UsbGetFirmwareRevision(uint32_t *version)  //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x100;
 	uint32_t tdata;
@@ -721,7 +721,7 @@ int32_t lydaq::FtdiUsbDriver::UsbGetFirmwareRevision(uint32_t *version)  throw (
 }
 
 int32_t FtdiUsbDriver :: UsbCommandWrite(uint32_t command)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 
 	uint32_t taddress;
@@ -761,7 +761,7 @@ throw (LocalHardwareException)
 	return 0;
 }
 
-int32_t  FtdiUsbDriver ::FT245GetStatus(int32_t *RXQueue,int32_t *TXQueue ,int32_t *Event)    throw (LocalHardwareException)
+int32_t  FtdiUsbDriver ::FT245GetStatus(int32_t *RXQueue,int32_t *TXQueue ,int32_t *Event)    //throw (LocalHardwareException)
 {
 	*RXQueue=1;
 	return 0;
@@ -770,7 +770,7 @@ int32_t  FtdiUsbDriver ::FT245GetStatus(int32_t *RXQueue,int32_t *TXQueue ,int32
 
 
 int32_t FtdiUsbDriver :: FT245Reset(void)
-throw (LocalHardwareException)
+//throw (LocalHardwareException)
 {
 	try
 	{
@@ -785,7 +785,7 @@ throw (LocalHardwareException)
 }	
 
 
-int32_t lydaq::FtdiUsbDriver::SetTestRegister(int32_t tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiUsbDriver::SetTestRegister(int32_t tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x02;
 	
@@ -794,7 +794,7 @@ int32_t lydaq::FtdiUsbDriver::SetTestRegister(int32_t tvalue)    throw (LocalHar
 	return 0;
 }	
 
-int32_t lydaq::FtdiUsbDriver::GetTestRegister(uint32_t *tvalue)    throw (LocalHardwareException)
+int32_t lydaq::FtdiUsbDriver::GetTestRegister(uint32_t *tvalue)    //throw (LocalHardwareException)
 {
 	uint32_t taddress=0x02;
 	
