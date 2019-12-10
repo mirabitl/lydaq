@@ -15,7 +15,10 @@
 #include <unistd.h>
 #include <math.h>
 #include <dirent.h>
+extern "C" {
 #include <linux/i2c-dev.h>
+#include <i2c/smbus.h>
+}
 
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
