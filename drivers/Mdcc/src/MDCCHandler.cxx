@@ -116,7 +116,7 @@ uint32_t lydaq::MDCCHandler::hardReset(){return this->readRegister(0xc);}
 void lydaq::MDCCHandler::setHardReset(uint32_t nc){this->writeRegister(0xc,nc);}
 
 void lydaq::MDCCHandler::setSpillRegister(uint32_t nc){this->writeRegister(0xD,nc);}
-uint32_t lydaq::MDCCHandler::spillRegister(){this->readRegister(0xD);}
+uint32_t lydaq::MDCCHandler::spillRegister(){return this->readRegister(0xD);}
 void lydaq::MDCCHandler::useSPSSpill(bool t)
 {
   uint32_t reg=this->spillRegister();
@@ -135,12 +135,12 @@ void lydaq::MDCCHandler::useTrigExt(bool t)
 }
 
 void lydaq::MDCCHandler::setTriggerDelay(uint32_t nc){this->writeRegister(0xE,nc);}
-uint32_t lydaq::MDCCHandler::triggerDelay(){this->readRegister(0xE);}
+uint32_t lydaq::MDCCHandler::triggerDelay(){return this->readRegister(0xE);}
 void lydaq::MDCCHandler::setTriggerBusy(uint32_t nc){this->writeRegister(0xF,nc);}
-uint32_t lydaq::MDCCHandler::triggerBusy(){this->readRegister(0xF);}
+uint32_t lydaq::MDCCHandler::triggerBusy(){return this->readRegister(0xF);}
 
 void lydaq::MDCCHandler::setExternalTrigger(uint32_t nc){this->writeRegister(0x1A,nc);}
-uint32_t lydaq::MDCCHandler::externalTrigger(){this->readRegister(0x1A);}
+uint32_t lydaq::MDCCHandler::externalTrigger(){return this->readRegister(0x1A);}
 
 void lydaq::MDCCHandler::reloadCalibCount(){
 
