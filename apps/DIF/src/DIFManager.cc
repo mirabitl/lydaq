@@ -19,62 +19,8 @@
 using namespace lydaq;
 using namespace zdaq;
 
-void lydaq::DIFManager::registerdb(zdaq::fsmmessage* m)
-{
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
-  _dbstate=m->content()["dbstate"].asString();
-}
 
-void lydaq::DIFManager::dbcache(std::string server,std::vector<uint32_t> vids)
-{
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Collecting updates from DBCACHE server...");
-  zmq::context_t c(2);
-  zmq::socket_t subscriber(c, ZMQ_SUB);
-  subscriber.connect(server);
-  for (auto x:vids)
-    {
-      std::stringstream ss;
-      ss<<"/DB/"<<(x&0xFFFF)<<"/";
-      //ss<<"*/"<<i<<"/";
-      subscriber.setsockopt(ZMQ_SUBSCRIBE,ss.str().c_str(),ss.str().length());
-    }
-  while (_dbcacheRunning)
-    {
-       zmq::message_t update;
-       subscriber.recv(&update);
-       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"update size "<<update.size());
-       char cid[200],cdb[200];
-       memset(cid,0,200);
-       memset(cdb,0,200);
 
-       uint32_t difid;
-        char *msg=((char*) update.data());
-       char *omsg=msg;
-       
-       msg+=4;
-       char *ret=strstr(msg, "/");
-       memcpy(cid,msg,ret-msg);
-       msg=ret+1;
-       ret=strstr(msg, "/");
-       memcpy(cdb,msg,ret-msg);
-       unsigned char* buf=(unsigned char*)ret;
-       buf+=1;
-       sscanf(cid,"%d",&difid);
-       //std::string sdbst(dbst);
-       uint32_t hsi=ret-omsg+1;
-       //printf("recived %d bytes %s %s buf size=%d \n",update.size(),cid,cdb,hsi);
-       uint32_t *ibuf=(uint32_t *) buf;
-       if (_DIFInterfaceMap.find(difid)== _DIFInterfaceMap.end()) continue;
-      //memcpy(&theDIFDbInfo_[i],curr->getData(),sizeof(DIFDbInfo));
-       memcpy(_DIFInterfaceMap[difid]->dbdif(),buf,update.size()-((char*) buf-omsg));
-       //printf("Dim info read %d %d \n",_DIFInterfaceMap[i]->dbdif()->id,_DIFInterfaceMap[i]->dbdif()->nbasic);
-       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"DIF "<<_DIFInterfaceMap[difid]->dbdif()->id<<" is read from DB with nasic="<<_DIFInterfaceMap[difid]->dbdif()->nbasic<<" from state "<<cdb);
-       //std::cout<<"DIF "<<_DIFInterfaceMap[difid]->dbdif()->id<<" is read from DB with nasic="<<_DIFInterfaceMap[difid]->dbdif()->nbasic<<" from state "<<cdb<<std::endl;
-       
-    }
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<< "Exiting updates from DBCACHE server...");
-  
-}
 void lydaq::DIFManager::scan(zdaq::fsmmessage* m) 
 {
   LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
@@ -141,7 +87,7 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
     if (jDIF.isMember("db"))
      {
               Json::Value jDIFdb=jDIF["db"];
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jDIFdb["state"].asString()<<jDIFdb["mode"].asString());
+       LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<"Parsing:"<<jDIFdb["state"].asString()<<jDIFdb["mode"].asString());
 
               
 	if (jDIFdb["mode"].asString().compare("mongo")!=0)	
@@ -152,10 +98,10 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
      }
    if (_hca->asicMap().size()==0)
      {
-        LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
+        LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
        return;
      }
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_hca->asicMap().size() );
+   LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_hca->asicMap().size() );
    // Initialise the network
      std::map<uint32_t,DIFInterface*> dm=this->getDIFMap();
    std::vector<uint32_t> vint;
@@ -165,15 +111,15 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
      {
        // only MSB is used
        uint32_t eip= ((x.first)>>56)&0XFF;
-       std::map<uint32_t,DIFInterface*>::iterator idif=diflist.find(eip);
-       if (idif==diflist.end()) continue;
+       std::map<uint32_t,DIFInterface*>::iterator idif=dm.find(eip);
+       if (idif==dm.end()) continue;
        if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
 
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New DIF found in db "<<std::hex<<eip<<std::dec);
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" New DIF found in db "<<std::hex<<eip<<std::dec);
        vint.push_back(eip);
       
        _vDif.push_back(idif->second);
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
      }
    //std::string network=
   // Connect to the event builder
@@ -187,13 +133,13 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
   if (!this->parameters().isMember("publish"))
     {
       
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No publish tag found ");
+       LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" No publish tag found ");
        return;
     }
   for (auto x:_vDif)
     {
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<this->parameters()["publish"].asString());
-      push=new zdaq::zmPusher(_context,x->detectorId(),x->status()->id);
+      zdaq::zmPusher* push=new zdaq::zmPusher(_context,x->detectorId(),x->status()->id);
       push->connect(this->parameters()["publish"].asString());
       x->initialise(push);
 
@@ -208,138 +154,8 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
   
 }
 
-void lydaq::DIFManager::setGain(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  uint32_t difid=atoi(request.get("difid","0").c_str());
-  uint32_t gain=atoi(request.get("gain","0").c_str());
-  uint32_t ctrlreg1;
-  sscanf(request.get("CTRLREG","0").c_str(),"%x",&ctrlreg1);
-  printf("ctrl reg = %u %x \n",ctrlreg1,ctrlreg1);
-  // uint32_t ctrlreg= jt["ctrlreg"].asUInt();
-  //printf("ctrl reg after = %d %x \n",ctrlreg,ctrlreg);
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Gain changed with "<<difid<<" ctr "<<ctrlreg1<<" gain "<<gain);
-  //response["STATUS"]="TRY";
-  //return;
-
-  if (gain==0|| ctrlreg1==0)
-    {
-      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" Gain "<<gain)
-      response["STATUS"]="Invalid params ";
-      return;
-    }
-  int32_t rc=1;
-  std::map<uint32_t,DIFInterface*> dm=this->getDIFMap();
-  Json::Value array_slc;
-  if (difid>0 )
-    {
-      std::map<uint32_t,DIFInterface*>::iterator itd=dm.find(difid);
-      if (itd==dm.end())
-	{
-	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
-
-	  response["STATUS"]="DIFID not found ";
-	  return;
-
-	}
-      itd->second->setGain(gain);
-      itd->second->configure(ctrlreg1);
-      Json::Value ds;
-      ds["id"]=itd->first;
-      ds["slc"]=itd->second->status()->slc;
-      array_slc.append(ds);
-      response["STATUS"]="DONE";
-      response["DIFLIST"]=array_slc;
-      return;
-    }
-  else
-    {
-
-      for ( std::map<uint32_t,DIFInterface*>::iterator it=dm.begin();it!=dm.end();it++)
-	{
-	  it->second->setGain(gain);
-	  it->second->configure(ctrlreg1);
-	  Json::Value ds;
-	  ds["id"]=it->first;
-	  ds["slc"]=it->second->status()->slc;
-	  array_slc.append(ds);
 
 
-	}
-      response["STATUS"]="DONE";
-      response["DIFLIST"]=array_slc;
-      return;
-    }
-
-}
-
-void lydaq::DIFManager::setThreshold(Mongoose::Request &request, Mongoose::JsonResponse &response)
-{
-  uint32_t difid=atoi(request.get("difid","0").c_str());
-  uint32_t B0=atoi(request.get("B0","0").c_str());
-  uint32_t B1=atoi(request.get("B1","0").c_str());
-  uint32_t B2=atoi(request.get("B2","0").c_str());
-  uint32_t ctrlreg1;
-  sscanf(request.get("CTRLREG","0").c_str(),"%x",&ctrlreg1);
-  printf("ctrl reg = %u %x \n",ctrlreg1,ctrlreg1);
-  Json::Value jt;jt.clear();
-
-  jt["ctrlreg"]=request.get("CTRLREG","0");
-  std::cout<<" Json value "<<jt<<std::endl;
-  // uint32_t ctrlreg= jt["ctrlreg"].asUInt();
-  //printf("ctrl reg after = %d %x \n",ctrlreg,ctrlreg);
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Threshold changed with "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2<<" et "<<request.get("CTRLREG","0").c_str());
-  //response["STATUS"]="TRY";
-  //return;
-
-  if (B0==0 || B1==0 || B2==0|| ctrlreg1==0)
-    {
-      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" B0 "<<B0<<" B1 "<<B1<<" B2 "<<B2);
-      response["STATUS"]="Invalid params ";
-      return;
-    }
-  int32_t rc=1;
-  std::map<uint32_t,DIFInterface*> dm=this->getDIFMap();
-  Json::Value array_slc;
-  if (difid>0 )
-    {
-      std::map<uint32_t,DIFInterface*>::iterator itd=dm.find(difid);
-      if (itd==dm.end())
-	{
-	  LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" please do Scan devices first the dif  "<<difid<<"is not registered");
-
-	  response["STATUS"]="DIFID not found ";
-	  return;
-
-	}
-      itd->second->setThreshold(B0,B1,B2);
-      itd->second->configure(ctrlreg1);
-      Json::Value ds;
-      ds["id"]=itd->first;
-      ds["slc"]=itd->second->status()->slc;
-      array_slc.append(ds);
-      response["STATUS"]="DONE";
-      response["DIFLIST"]=array_slc;
-      return;
-    }
-  else
-    {
-
-      for ( std::map<uint32_t,DIFInterface*>::iterator it=dm.begin();it!=dm.end();it++)
-	{
-	  it->second->setThreshold(B0,B1,B2);
-	  it->second->configure(ctrlreg1);
-	  Json::Value ds;
-	  ds["id"]=it->first;
-	  ds["slc"]=it->second->status()->slc;
-	  array_slc.append(ds);
-
-
-	}
-      response["STATUS"]="DONE";
-      response["DIFLIST"]=array_slc;
-      return;
-    }
-}
 
 
 
@@ -347,7 +163,7 @@ void lydaq::DIFManager::setThreshold(Mongoose::Request &request, Mongoose::JsonR
 void lydaq::DIFManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif)
 {
 
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changin thresholds: "<<b0<<","<<b1<<","<<b2);
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Changin thresholds: "<<b0<<","<<b1<<","<<b2);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       if (idif!=0)
@@ -369,7 +185,7 @@ void lydaq::DIFManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32
 void lydaq::DIFManager::setGain(uint16_t gain)
 {
 
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Gain: "<<gain);
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Changing Gain: "<<gain);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       for (int i=0;i<64;i++)
@@ -383,7 +199,7 @@ void lydaq::DIFManager::setGain(uint16_t gain)
 
 void lydaq::DIFManager::setMask(uint32_t level,uint64_t mask)
 {
-LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
+LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
@@ -398,7 +214,7 @@ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::h
 }
 void lydaq::DIFManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t val)
 {
-LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<channel<<std::dec);
+LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<channel<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
@@ -414,7 +230,7 @@ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::h
 
 void lydaq::DIFManager::c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Set6bdac called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"Set6bdac called ");
   response["STATUS"]="DONE";
 
   
@@ -430,7 +246,7 @@ void lydaq::DIFManager::c_setthresholds(Mongoose::Request &request, Mongoose::Js
 }
 void lydaq::DIFManager::c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Set6bdac called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"Set6bdac called ");
   response["STATUS"]="DONE";
 
   
@@ -442,7 +258,7 @@ void lydaq::DIFManager::c_setpagain(Mongoose::Request &request, Mongoose::JsonRe
 
 void lydaq::DIFManager::c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"SetMask called ");
   response["STATUS"]="DONE";
 
   
@@ -450,7 +266,7 @@ void lydaq::DIFManager::c_setmask(Mongoose::Request &request, Mongoose::JsonResp
   uint64_t mask;
   sscanf(request.get("mask","0XFFFFFFFFFFFFFFFF").c_str(),"%lx",&mask);
   uint32_t level=atol(request.get("level","0").c_str());
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"SetMask called "<<std::hex<<mask<<std::dec<<" level "<<level);
   this->setMask(level,mask);
   response["MASK"]=(Json::UInt64) mask;
   response["LEVEL"]=level;
@@ -460,7 +276,7 @@ void lydaq::DIFManager::c_setmask(Mongoose::Request &request, Mongoose::JsonResp
 
 void lydaq::DIFManager::c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMask called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"SetMask called ");
   response["STATUS"]="DONE";
 
   
@@ -468,7 +284,7 @@ void lydaq::DIFManager::c_setchannelmask(Mongoose::Request &request, Mongoose::J
   uint32_t level=atol(request.get("level","0").c_str());
   uint32_t channel=atol(request.get("channel","0").c_str());
   bool on=atol(request.get("value","1").c_str())==1;
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"SetMaskChannel called "<<channel<<std::dec<<" level "<<level);
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"SetMaskChannel called "<<channel<<std::dec<<" level "<<level);
   this->setChannelMask(level,channel,on);
   response["CHANNEL"]=channel;
   response["LEVEL"]=level;
@@ -476,7 +292,7 @@ void lydaq::DIFManager::c_setchannelmask(Mongoose::Request &request, Mongoose::J
 }
 void lydaq::DIFManager::c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CTRLREG called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called ");
 
   uint32_t ctrlreg=0;
   sscanf(request.get("mask","0X0").c_str(),"%x",&ctrlreg);
@@ -489,7 +305,7 @@ void lydaq::DIFManager::c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResp
 }
 void lydaq::DIFManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"downloadDB called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"downloadDB called ");
   response["STATUS"]="DONE";
 
 
@@ -513,7 +329,7 @@ void lydaq::DIFManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonR
 }
 
 
-void lydaq::DIFManager::cmdStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::DIFManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   
   int32_t rc=1;
@@ -546,13 +362,13 @@ void lydaq::DIFManager::cmdStatus(Mongoose::Request &request, Mongoose::JsonResp
   
 }
 
-Json::Value& lydaq::DIFManager::configureHR2()
+Json::Value lydaq::DIFManager::configureHR2()
 {
   uint32_t ctrlreg=this->parameters()["ctrlreg"].asUInt();
 
   int32_t rc=1;
   std::map<uint32_t,DIFInterface*> dm=this->getDIFMap();
-  Json::Value array_slc;
+  Json::Value array_slc=Json::Value::null;
 
   for ( std::map<uint32_t,DIFInterface*>::iterator it=dm.begin();it!=dm.end();it++)
     {
@@ -580,7 +396,7 @@ void lydaq::DIFManager::configure(zdaq::fsmmessage* m)
 {
 
   LOG4CXX_DEBUG(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
-  if (m->content().isMemeber("ctrlreg"))
+  if (m->content().isMember("ctrlreg"))
     {
       this->parameters()["ctrlreg"]=m->content()["ctrlreg"].asUInt();
     }
@@ -664,7 +480,6 @@ void lydaq::DIFManager::destroy(zdaq::fsmmessage* m)
 
 lydaq::DIFManager::DIFManager(std::string name)  : zdaq::baseApplication(name)
 {
-  _dbcacheRunning=false;
 
   //_fsm=new zdaq::fsm(name);
   _fsm=this->fsm();
@@ -678,10 +493,7 @@ lydaq::DIFManager::DIFManager(std::string name)  : zdaq::baseApplication(name)
   _fsm->addState("STOPPED");
   _fsm->addTransition("SCAN","CREATED","SCANNED",boost::bind(&lydaq::DIFManager::scan, this,_1));
   _fsm->addTransition("INITIALISE","SCANNED","INITIALISED",boost::bind(&lydaq::DIFManager::initialise, this,_1));
-  _fsm->addTransition("REGISTERDB","INITIALISED","DBREGISTERED",boost::bind(&lydaq::DIFManager::registerdb, this,_1));
-  _fsm->addTransition("REGISTERDB","DBREGISTERED","DBREGISTERED",boost::bind(&lydaq::DIFManager::registerdb, this,_1));
-  _fsm->addTransition("REGISTERDB","CONFIGURED","DBREGISTERED",boost::bind(&lydaq::DIFManager::registerdb, this,_1));
-  _fsm->addTransition("CONFIGURE","DBREGISTERED","CONFIGURED",boost::bind(&lydaq::DIFManager::configure, this,_1));
+  _fsm->addTransition("CONFIGURE","INITIALISED","CONFIGURED",boost::bind(&lydaq::DIFManager::configure, this,_1));
   _fsm->addTransition("CONFIGURE","CONFIGURED","CONFIGURED",boost::bind(&lydaq::DIFManager::configure, this,_1));
   _fsm->addTransition("CONFIGURE","STOPPED","CONFIGURED",boost::bind(&lydaq::DIFManager::configure, this,_1));
   _fsm->addTransition("START","CONFIGURED","RUNNING",boost::bind(&lydaq::DIFManager::start, this,_1));
@@ -691,8 +503,7 @@ lydaq::DIFManager::DIFManager(std::string name)  : zdaq::baseApplication(name)
   _fsm->addTransition("DESTROY","CONFIGURED","CREATED",boost::bind(&lydaq::DIFManager::destroy, this,_1));
 
 
-  _fsm->addCommand("STATUS",boost::bind(&lydaq::DIFManager::cmdStatus,this,_1,_2));
-
+  _fsm->addCommand("STATUS",boost::bind(&lydaq::DIFManager::c_status,this,_1,_2));
   _fsm->addCommand("SETTHRESHOLDS",boost::bind(&lydaq::DIFManager::c_setthresholds,this,_1,_2));
   _fsm->addCommand("SETPAGAIN",boost::bind(&lydaq::DIFManager::c_setpagain,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::DIFManager::c_setmask,this,_1,_2));

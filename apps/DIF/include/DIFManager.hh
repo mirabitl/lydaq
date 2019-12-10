@@ -8,6 +8,8 @@
 #include "baseApplication.hh"
 #include "DIFInterface.hh"
 #include "DIFReadoutConstant.hh"
+#include "HR2ConfigAccess.hh"
+
 using namespace std;
 #include <sstream>
 #include <map>
@@ -23,19 +25,27 @@ namespace lydaq
   
   public:
     DIFManager(std::string name);
-    void registerdb(zdaq::fsmmessage* m);
-    void dbcache(std::string server,std::vector<uint32_t> vids);
     void scan(zdaq::fsmmessage* m);
     void initialise(zdaq::fsmmessage* m);
     void configure(zdaq::fsmmessage* m);
     void start(zdaq::fsmmessage* m);
     void stop(zdaq::fsmmessage* m);
     void destroy(zdaq::fsmmessage* m);
-    void status(zdaq::fsmmessage* m);
 
-    void cmdStatus(Mongoose::Request &request, Mongoose::JsonResponse &response);
-    void setThreshold(Mongoose::Request &request, Mongoose::JsonResponse &response);
-    void setGain(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response);
+
+    void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif);
+    void setGain(uint16_t gain);
+    void setMask(uint32_t level,uint64_t mask);
+    void setChannelMask(uint16_t level,uint16_t channel,uint16_t val);
+
+    Json::Value configureHR2();
 
     void prepareDevices();
     void startDIFThread(DIFInterface* d);
@@ -50,12 +60,11 @@ namespace lydaq
   private:
     std::map<uint32_t,FtdiDeviceInfo*> theFtdiDeviceInfoMap_;	
     std::map<uint32_t,lydaq::DIFInterface*> _DIFInterfaceMap;
-    std::string _dbstate;
-    //zdaq::fsm* _fsm;
+    std::vector<lydaq::DIFInterface*> _vDif;
+    lydaq::HR2ConfigAccess* _hca;
     zdaq::fsmweb* _fsm;
-    boost::thread_group g_d,g_db;
+    boost::thread_group g_d;
     zmq::context_t* _context;
-    bool _dbcacheRunning;
 
   };
 };
