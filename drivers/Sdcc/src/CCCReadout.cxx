@@ -10,7 +10,7 @@ lydaq::CCCReadout::CCCReadout (std::string name) :theName_(name)
 
 }
 
-int lydaq::CCCReadout::open() throw( LocalHardwareException ) 
+int lydaq::CCCReadout::open() //throw( LocalHardwareException ) 
 {
   if (theDriver_==NULL)
   {
@@ -47,7 +47,7 @@ int lydaq::CCCReadout::open() throw( LocalHardwareException )
   return 0;
 }
 
-int lydaq::CCCReadout::close() throw( LocalHardwareException )
+int lydaq::CCCReadout::close() //throw( LocalHardwareException )
 {
   try 
   {

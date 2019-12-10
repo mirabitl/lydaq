@@ -19,8 +19,8 @@ namespace lydaq
   {
   public:
     CCCReadout (std::string name);
-    virtual int open() throw( LocalHardwareException ) ;
-    virtual int close() throw( LocalHardwareException );
+    virtual int open() ;//throw( LocalHardwareException ) ;
+    virtual int close() ;//throw( LocalHardwareException );
 
   private : 
     USBDRIVER* theDriver_;

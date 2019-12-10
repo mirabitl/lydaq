@@ -38,30 +38,30 @@ namespace lydaq
   {
   public:
     
-    FtdiCCCDriver(	char * deviceIdentifier)     throw (LocalHardwareException);
+    FtdiCCCDriver(	char * deviceIdentifier)     ;//throw (LocalHardwareException)
     
-    virtual ~FtdiCCCDriver()     throw (LocalHardwareException);
+    virtual ~FtdiCCCDriver()     ;//throw (LocalHardwareException)
     
     
     // register access
     
     
-    int32_t CCCCommandDIFReset(void)    																				throw (LocalHardwareException);
-    int32_t CCCCommandBCIDReset(void)     																			throw (LocalHardwareException);
-    int32_t CCCCommandStartAcquisitionAuto(void)     														throw (LocalHardwareException);
-    int32_t CCCCommandRamfullExt(void)     																			throw (LocalHardwareException);
-    int32_t CCCCommandTriggerExt(void)     																			throw (LocalHardwareException);
-    int32_t CCCCommandStopAcquisition(void)     																throw (LocalHardwareException);
-    int32_t CCCCommandDigitalReadout(void)    																	throw (LocalHardwareException);
-    int32_t CCCCommandTrigger(void)    																					throw (LocalHardwareException);
-    int32_t CCCCommandClearMemory(void)    																			throw (LocalHardwareException);
-    int32_t CCCCommandStartSingleAcquisition(void)    													throw (LocalHardwareException);
-    int32_t CCCCommandPulseLemo(void)    																			 	throw (LocalHardwareException);
-    int32_t CCCCommandRazChannel(void)  																		   	throw (LocalHardwareException);
-    //		int32_t CCCCommandNoCommand(void)   																				throw (LocalHardwareException);
-    int32_t CCCCommandResetCCC(void)    																		 		throw (LocalHardwareException);
-    int32_t CCCCommandSpillOn(void)    																					throw (LocalHardwareException);
-    int32_t CCCCommandSpillOff(void)    																					throw (LocalHardwareException);
+    int32_t CCCCommandDIFReset(void)    																				;//throw (LocalHardwareException)
+    int32_t CCCCommandBCIDReset(void)     																			;//throw (LocalHardwareException)
+    int32_t CCCCommandStartAcquisitionAuto(void)     														;//throw (LocalHardwareException)
+    int32_t CCCCommandRamfullExt(void)     																			;//throw (LocalHardwareException)
+    int32_t CCCCommandTriggerExt(void)     																			;//throw (LocalHardwareException)
+    int32_t CCCCommandStopAcquisition(void)     																;//throw (LocalHardwareException)
+    int32_t CCCCommandDigitalReadout(void)    																	;//throw (LocalHardwareException)
+    int32_t CCCCommandTrigger(void)    																					;//throw (LocalHardwareException)
+    int32_t CCCCommandClearMemory(void)    																			;//throw (LocalHardwareException)
+    int32_t CCCCommandStartSingleAcquisition(void)    													;//throw (LocalHardwareException)
+    int32_t CCCCommandPulseLemo(void)    																			 	;//throw (LocalHardwareException)
+    int32_t CCCCommandRazChannel(void)  																		   	;//throw (LocalHardwareException)
+    //		int32_t CCCCommandNoCommand(void)   																				;//throw (LocalHardwareException)
+    int32_t CCCCommandResetCCC(void)    																		 		;//throw (LocalHardwareException)
+    int32_t CCCCommandSpillOn(void)    																					;//throw (LocalHardwareException)
+    int32_t CCCCommandSpillOff(void)    																					;//throw (LocalHardwareException)
 	
   protected:
     struct ftdi_context theFtdi;
