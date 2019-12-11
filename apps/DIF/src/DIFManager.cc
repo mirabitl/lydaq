@@ -94,7 +94,8 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
 	  _hca->parseDb(jDIFdb["state"].asString(),jDIFdb["mode"].asString());
 	else
 	  _hca->parseMongoDb(jDIFdb["state"].asString(),jDIFdb["version"].asUInt());
-      
+
+	LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<"End of parseDB "<<_hca->asicMap().size());
      }
    if (_hca->asicMap().size()==0)
      {
@@ -517,7 +518,7 @@ lydaq::DIFManager::DIFManager(std::string name)  : zdaq::baseApplication(name)
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Service "<<name<<" started on port "<<atoi(wp));
     _fsm->start(atoi(wp));
     }
-
+  _hca=NULL;
   // Initialise delays for 
 }
 
