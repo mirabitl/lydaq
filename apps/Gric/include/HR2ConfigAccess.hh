@@ -24,12 +24,13 @@ public:
   void clear();
   void dumpMap();
   void parseDb(std::string state,std::string mode);
-  void  prepareSlowControl(std::string ipadr);
+  void  prepareSlowControl(std::string ipadr,bool inverted=false);
   uint8_t* slcBuffer();
   uint32_t slcBytes();
 private:
   std::map<uint64_t,lydaq::HR2Slow> _asicMap;
-  Json::Value _jall,_jasic;
+  Json::Value _jall;
+  Json::Value _jasic;
   uint8_t _slcBuffer[65536];
   uint32_t _slcBytes;
 };

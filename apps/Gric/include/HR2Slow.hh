@@ -17,6 +17,11 @@ namespace lydaq {
   {
   public:
     HR2Slow(){ memset(_l,0,28*sizeof(uint32_t));}
+    bool getBit(uint32_t* l,int b){return (l[b/32]>>(b%32))&1;}
+    void setBit(uint32_t* l,int b){ l[b/32]|=(1<<(b%32));};
+    void clearBit(uint32_t* l,int b){ l[b/32]&= ~(1<<(b%32));};
+    void setBitState(uint32_t* l,int b,bool t){if (t) setBit(l,b); else clearBit(l,b);}
+    
     bool getBit(int b){return (_l[b/32]>>(b%32))&1;}
     void setBit(int b){ _l[b/32]|=(1<<(b%32));};
     void clearBit(int b){ _l[b/32]&= ~(1<<(b%32));};
@@ -490,6 +495,15 @@ namespace lydaq {
 	r->setBitState(871-i,getBit(i)==1);
 
     }
+
+    uint8_t* ucInvertedPtr()
+    {
+
+      for (int i=871;i>=0;i--)
+	setBitState(_li,871-i,getBit(_l,i)==1);
+      
+      return (uint8_t*) _li;
+    }
  
     Json::Value& getJson(){return _jasic;}
     void setJson(Json::Value v){_jasic=v; setFromJson();}
@@ -497,6 +511,7 @@ namespace lydaq {
     
   private:
     uint32_t _l[28];
+    uint32_t _li[28];
     Json::Value _jasic;
   };
 };

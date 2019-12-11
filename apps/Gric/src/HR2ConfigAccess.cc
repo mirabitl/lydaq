@@ -22,6 +22,7 @@ lydaq::HR2ConfigAccess::HR2ConfigAccess()
 {
  
   _jall=Json::Value::null;
+  _jasic=Json::Value::null;
 #ifndef NO_DB
   std::cout<<"On initialise Oracle "<<std::endl;
   try {
@@ -42,10 +43,20 @@ void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
   system(scmd.str().c_str());
   std::stringstream sname;
   sname<<"/dev/shm/mgroc/"<<state<<"_"<<version<<".json";
+
+
+  fprintf(stderr,"Parsing the file %s\n",sname.str().c_str());
   Json::Reader reader;
+
   std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
   //      Json::Value _jall;
+  fprintf(stderr,"Before Parsing the file %s\n",sname.str().c_str());
   bool parsingSuccessful = reader.parse(ifs, _jall, false);
+  fprintf(stderr,"After Parsing the file %s done %d\n",sname.str().c_str(),parsingSuccessful);
+
+  //std::cout<<"Before JALL "<<jall<<std::flush<<std::endl;
+  //  _jall=jall;
+  //std::cout<<"After JALL "<<_jall<<std::flush<<std::endl;
   if (!_jall.isMember("asics"))
   {
     std::cout << " No DIF tag found " << std::endl;
@@ -59,6 +70,7 @@ void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
       const Json::Value &asic = *ita;
       std::string ipadr = asic["address"].asString();
       uint8_t header = asic["num"].asUInt();
+      fprintf(stderr,"Insering %s %d\n",sname.str().c_str(),header);
       lydaq::HR2Slow prs;
       prs.setJson(asic["slc"]);
       uint64_t eid = ((uint64_t)  lydaq::MpiMessageHandler::convertIP(ipadr)) << 32 | header;
@@ -120,7 +132,7 @@ uint8_t* lydaq::HR2ConfigAccess::slcBuffer(){return _slcBuffer;}
 uint32_t  lydaq::HR2ConfigAccess::slcBytes(){return _slcBytes;}
 std::map<uint64_t,lydaq::HR2Slow>&  lydaq::HR2ConfigAccess::asicMap(){return _asicMap;}
 
-void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
+void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr,bool inverted)
 {
   // Initialise
   _slcBytes=0;
@@ -136,8 +148,11 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr)
 	  printf("\t ===> DIF %lx ,Asic %d disabled\n",eid>>32,ias);
 	  continue;
 	}
-      printf("DIF %lx ,Asic %d Found\n",eid>>32,ias); 
-      memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
+      printf("DIF %lx ,Asic %d Found\n",eid>>32,ias);
+      if (!inverted)
+	memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
+      else
+	memcpy(&_slcBuffer[_slcBytes],im->second.ucInvertedPtr(),109);
       _slcBytes+=109;
     }
 }
