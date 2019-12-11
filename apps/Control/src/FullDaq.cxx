@@ -549,7 +549,7 @@ std::string FullDaq::difstatus()
  for (auto dc:_NDIFClients)
     {
       dc->sendCommand("STATUS");
-      const Json::Value& jdevs=dc->answer();
+      const Json::Value& jdevs=dc->answer()["DIFLIST"];
       for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
        	devlist.append(*jt);
     }
@@ -703,10 +703,6 @@ void FullDaq::configure(zdaq::fsmmessage* m)
   //std::cout<<"DIF CONFIGURE  DONE"<<std::endl;
   //
 
-   for (auto tdc:_NDIFClients)
-    {
-      tdc->sendTransition("CONFIGURE");
-    }
   // Status
   Json::Value jsta= toJson(this->difstatus());
   // Configure the builder
@@ -720,6 +716,33 @@ void FullDaq::configure(zdaq::fsmmessage* m)
       jd["detid"]=(*it)["detid"];
       jd["sourceid"]=(*it)["id"];
       jsou.append(jd);
+    }
+  // Configure NDIF
+     for (auto tdc:_NDIFClients)
+    {
+      tdc->sendTransition("CONFIGURE");
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"sending command DIF STATUS ");
+      tdc->sendCommand("STATUS");
+      std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
+      if (!tdc->answer().empty())
+	{
+
+	  Json::Value rep=Json::Value::null;
+	  if ( tdc->answer().isMember("answer"))
+	    rep=tdc->answer()["answer"];
+	  if (rep.isMember("DIFLIST"))
+	    {
+	      //std::cout<<rep["DIFLIST"]<<"\n";
+	      const Json::Value& jdevs=rep["DIFLIST"];
+	      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+		{
+		  Json::Value jd;
+		  jd["detid"]=(*it)["detid"];
+		  jd["sourceid"]=(*it)["id"];
+		  jsou.append(jd);
+		} 
+	    }
+	}
     }
   // Configure GRIC
   for (auto tdc:_GRICClients)
@@ -779,7 +802,7 @@ void FullDaq::configure(zdaq::fsmmessage* m)
       else
 	LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<"No answer from DIFLIST!!!!");
     }
-//       std::cout<<"SENDING "<<jsou<<std::endl;
+  //std::cout<<"SENDING "<<jsou<<std::endl;
   if (_builderClient)
     {
       
@@ -1189,7 +1212,7 @@ void FullDaq::setControlRegister(Mongoose::Request &request, Mongoose::JsonRespo
 	   }
   response["STATUS"]="DONE";
   response["CTRLREG"]=ctrlreg;
-  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Change Ctrlreg to "<<std::hex<<_ctrlreg<<std::dec);
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Change Ctrlreg to "<<std::hex<<ctrlreg<<std::dec);
 }
 
 void FullDaq::dbStatus(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -1272,6 +1295,20 @@ void FullDaq::status(Mongoose::Request &request, Mongoose::JsonResponse &respons
 {
   Json::Value devlist;
   for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
+    {
+
+      (*it)->sendCommand("STATUS");
+      const Json::Value& jdevs=(*it)->answer();
+      if (jdevs.isMember("answer"))
+	if (jdevs["answer"].isMember("DIFLIST"))
+	  {
+	    const Json::Value& jdev1=jdevs["answer"]["DIFLIST"];
+	    //std::cout<<"GROS DEBUG "<<jdevs<<std::endl;
+	    for (Json::ValueConstIterator jt = jdev1.begin(); jt != jdev1.end(); ++jt)
+	      devlist.append(*jt);
+	  }
+    }
+  for (std::vector<fsmwebCaller*>::iterator it=_NDIFClients.begin();it!=_NDIFClients.end();it++)
     {
 
       (*it)->sendCommand("STATUS");

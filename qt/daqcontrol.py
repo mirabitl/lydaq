@@ -795,8 +795,10 @@ class fdaqClient:
       lcgi={}
       lcgi["value"]=ctrl
       self.daq_par["ctrlreg"]=ctrl
+      print ctrl
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","CTRLREG",lcgi)
       rep=json.loads(sr)
+      print rep
       return json.dumps(sr)
 
       
