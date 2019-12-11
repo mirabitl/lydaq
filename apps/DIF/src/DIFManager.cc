@@ -293,15 +293,18 @@ void lydaq::DIFManager::c_setchannelmask(Mongoose::Request &request, Mongoose::J
 }
 void lydaq::DIFManager::c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called ");
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<request.get("value","0").c_str());
 
-  uint32_t ctrlreg=0;
-  sscanf(request.get("mask","0X0").c_str(),"%x",&ctrlreg);
-
+  uint32_t  ctrlreg=0;
+  sscanf(request.get("value","0").c_str(),"%u",&ctrlreg);
+   
   if (ctrlreg!=0)
     this->parameters()["ctrlreg"]=ctrlreg;
+
+  fprintf(stderr,"CTRLREG %s %lx %d\n",request.get("value","0").c_str(),ctrlreg,this->parameters()["ctrlreg"].asUInt());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<std::hex<<ctrlreg<<std::dec);
   response["STATUS"]="DONE";
-  response["CTRLREG"]=ctrlreg;
+  response["CTRLREG"]=(uint64_t) ctrlreg;
   
 }
 void lydaq::DIFManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -366,7 +369,7 @@ void lydaq::DIFManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
 Json::Value lydaq::DIFManager::configureHR2()
 {
   uint32_t ctrlreg=this->parameters()["ctrlreg"].asUInt();
-
+  printf("CTRLREG %lx \n",ctrlreg);
   int32_t rc=1;
   std::map<uint32_t,DIFInterface*> dm=this->getDIFMap();
   Json::Value array_slc=Json::Value::null;
@@ -376,7 +379,7 @@ Json::Value lydaq::DIFManager::configureHR2()
       std::stringstream ips;
       // Dummy IP address for DIFs
       ips<<"0.0.0."<<it->first;
-      _hca->prepareSlowControl(ips.str());
+      _hca->prepareSlowControl(ips.str(),true);
       DIFDbInfo* dbdif=it->second->dbdif();
       dbdif->id=it->first;
       dbdif->nbasic=_hca->slcBytes()/HARDROCV2_SLC_FRAME_SIZE;
