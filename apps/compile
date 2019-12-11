@@ -16,4 +16,5 @@ cd Bmp;scons install -j4;cd -
 cd hih8000;scons install -j4;cd -
 cd Genesys;scons install -j4;cd -
 cd monitoring;scons install -j4;cd -
+cd DIF;scons install -j4;cd -
 
