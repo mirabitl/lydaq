@@ -304,7 +304,7 @@ void lydaq::DIFManager::c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResp
   fprintf(stderr,"CTRLREG %s %lx %d\n",request.get("value","0").c_str(),ctrlreg,this->parameters()["ctrlreg"].asUInt());
   LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<std::hex<<ctrlreg<<std::dec);
   response["STATUS"]="DONE";
-  response["CTRLREG"]=(uint64_t) ctrlreg;
+  response["CTRLREG"]= ctrlreg;
   
 }
 void lydaq::DIFManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
