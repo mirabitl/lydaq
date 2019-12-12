@@ -73,8 +73,10 @@ void lydaq::HR2ConfigAccess::parseMongoDb(std::string state,uint32_t version)
       fprintf(stderr,"Insering %s %d\n",sname.str().c_str(),header);
       lydaq::HR2Slow prs;
       prs.setJson(asic["slc"]);
+      //std::cout<<asic["slc"]<<std::flush<<std::endl;
       uint64_t eid = ((uint64_t)  lydaq::MpiMessageHandler::convertIP(ipadr)) << 32 | header;
       _asicMap.insert(std::pair<uint64_t, lydaq::HR2Slow>(eid, prs));
+      //prs.dumpBinary();
     }
   
 }
@@ -115,6 +117,7 @@ void lydaq::HR2ConfigAccess::parseJson()
 	  lydaq::HR2Slow prs;prs.setJson(asic);
 	  uint64_t eid=((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32|header;
 	  _asicMap.insert(std::pair<uint64_t,lydaq::HR2Slow>(eid,prs));
+
 	}
     }
 }
@@ -138,7 +141,7 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr,bool inverted
   _slcBytes=0;
   uint64_t eid=((uint64_t) lydaq::MpiMessageHandler::convertIP(ipadr))<<32;
   // Loop on 48 Asic maximum
-  for (int ias=48;ias>=1;ias--)
+  for (int ias=1;ias<=48;ias++)
     {
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
@@ -152,7 +155,13 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr,bool inverted
       if (!inverted)
 	memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
       else
-	memcpy(&_slcBuffer[_slcBytes],im->second.ucInvertedPtr(),109);
+	{
+	  uint8_t* dest=&_slcBuffer[_slcBytes];
+	  uint8_t* sour=im->second.ucPtr();
+	for(uint32_t ii=0;ii<109;ii++)
+	  dest[108-ii]=sour[ii];
+	}
+      //memcpy(&_slcBuffer[_slcBytes],im->second.ucInvertedPtr(),109);
       _slcBytes+=109;
     }
 }
@@ -298,7 +307,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
       printf("%d\n",__LINE__);
       prs.setSW100K1(itMR->getInt("SW100K1"));
       printf("%d\n",__LINE__);
-      prs.setCKMUX(itMR->getInt("CLKMUX"));
+      prs.setCLKMUX(itMR->getInt("CLKMUX"));
       printf("%d\n",__LINE__);
       prs.setSW50F1(itMR->getInt("SW50F1"));
       printf("%d\n",__LINE__);
@@ -349,7 +358,7 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
       printf("%d\n",__LINE__);
       prs.setCMDB0FSB1(itMR->getInt("CMDB0FSB1"));
       printf("%d\n",__LINE__);
-      prs.setDISCOROR(itMR->getInt("DISCROROR"));
+      prs.setDISCROROR(itMR->getInt("DISCROROR"));
       printf("%d\n",__LINE__);
       prs.setDISCRI0(itMR->getInt("DISCRI0"));
       printf("%d\n",__LINE__);

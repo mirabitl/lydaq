@@ -77,7 +77,7 @@ namespace lydaq {
       _jasic["PWRONSS"]=getPWRONSS();
       _jasic["RAZCHNINTVAL"]=getRAZCHNINTVAL();
       _jasic["SW100K1"]=getSW100K1();
-      _jasic["CKMUX"]=getCKMUX();
+      _jasic["CLKMUX"]=getCLKMUX();
       _jasic["SW50F1"]=getSW50F1();
       _jasic["PWRONFSB0"]=getPWRONFSB0();
       _jasic["ENOCTRANSMITON2B"]=getENOCTRANSMITON2B();
@@ -109,7 +109,7 @@ namespace lydaq {
       _jasic["CMDB1FSB2"]=getCMDB1FSB2();
       _jasic["OTAQ_PWRADC"]=getOTAQ_PWRADC();
       _jasic["CMDB0FSB1"]=getCMDB0FSB1();
-      _jasic["DISCOROR"]=getDISCOROR();
+      _jasic["DISCROROR"]=getDISCROROR();
       _jasic["DISCRI0"]=getDISCRI0();
       _jasic["B0"]=getB0();
       _jasic["B1"]=getB1();
@@ -140,6 +140,14 @@ namespace lydaq {
       Json::StyledWriter styledWriter;
       std::cout << styledWriter.write(_jasic) << std::endl;
     }
+    void dumpBinary()
+    {
+      uint8_t* b=(uint8_t*) _l;
+      for (int i=108;i>=0;i--)
+	fprintf(stderr,"%.2x",b[i]);
+      fprintf(stderr,"\n");
+    }
+    
     void loadJson(std::string fname)
     {
       Json::Reader reader;
@@ -234,7 +242,7 @@ namespace lydaq {
       setPWRONSS(_jasic["PWRONSS"].asUInt());
       setRAZCHNINTVAL(_jasic["RAZCHNINTVAL"].asUInt());
       setSW100K1(_jasic["SW100K1"].asUInt());
-      setCKMUX(_jasic["CKMUX"].asUInt());
+      setCLKMUX(_jasic["CLKMUX"].asUInt());
       setSW50F1(_jasic["SW50F1"].asUInt());
       setPWRONFSB0(_jasic["PWRONFSB0"].asUInt());
       setENOCTRANSMITON2B(_jasic["ENOCTRANSMITON2B"].asUInt());
@@ -266,12 +274,16 @@ namespace lydaq {
       setCMDB1FSB2(_jasic["CMDB1FSB2"].asUInt());
       setOTAQ_PWRADC(_jasic["OTAQ_PWRADC"].asUInt());
       setCMDB0FSB1(_jasic["CMDB0FSB1"].asUInt());
-      setDISCOROR(_jasic["DISCOROR"].asUInt());
+      setDISCROROR(_jasic["DISCROROR"].asUInt());
       setDISCRI0(_jasic["DISCRI0"].asUInt());
 
       setB0(_jasic["B0"].asUInt());
       setB1(_jasic["B1"].asUInt());
       setB2(_jasic["B2"].asUInt());
+
+      std::cout<<" ASIC HEADER "<<_jasic["HEADER"].asUInt()<<std::endl;
+      setHEADER(_jasic["HEADER"].asUInt());
+      std::cout<<"GET HEADER "<<(int) getHEADER()<<std::endl;
 
     
     }
@@ -321,8 +333,13 @@ namespace lydaq {
 	setBitState(818+i,r&(1<<i));
     }
     uint8_t getHEADER(){return getByte(810);}
-    void setHEADER(uint8_t val){setByte(810,val,8);}
-
+    //void setHEADER(uint8_t val){setByte(810,val,8);}
+     void setHEADER(uint16_t val)
+    {
+      uint16_t r=val&0xFF;
+      for (int i=0;i<8;i++)
+	setBitState(817-i,r&(1<<i));
+    }
     uint64_t getMASK(uint8_t level)
     {
       uint64_t mask=0;
@@ -411,8 +428,8 @@ namespace lydaq {
     void setRAZCHNINTVAL(bool on){setBitState(857,on);}
     bool getSW100K1(){return getBit(600);}
     void setSW100K1(bool on){setBitState(600,on);}
-    bool getCKMUX(){return getBit(860);}
-    void setCKMUX(bool on){setBitState(860,on);}
+    bool getCLKMUX(){return getBit(860);}
+    void setCLKMUX(bool on){setBitState(860,on);}
     bool getSW50F1(){return getBit(602);}
     void setSW50F1(bool on){setBitState(602,on);}
     bool getPWRONFSB0(){return getBit(605);}
@@ -475,8 +492,8 @@ namespace lydaq {
     void setOTAQ_PWRADC(bool on){setBitState(613,on);}
     bool getCMDB0FSB1(){return getBit(598);}
     void setCMDB0FSB1(bool on){setBitState(598,on);}
-    bool getDISCOROR(){return getBit(855);}
-    void setDISCOROR(bool on){setBitState(855,on);}
+    bool getDISCROROR(){return getBit(855);}
+    void setDISCROROR(bool on){setBitState(855,on);}
     bool getDISCRI0(){return getBit(614);}
     void setDISCRI0(bool on){setBitState(614,on);}
 
@@ -506,7 +523,7 @@ namespace lydaq {
     }
  
     Json::Value& getJson(){return _jasic;}
-    void setJson(Json::Value v){_jasic=v; setFromJson();}
+    void setJson(Json::Value v){_jasic=v; this->setFromJson();}
 
     
   private:
