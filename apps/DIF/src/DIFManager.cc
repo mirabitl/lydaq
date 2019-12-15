@@ -316,7 +316,7 @@ void lydaq::DIFManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonR
   
   std::string dbstate=request.get("state","NONE");
   uint32_t version=atol(request.get("version","0").c_str());
-  Json::Value jTDC=this->parameters()["gric"];
+  Json::Value jTDC=this->parameters()["dif"];
    if (jTDC.isMember("db"))
      {
        Json::Value jTDCdb=jTDC["db"];
