@@ -11,6 +11,7 @@ import time
 import argparse
 import requests
 from ROOT import *
+import MongoJob as mg
 
 sockport=None
 sp=os.getenv("SOCKPORT","Not Found")
@@ -239,6 +240,7 @@ class fdaqClient:
       self.p_conf=None
       self.daq_url=None
       self.daq_file=None
+      self.daq_mongo=None
       #self.parseConfig()
       self.daqhost=None
       self.daqport=None
@@ -334,12 +336,24 @@ class fdaqClient:
             self.p_conf=read_conf["content"]
         else:
             self.p_conf=read_conf
+        return
     dm=os.getenv("DAQFILE","NONE")
     if (dm!="NONE"):
         self.daq_file=dm
         with open(dm) as data_file:    
             self.p_conf = json.load(data_file)
- 
+        return
+    dm=os.getenv("DAQMONGO","NONE")
+    if (dm!="NONE"):
+        sa=mg.instance()
+        cn=dm.split(":")[0]
+        cv=dm.split(":")[1]
+        sa.downloadConfig(cn,int(cv),True)
+        self.daq_mongo=dm
+        daq_file="/dev/shm/mgjob/"+cn+"_"+cv+".json"
+        with open(daq_file) as data_file:    
+            self.p_conf = json.load(data_file)
+        return
   def jc_create(self):
     lcgi={}
     if (self.daq_url!=None):
@@ -349,6 +363,9 @@ class fdaqClient:
     else:
         if (self.daq_file!=None):
             lcgi["file"]=self.daq_file
+        else:
+            if (self.daq_mongo!=None):
+                lcgi["mongo"]=self.daq_mongo
     rep={}
     for x,y in self.p_conf["HOSTS"].iteritems():
         #print x,"  found"
@@ -554,6 +571,9 @@ class fdaqClient:
       else:
           if (self.daq_file!=None):
               lcgi["file"]=self.daq_file
+          else:
+              if (self.daq_mongo!=None):
+                  lcgi["mongo"]=self.daq_mongo
       for x,y in self.p_conf["HOSTS"].iteritems():
           for p in y:
               if (p["NAME"] != "FDAQ"):
