@@ -806,8 +806,25 @@ class MongoRoc:
       
 def instance():
     # create the default access
-    f=open("/etc/.mongoroc.json")
-    s=json.loads(f.read())
-    _wdd=MongoRoc(s["host"],s["port"],s["db"],s["user"],s["pwd"])
-    f.close()
-    return _wdd
+    login=os.getenv("MGDBLOGIN","NONE")
+    if (login != "NONE"):
+        
+        userinfo=login.split("@")[0]
+        hostinfo=login.split("@")[1]
+        dbname=login.split("@")[2]
+        user=userinfo.split("/")[0]
+        pwd=userinfo.split("/")[1]
+        host=hostinfo.split(":")[0]
+        port=int(hostinfo.split(":")[1])
+        #print "MGROC::INSTANCE() ",host,port,dbname,user,pwd
+        _wdd=MongoRoc(host,port,dbname,user,pwd)
+        return _wdd
+    else:
+        if os.path.isfile("/etc/.mongoroc.json"):
+            f=open("/etc/.mongoroc.json")
+            s=json.loads(f.read())
+            _wdd=MongoRoc(s["host"],s["port"],s["db"],s["user"],s["pwd"])
+            f.close()
+            return _wdd
+        else:
+            return None
