@@ -292,6 +292,9 @@ parser.add_argument('--dbversion', action='store', type=int,
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='Raw Json output')
 
+parser.add_argument('--comment', action='store', default=None,
+                    dest='comment', help=' Comment for start run')
+
 results = parser.parse_args()
 
 
@@ -513,7 +516,10 @@ elif(results.daq_settdcdelays):
 
 elif(results.daq_startrun):
     r_cmd = 'start'
-    fdc.daq_start()
+    if (results.comment != None):
+        fdc.daq_start(results.comment)
+    else:
+        fdc.daq_start()
     exit(0)
 
 elif(results.daq_stoprun):

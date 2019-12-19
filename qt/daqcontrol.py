@@ -727,7 +727,7 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(rep)
 
-  def daq_start(self):
+  def daq_start(self,comment=None):
       self.trig_reset()
       #self.trig_spillon(1000000)
       #self.trig_spilloff(100000)
@@ -736,7 +736,8 @@ class fdaqClient:
       self.trig_status()
 
       lcgi={}
-      
+      if (comment!=None):
+          lcgi["comment"]=comment
       srs=executeFSM(self.daqhost,self.daqport,"FDAQ","START",lcgi)
       rep=json.loads(srs)
       lcgi["value"]=1
