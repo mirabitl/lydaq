@@ -7,7 +7,9 @@
 
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include "ReadoutLogger.hh"
-
+#include <iostream>
+#include <sstream>
+#include <fstream>
 using namespace zdaq;
 using namespace lydaq;
 FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
@@ -823,6 +825,8 @@ void FullDaq::start(zdaq::fsmmessage* m)
   // Get the new run number
  
   LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" calling for new runs from the web interface");
+  if (!_jConfigContent.isMember("mongo"))
+    {
       std::string url="https://ilcconfdb.ipnl.in2p3.fr/runid";
       std::string jsconf=fsmwebCaller::curlQuery(url,this->login());
       LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<jsconf);
@@ -841,6 +845,32 @@ void FullDaq::start(zdaq::fsmmessage* m)
 	  _tmv.initRunTable(_run);
 	}
       #endif
+    }
+  else
+    {
+      std::string comment="Not yet set";
+      if (m->content().isMember("comment"))
+	comment=m->content()["comment"].asString();
+      std::stringstream scmd;
+      scmd << "/bin/bash -c 'mgjob --new-run "<<" --comment=\""<<comment<<"\" --location=" <<this->parameters()["location"] <<"'";
+      std::cout<<scmd.str()<<std::endl;
+      system(scmd.str().c_str());
+      std::stringstream sname;
+      sname << "/dev/shm/mgjob/lastrun.json";
+      
+      fprintf(stderr, "Parsing the file %s\n", sname.str().c_str());
+      Json::Reader reader;
+      Json::Value jcc;
+      std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
+      //      Json::Value _jall;
+      fprintf(stderr, "Before Parsing the file %s\n", sname.str().c_str());
+      bool parsingSuccessful = reader.parse(ifs, jcc, false);
+      system("mv  /dev/shm/mgjob/lastrun.json /dev/shm/mgjob/lastrun.json.back");
+       if (jcc.isMember("run"))
+        _run=jcc["run"].asUInt();
+      else
+        _run=10000;
+    }
    // Start the DIFs
   boost::thread_group g;
   for (std::vector<fsmwebCaller*>::iterator it=_DIFClients.begin();it!=_DIFClients.end();it++)
