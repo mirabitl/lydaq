@@ -79,7 +79,7 @@ class MongoRoc:
         for i in range(nasic):
             asic={}
             asic["address"]=ipname
-            asic["dif"]=febid
+            asic["dif"]=(febid>>16)&0xFFFF
             asic["num"]=i+1
             asic["slc"]=self.initPR2(i+1,asictype)
             asic["_id"]=None
