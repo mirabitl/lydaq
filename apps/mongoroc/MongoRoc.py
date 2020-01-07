@@ -12,8 +12,9 @@ import prettyjson as pj
 def IP2Int(ip):
     """
     convert IP adress string to int
+
     :param IP: the IP address
-    :return the encoded integer 
+    :return: the encoded integer 
     """
     o = map(int, ip.split('.'))
     res = (16777216 * o[3]) + (65536 * o[2]) + (256 * o[1]) + o[0]
@@ -298,7 +299,11 @@ class MongoRoc:
             return slc
     def initPR2(self, num,version="PR2"):
         """
-        PETIROC 2  initialisation
+        PETIROC 2  initialisation, it creates a default dictionary representation of a PETIROC2
+
+        :param num: Asic number
+        :param version: Asic type (PR2 or PR2B)
+        :return: the dictionary
         """
 	#print "***** init HR2"
         _jasic={}
@@ -396,8 +401,11 @@ class MongoRoc:
 
     def uploadChanges(self,statename,comment):
         """
-        Upload a new version
-        The state name will be, old_state_name_xx where xx is the new index (starting from 00)
+        Upload a new version of the state
+        it finds the last version of the state and upload a new one with incremented version number
+
+        :param statename: Name of the state
+        :param comment: A comment on the changes
         """
         # Find last version
         res=self.db.states.find({'name':statename})
@@ -426,11 +434,13 @@ class MongoRoc:
         print resstate,self.state["version"],self.state["name"]
         
 
-    def addAsic(self, dif_num, header,version="A"):
+    def addAsic(self, dif_num, header,version="PR2"):
         """
-        Add a new PETIROC2 
-        dif_num = DIF ID (ipaddr in integer >>16)
-        header= ASIC number
+        Add a new PETIROC2 to the asic list
+
+        :param dif_num: DIF ID (ipaddr in integer >>16)
+        :param header: ASIC number
+        :param version: PR2 for 2A , PR2B for 2B
         """
         print "force ASIC"
 
@@ -441,8 +451,11 @@ class MongoRoc:
  
     def PR2_ChangeLatch(self, Latch, idif=0, iasic=0):
         """
-        Change the Latch mode of the asic #asic on the TDCDIF #dif
-        If 0 all hardware is changed
+        Change the Latch mode of specified  asics, modified asics are tagged for upload
+        
+        :param Latch: Latch value (1/0)
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
         """
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -457,8 +470,11 @@ class MongoRoc:
 
     def PR2_ChangeVthTime(self, VthTime, idif=0, iasic=0):
         """
-        Change the VTHTIME  of the asic #asic on the TDCDIF #dif
-        If 0 all hardware is changed
+        Change the VTHTIME threshold of specified  asics, modified asics are tagged for upload
+        
+        :param VthTime: Threshold of time discriminators
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
         """
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -474,9 +490,13 @@ class MongoRoc:
 
     def PR2_ChangeDacDelay(self, delay, idif=0, iasic=0):
         """
-        Change the DACDELAY  of the asic #asic on the TDCDIF #dif
-        If 0 all hardware is changed
-        """
+        Change the DAC delay of specified  asics, modified asics are tagged for upload
+        
+        :param delay: Dac delay
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        """        
+       
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
                 continue
@@ -490,8 +510,10 @@ class MongoRoc:
 
     def PR2_ChangeAllEnabled(self, idif=0, iasic=0):
         """
-        Change all the ENable signals  of the asic #asic on the TDCDIF #dif
-        If 0 all hardware is changed
+        Change all the ENable signals of PETIROC asic
+
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
         """
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -528,8 +550,14 @@ class MongoRoc:
 
     def PR2_Change6BDac(self, idif, iasic, ich, dac):
         """
-        Change the 6BDAC value to dac  of the asic #asic on the TDCDIF #dif       
+        Change the 6BDAC valu of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param ich: The channel number
+        :param dac: The DAC value
         """
+        
 
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -543,10 +571,13 @@ class MongoRoc:
                 print e
     def PR2_Correct6BDac(self, idif, iasic, cor):
         """
-        Change the 6BDAC value   of the asic #asic on the TDCDIF #dif
-        cor is an array of 32 value , 
-        6BDAC[i]=6BDAC[i]+cor[i]
+        Correct the 6BDAC value of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param cor:  A 32 channels array of corrections to be applied on the 6BDAC values of all channels
         """
+       
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
                 continue
@@ -566,7 +597,12 @@ class MongoRoc:
     def PR2_ChangeMask(self, idif, iasic, ich, mask):
         """
         Change PETIROC2 MASKDISCRITIME parameter for one channel
-        Careful: 1 = inactive, 0=active
+
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param ich: The channel number
+        :param mask: the channel mask
+        :warning: 1 = inactive, 0=active
         """
 
         for a in self.asiclist:
@@ -579,11 +615,18 @@ class MongoRoc:
                 a["_id"]=None
             except Exception, e:
                 print e
+                
 # HR2 access
     def initHR2(self,num,gain=128):
         """
-        HardRoc 2  initialisation
+   
+        HARDROC 2  initialisation, it creates a default dictionary representation of a HARDROC
+
+        :param num: Asic number
+        :param gain: Channel gain
+        :return: the dictionary
         """
+
 	#print "***** init HR2"
         _jasic={}
         _jasic["ENABLED"]=1
@@ -737,10 +780,15 @@ class MongoRoc:
 
     def HR2_ChangeThreshold(self,B0,B1,B2,idif=0,iasic=0):
         """
-        change thresholds B0,B1,B2 on DIF idif and asic iasic.
-        If not specified all Asics of a given DIF is changed
-        if idif is not specified all Asics of all Difs are changed
+        Set the 3 thresholds of specified  asics, modified asics are tagged for upload
+
+        :param B0: First Threshold
+        :param B1: Second Threshold
+        :param B2: Third Threshold        
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
         """
+
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
                 continue
@@ -753,10 +801,15 @@ class MongoRoc:
 
     def HR2_ChangeGain(self,idif,iasic,ipad,scale):
         """
-        Modify gain of all asics by a factor gain1/gain0 on HR2
-        If not specified all Asics of a given DIF is changed
-        if idif is not specified all Asics of all Difs are changed
+        Scale the gain of one pad  of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param ipad: Channel number
+        :param scale: ratio Gain_new/Gain
+
         """
+      
 
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -770,10 +823,15 @@ class MongoRoc:
 
     def HR2_SetGain(self,idif,iasic,ipad,vnew):
         """
-        Modify gain of all asics by a factor gain1/gain0 on HR2
-        If not specified all Asics of a given DIF is changed
-        if idif is not specified all Asics of all Difs are changed
+        Set the gain of one pad  of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param ipad: Channel number
+        :param vnew: new gain
+
         """
+  
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
                 continue
@@ -787,9 +845,12 @@ class MongoRoc:
 
     def HR2_SetAsicGain(self,idif,iasic,vnew):
         """
-        Modify gain of all asics by a factor gain1/gain0 on HR2
-        If not specified all Asics of a given DIF is changed
-        if idif is not specified all Asics of all Difs are changed
+        Set the gain of all pads  of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param vnew: new gain
+
         """
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -806,10 +867,15 @@ class MongoRoc:
                 
     def HR2_RescaleGain(self,gain0,gain1,idif=0,iasic=0):
         """
-        Modify gain of all asics by a factor gain1/gain0 on HR2
-        If not specified all Asics of a given DIF is changed
-        if idif is not specified all Asics of all Difs are changed
+         Rescale the gain of all pads with scale=gain1/gain0  of specified  asics, modified asics are tagged for upload
+        
+        :param gain0: initial gain
+        :param gain1: new gain
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
         """
+
         scale=gain1*1./gain0
         print " Rescale factor",scale
 
@@ -824,7 +890,7 @@ class MongoRoc:
 
     def HR2_slowShaper(self):
         """
-        Set SW100 F and K to 1
+        Slow down the shaper , Set SW100 F and K to 1
         """
         for a in self.asiclist:
             
@@ -845,6 +911,16 @@ class MongoRoc:
             a["_id"]=None
 
     def HR2_ChangeCTest(self,channel,ctest,idif=0,iasic=0):
+        """
+         Change the CTEST value of one channel  of specified  asics, modified asics are tagged for upload
+        
+        :param channel: Pad tested
+        :param ctest: CTEST value
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
+        """
+
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
                 continue
@@ -856,6 +932,14 @@ class MongoRoc:
 
             
     def HR2_SetMask(self,list,idif=0,iasic=0):
+        """
+        Mask the channels specified in the list  for specified  asics, modified asics are tagged for upload
+        
+        :param list: List of channels to be masked
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
+        """
         m=0xFFFFFFFFFFFFFFFF
         for i in list:
             m=m &~(1<<i);
@@ -864,9 +948,14 @@ class MongoRoc:
         
     def HR2_ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
         """
-        Set the mask 0,1,2 to M0,M1,M2 on DIF idif and ASIC iasic
-        if idif is 0 all difs are concerned
-        if iasic is 0 all asics are concerned
+        Set the 3 masks  for specified  asics, modified asics are tagged for upload
+        
+        :param M0: Hexadecimal string of threshold 0 mask
+        :param M1: Hexadecimal string of threshold 1 mask
+        :param M2: Hexadecimal string of threshold 2 mask
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
         """
         print M0,M1,M2,idif,iasic
         im0n=int(M0,16)
@@ -885,9 +974,13 @@ class MongoRoc:
             
     def HR2_setEnable(self,enable,idif=0,iasic=0):
         """
-        Set the ENABLED tag on DIF idif and ASIC iasic
-        if idif is 0 all difs are concerned
-        if iasic is 0 all asics are concerned
+        Set the ENABLE tag for specified  asics, modified asics are tagged for upload
+        
+        
+        :param enable: Enable value (1/0)
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
         """
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -900,6 +993,11 @@ class MongoRoc:
 
       
 def instance():
+    """
+    Create a MongoRoc Object
+
+    :return: The MongoRoc Object
+    """
     # create the default access
     login=os.getenv("MGDBLOGIN","NONE")
     if (login != "NONE"):
