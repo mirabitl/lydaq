@@ -10,6 +10,11 @@ import prettyjson as pj
 
 
 def IP2Int(ip):
+    """
+    convert IP adress string to int
+    :param IP: the IP address
+    :return the encoded integer 
+    """
     o = map(int, ip.split('.'))
     res = (16777216 * o[3]) + (65536 * o[2]) + (256 * o[1]) + o[0]
     return res
@@ -22,7 +27,18 @@ class MongoRoc:
 
     def __init__(self, host,port,dbname,username,pwd):
         """
-        connect Mongodb database named dbname
+        connect Mongodb database 
+
+        :param host: Hostanme of the PC running the mongo DB
+
+        :param port: Port to access the base
+
+        :param dbname: Data base name
+
+        :param username: Remote access user
+
+        :param pwd: Remote access password
+
         """
         self.connection=MongoClient(host,port)
         self.db=self.connection[dbname]
@@ -39,10 +55,25 @@ class MongoRoc:
         self.asiclist = []
         self.bson_id=[] 
     def createNewState(self,name):
+        """
+        Create a new state , version is set to 1
+
+        :param name: Name of the state
+
+        """
         self.state["name"]=name
         self.state["version"]=1
         self.state["asics"]=[]
     def addFEB(self,ipname,nasic,asictype="PR2"):
+        """
+        Add a FEBV1 with asics
+
+        :param  ipname: IP address of the FEBV1
+
+        :param nasic: Number of PETIROC asics connected
+
+        :param asictype: "PR2" for PETIROC2A , "PR2B" for PETIROC2B
+        """
         febid=IP2Int(ipname)
         for i in range(nasic):
             asic={}
@@ -55,6 +86,17 @@ class MongoRoc:
             self.asiclist.append(asic)
             
     def addDIF(self,difid,nasic,address="USB"):
+        """
+        Add a DIF with asics
+        
+        :param  address: IP address of the GRIC or USB for SDHCAL ones
+ 
+        :param nasic: Number of HARDROC2 asics connected
+        
+        :param difid: unused for GRIC, DIF id for SDHCAL
+        
+        """
+
         if (address != "USB"):
             id=(IP2Int(address)>>16)
             ipa=address
@@ -73,6 +115,11 @@ class MongoRoc:
 
     
     def uploadFromFile(self,fname):
+        """
+        Upload a state in DB from a JSON file
+
+        :param fname: File name
+        """
         f=open(fname)
         sf=json.loads(f.read())
         f.close()
@@ -87,7 +134,14 @@ class MongoRoc:
         self.state["asics"]=self.bson_id
         resstate=self.db.states.insert_one(self.state)
         print resstate
+        
     def uploadNewState(self,comment="NEW"):
+        """
+        Create a new state in the DB with data stored in object memory
+
+        :param comment: A comment on the state
+
+        """
         # First append modified ASICS
         for i in range(len(self.asiclist)):
             if (self.asiclist[i]["_id"]!=None):
@@ -102,6 +156,18 @@ class MongoRoc:
         resstate=self.db.states.insert_one(self.state)
         print resstate
     def uploadFromOracle(self,asiclist,statename,version,comment="NEW"):
+        """
+        Migration method to update an ASIC list created with OracleAccess class to the DB
+
+        :param asiclist: List of asics created with OracleAccess
+
+        :param statename: Name of the state
+
+        :param version: version of the state
+
+        :param comment: A comment on the state
+
+        """
         self.state["name"]=statename
         self.state["version"]=version
         self.state["asics"]=[]
@@ -121,6 +187,11 @@ class MongoRoc:
         resstate=self.db.states.insert_one(self.state)
         print resstate
     def uploadConfig(self,name,fname,comment,version=1):
+        """
+        jobcontrol configuration upload
+
+        :obsolete: Use MongoJob instead
+        """
         s={}
         s["content"]=json.loads(open(fname).read())
         s["name"]=name
@@ -130,6 +201,9 @@ class MongoRoc:
         resconf=self.db.configurations.insert_one(s)
         print resconf
     def states(self):
+        """
+        List all states in the DB
+        """
         res=self.db.states.find({})
         for x in res:
             if (not ("name" in x)):
@@ -139,24 +213,45 @@ class MongoRoc:
             else:
                 print x["name"],x["version"] 
     def configurations(self):
+        """
+        List all jobcontrol configurations in the db 
+
+        :obsolete: Use MongoJob instead
+        """
         res=self.db.configurations.find({})
         for x in res:
             if ("comment" in x):
                 print time.ctime(x["time"]),x["version"],x["name"],x["comment"]
 
     def downloadConfig(self,cname,version):
+        """
+        Download a jobcontrol configuration to /dev/shm/mgjob/ directory
+        
+        :param cname: Configuration name
+        :param version: Configuration version
+         
+        :obsolete: Use MongoJob instead
+        """
         res=self.db.configurations.find({'name':cname,'version':version})
         for x in res:
             print x["name"],x["version"],x["comment"]
             #var=raw_input()
             slc=x["content"]
             os.system("mkdir -p /dev/shm/mgroc")
-            fname="/dev/shm/mgroc/%s_%s.json" % (cname,version)
+            fname="/dev/shm/mgjob/%s_%s.json" % (cname,version)
             f=open(fname,"w+")
             f.write(json.dumps(slc, indent=2, sort_keys=True))
             f.close()
             return slc
+        
     def download(self,statename,version,toFileOnly=False):
+        """
+        Download a state configuration to /dev/shm/mgroc/ directory and load it in the MongoRoc object
+        
+        :param statename: State name
+        :param version: State version
+        :param toFileOnly: if True and /dev/shm/mgroc/statename_version.json already exists, it exits
+        """        
         os.system("mkdir -p /dev/shm/mgroc")
         fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
         if os.path.isfile(fname) and toFileOnly:
