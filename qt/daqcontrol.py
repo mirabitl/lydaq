@@ -24,6 +24,14 @@ if (sockport !=None):
     #socks.wrapmodule(urllib2)
 
 def parseReturn(command,sr,res=None,verbose=False):
+    """
+    Parsing and pretty print of return of commands
+    
+    :param command: Command name
+    :param sr: JSON value return from the command
+    :param res: references for PT
+    :param verbose: if True nothing is done
+    """
     if (command=="jobStatus"):
         #s=r1.read()
         #print s["answer"]
@@ -146,6 +154,17 @@ def parseReturn(command,sr,res=None,verbose=False):
 
        
 def executeFSM(host,port,prefix,cmd,params):
+   """
+   Access to the FSM of a zdaq::baseApplication
+   
+   :param host: Host name
+   :param port: Application port
+   :param prefix: Prefix of the application , ie, http:://host:port/prefix/.....
+   :param cmd: Transition
+   :param params: Value of the content tag
+   
+   :return: url answer
+   """
    if (params!=None):
        myurl = "http://"+host+ ":%d" % (port)
        #conn = httplib.HTTPConnection(myurl)
@@ -174,6 +193,17 @@ def executeFSM(host,port,prefix,cmd,params):
        return r1.read()
 
 def executeCMD(host,port,prefix,cmd,params):
+   """
+   Access to the CoMmanDs of a zdaq::baseApplication
+
+   :param host: Host name
+   :param port: Application port
+   :param prefix: Prefix of the application , ie, http:://host:port/prefix/.....
+   :param cmd: Command name
+   :param params: CGI additional parameters
+   :return: url answer
+   """
+
    if (params!=None and cmd!=None):
        myurl = "http://"+host+ ":%d" % (port)
        #conn = httplib.HTTPConnection(myurl)
@@ -217,6 +247,12 @@ def executeCMD(host,port,prefix,cmd,params):
            return r1.read()
 
 def executeRequest(surl):
+    """
+     Acces to an url
+
+    :param surl: The url
+    :return: url answer
+    """
     req=urllib2.Request(surl)
     try:
         r1=urllib2.urlopen(req)
@@ -233,10 +269,11 @@ def executeRequest(surl):
 #
 
 class fdaqClient:
-  """
-  Handle all application definition and parameters
-  """
   def __init__(self):
+      """
+      Handle all application definition and p  arameters , It controls the acquisition via the FDAQ application and the Slow control via the FSLOW application
+      """
+
       self.p_conf=None
       self.daq_url=None
       self.daq_file=None
@@ -259,6 +296,20 @@ class fdaqClient:
       #print self.slowhost,self.slowport
 
   def loadConfig(self,name=None,login=None):
+      """
+      Load in memory the configuration of the DAQ to be used
+      If the name and the login are undefined, the configuration is selected using 3 environnment variables
+
+        - DAQURL : the url to the ilcconfdb (Oracle)
+        - DAQFILE : the JSON file to use
+        - DAQMONGO: The CONFIG_NAME:VERSION in MongoDB (using MongoJob access)
+
+      Only one of the 3 must be set
+ 
+
+      :param name: name of the confihguration
+      :param login: Oracle Web login 
+      """
       if (name == None):
           self.login=os.getenv("DAQLOGIN","NONE")
           useAuth=self.login!="NONE"
@@ -313,6 +364,9 @@ class fdaqClient:
                       self.daq_par["mdcc"]=p["PARAMETER"]
 
   def parseConfig(self):
+    """
+    Access and parse the configuration defined by one of the environnement variable ( DAQURL,DAQFILE or DAQMONGO)
+    """
     useAuth=self.login!="NONE"
     dm=self.dm
     if (dm!="NONE"):
@@ -354,7 +408,14 @@ class fdaqClient:
         with open(daq_file) as data_file:    
             self.p_conf = json.load(data_file)
         return
+    
   def jc_create(self):
+    """
+    Loop on all computers defined in the configuration and initialise their job control
+    with the loaded configuration
+
+    :return: Dictionnary of answer to INITIALISE transition
+    """  
     lcgi={}
     if (self.daq_url!=None):
         lcgi["url"]=self.daq_url
@@ -370,10 +431,16 @@ class fdaqClient:
     for x,y in self.p_conf["HOSTS"].iteritems():
         #print x,"  found"
         sr=executeFSM(x,9999,"LJC-%s" % x,"INITIALISE",lcgi)
-    rep[x]=json.loads(sr)
+        rep[x]=json.loads(sr)
     return json.dumps(rep)
             
   def jc_start(self):
+    """
+    Loop on all computers defined in the configuration and start the process defined with the loaded configuration
+
+    :return: Dictionnary of answer to START transition
+    """  
+
     lcgi={}
     rep={}
     for x,y in self.p_conf["HOSTS"].iteritems():
@@ -381,15 +448,28 @@ class fdaqClient:
         sr=executeFSM(x,9999,"LJC-%s" % x,"START",lcgi)
         rep[x]=json.loads(sr)
     return json.dumps(rep)
+
   def jc_kill(self):
+    """
+    Loop on all computers defined in the configuration and kill the process defined
+    with the loaded configuration
+
+    :return: Dictionnary of answer to KILL transition
+    """
     lcgi={}
     rep={}
     for x,y in self.p_conf["HOSTS"].iteritems():
         #print x," found"
         sr=executeFSM(x,9999,"LJC-%s" % x,"KILL",lcgi)
         rep[x]= json.loads(sr)
-    return json.dumps(rep)        
+    return json.dumps(rep)
+
   def jc_destroy(self):
+    """
+    Loop on all computers defined in the configuration and clean the loaded configuration
+
+    :return: Dictionnary of answer to DESTROY transition
+    """
     lcgi={}
     rep={}
     for x,y in self.p_conf["HOSTS"].iteritems():
@@ -399,6 +479,11 @@ class fdaqClient:
     return json.dumps(rep)  
 
   def jc_appcreate(self):
+    """
+    Loop on all computers defined in the configuration and send an APPCREATE Command, it sends a transition CREATE to all baseApplication
+
+    :return: Dictionnary of answer to APPCREATE command
+    """
     lcgi={}
     rep={}
     for x,y in self.p_conf["HOSTS"].iteritems():
@@ -408,6 +493,12 @@ class fdaqClient:
     return json.dumps(rep)
 
   def jc_info(self,hostname,apname=None):
+    """
+    Pretty print of processes status and application settings
+
+    :param hostanem: Host name where the jobcontrol is running
+    :param appname: Application name , if None all application are dumped
+    """
     lcgi={}
     resum={}
     rep=""
@@ -483,13 +574,24 @@ class fdaqClient:
     return rep
 
   def jc_status(self,apname=None):
+    """
+    Pretty print of the status  of all process and application informations defined in the configuration
+
+    :param appname: if set , only this application name is dump
+    """
     lcgi={}
     resum={}
     rep=""
     for xh,y in self.p_conf["HOSTS"].iteritems():
       rep=rep+self.jc_info(xh,apname)
     return rep
+
   def jc_oldstatus(self,apname=None):
+    """
+    Same as jc_status 
+
+    :obsolete: use jc_status instead
+    """
     lcgi={}
     resum={}
     rep=""
@@ -555,6 +657,13 @@ class fdaqClient:
     return rep
 
   def jc_restart(self,host,jobname,jobpid):
+    """
+    Kill and restart one process
+
+    :param host: Host name
+    :param jobname: Name of the process in the job control
+    :param pid: Process id
+    """
     lcgi={}
     lcgi["processname"]=jobname
     lcgi["pid"]=jobpid
@@ -562,6 +671,9 @@ class fdaqClient:
     print sr
     
   def daq_create(self):
+      """
+      Send a CREATE transition to the FDAQ process
+      """
       lcgi={}
       rep={}
       if (self.daq_url!=None):
@@ -600,6 +712,11 @@ class fdaqClient:
                       sr=executeFSM(x,port,p_rep["PREFIX"],"CREATE",lcgi)
                       #print sr
   def daq_list(self):
+      """
+      List all information from all processes in the configuration
+      
+      :return: A string with a pretty print of the informations
+      """
       lcgi={}
       rep=""
       if (self.daq_url!=None):
@@ -634,6 +751,12 @@ class fdaqClient:
       return rep
               
   def daq_info(self,name):
+      """
+      List all information about process named name
+
+      :param name: Name of the process
+      :return: A string with a pretty print of the informations
+      """
       lcgi={}
       rep=""
       if (self.daq_url!=None):
@@ -671,12 +794,19 @@ class fdaqClient:
       return rep
               
   def daq_discover(self):
+      """
+      Send a DISCOVER transition to FDAQ
+      :return: asnwer to the transition
+      """
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","DISCOVER",lcgi)
       return sr
       
      
   def daq_setparameters(self):
+      """
+      Send a SETPARAM command to FDAQ
+      """
       lcgi={}
       lcgi["PARAMETER"]=json.dumps(self.daq_par,sort_keys=True)
       
@@ -684,10 +814,23 @@ class fdaqClient:
       print sr
       
   def daq_getparameters(self):
+      """
+      Send a GETPARAM command to FDAQ
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","GETPARAM",lcgi)
       print sr
+      
   def daq_downloaddb(self,state,version):
+      """
+      Send a DOWNLOADDB command to FDAQ
+
+      :param state: State name
+      :param version: State version if needed
+      :return: answer of the command
+      """
+
       lcgi={}
       print "Downloading ",state
       if ("db" in self.daq_par):
@@ -698,12 +841,22 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(rep)
   def daq_forceState(self,name):
+      """
+      Send a FORCESTATE command to FDAQ
+
+      :param name: State name to be set
+      """
+
       lcgi={}
       lcgi["state"]=name
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","FORCESTATE",lcgi)
       print sr
       
   def daq_services(self):
+      """
+      Send a PREPARE transition to FDAQ
+      :return: asnwer to the transition
+      """
 
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","PREPARE",lcgi)
@@ -711,6 +864,11 @@ class fdaqClient:
       return json.dumps(rep)
 
   def daq_initialise(self):
+      """
+      Send a INITIALISE transition to FDAQ
+      :return: asnwer to the transition
+      """
+
       lcgi={}
       #print "daqhost = ", self.daqhost
       #print "daqport = ", self.daqport
@@ -722,12 +880,27 @@ class fdaqClient:
       return json.dumps(rep)
 
   def daq_configure(self):
+      """
+      Send a CONFIGURE transition to FDAQ
+      :return: asnwer to the transition
+      """
+
       lcgi=self.daq_par
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","CONFIGURE",lcgi)
       rep=json.loads(sr)
       return json.dumps(rep)
 
   def daq_start(self,comment=None):
+      """
+      Start a run:
+      Reset trigger counter and calibration settings if MDCC is used
+      Send a START transition to FDAQ
+      Send a MONITOR command to FDAQ
+
+      :param comment: A comment of the run
+      :return: answer to the transition
+      """
+
       self.trig_reset()
       #self.trig_spillon(1000000)
       #self.trig_spilloff(100000)
@@ -747,6 +920,10 @@ class fdaqClient:
       return json.dumps(rep)
 
   def daq_normalstop(self):
+      """
+      Send a STOP transition to FDAQ and a MONITOR command to stop the monitoring
+      :return: answer to the transition
+      """
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","STOP",lcgi)
       rep=json.loads(sr)
@@ -755,6 +932,11 @@ class fdaqClient:
       srm=executeCMD(self.daqhost,self.daqport,"FDAQ","MONITOR",lcgi)
       return json.dumps(rep)
   def daq_stop(self):
+      """
+      Stop:
+      If a FEBV1 Scurve is running, stop it Else Make a normalStop
+      :return: the answer to the effective command
+      """
       if (self.scurve_running):
           self.scurve_running=False;
           rep={}
@@ -766,21 +948,41 @@ class fdaqClient:
       return json.dumps(rep)
 
   def daq_destroy(self):
+      """
+      Send a DESTROY transition to FDAQ
+      :returN: answer to the transition
+      """
       lcgi={}
       sr=executeFSM(self.daqhost,self.daqport,"FDAQ","DESTROY",lcgi)
       rep=json.loads(sr)
       return json.dumps(sr)
 
   def daq_status(self):
+      """
+      Send A DIFSTATUS command to FDAQ
+      
+      :return: answer to the command, a list of all DIF or GRIC with their status
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","DIFSTATUS",lcgi)
       return sr
   def daq_tdcstatus(self):
+      """
+      Send A TDCSTATUS command to FDAQ
+      
+      :return: answer to the command, a list of all FEBV1 with their status
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
       #print sr
       return sr
   def daq_resettdc(self):
+      """
+      Send a RESETTDC command to FDAQ. it resets the firmware of each FEB
+      
+      :return: answer to the command
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETTDC",lcgi)
       #print sr
@@ -788,16 +990,34 @@ class fdaqClient:
       return json.dumps(sr)
 
   def daq_evbstatus(self):
+      """
+      Send an EVBSTATUS command to FDAQ
+      
+      :return: answer to the command, the status of the Event Builder (run , events built)
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","EVBSTATUS",lcgi)
       return sr    
       
   def daq_dbstatus(self):
+      """
+      Send an DBSTATUS command to FDAQ
+      
+      :return: answer to the command, the status of the DBCACHE (run ,DB State)
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","DBSTATUS",lcgi)
       return sr    
       
   def daq_state(self):
+      """
+      Check The state of FDAQ
+      
+      :return: A string with the state name
+      """
+
       p_rep={}
       state="UNKNOWN"
       req=urllib2.Request("http://%s:%d/" % (self.daqhost,self.daqport))
@@ -813,6 +1033,14 @@ class fdaqClient:
          return p_rep["STATE"]
          
   def daq_ctrlreg(self,ctrl):
+      """
+      Send a CTRLREG command to FDAQ
+      
+      :param ctr: An hexadecimal string of the control register of DIF
+      
+      :return: the answer to the command
+      """
+
       lcgi={}
       lcgi["value"]=ctrl
       self.daq_par["ctrlreg"]=ctrl
