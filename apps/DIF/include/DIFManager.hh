@@ -39,7 +39,11 @@ namespace lydaq
     void c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response);
-
+    /**
+       Change the threshold on all Asics of the DIF
+       @param b0 First threshold
+       @param idif The dif ID
+     */
     void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif);
     void setGain(uint16_t gain);
     void setMask(uint32_t level,uint64_t mask);

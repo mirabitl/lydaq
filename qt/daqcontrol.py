@@ -1421,6 +1421,13 @@ class fdaqClient:
 
 
   def tdc_setmask(self,value,asic):
+      """
+      FEBV1: Send a SETMASK command to FDAQ, FEBV1 mask set
+
+      :param value: ams to be applied
+      :param asic: 1,2 or 3 for ASIC 1 ,2 or both
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       lcgi["asic"]=asic
