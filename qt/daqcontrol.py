@@ -1052,6 +1052,12 @@ class fdaqClient:
 
       
   def daq_setgain(self,gain):
+      """
+      DIF: Send a SETGAIN command to FDAQ (DIF gain setting)
+      
+      :param gain: the PAGAIN to be set on HR2
+      :return: answer to the command
+      """
       lcgi={}
       lcgi["GAIN"]=gain
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETGAIN",lcgi)
@@ -1060,6 +1066,15 @@ class fdaqClient:
 
       
   def daq_setthreshold(self,b0,b1,b2):
+      """
+      DIF: Send a SETTHRESHOLD command to FDAQ (DIF thresholds setting)
+      
+      :param b0: B0 threshold of HR2
+      :param b1: B1 threshold of HR2
+      :param b2: B2 threshold of HR2
+      :return: answer to the command
+      """
+
       lcgi={}
       lcgi["B0"]=b0
       lcgi["B1"]=b1
@@ -1070,6 +1085,12 @@ class fdaqClient:
       return json.dumps(sr)
       
   def daq_settdcmode(self,mode):
+      """
+      FEBV1: Send a SETTDCMODE command to FDAQ (FEBV1 mode)
+      
+      :param mode: 0 all buffer, 1 only trigegr ones
+
+      """
       lcgi={}
       lcgi["value"]=mode
       
@@ -1077,6 +1098,13 @@ class fdaqClient:
       print sr
       
   def daq_settdcdelays(self,active,dead):
+      """
+      FEBV1: Send a SETTDCDELAYS command to FDAQ (FEBV1 latch settings)
+      
+      :param active: Number of active latch clocks 
+      :param dead: Number of reset latch clocks 
+      :return: answer to the command
+      """
       lcgi={}
       lcgi["active"]=active
       lcgi["dead"]=dead      
@@ -1087,6 +1115,11 @@ class fdaqClient:
 
       
   def trig_status(self):
+      """
+      MDCC: Send a TRIGGERSTATUS command to FDAQ
+
+      :return: JSON answer with MDCC status
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TRIGGERSTATUS",lcgi)
       rep =json.loads(sr)
@@ -1095,6 +1128,11 @@ class fdaqClient:
       
 
   def trig_reset(self):
+      """
+      MDCC: Send a RESETCOUNTERS command to FDAQ
+
+      :return: JSON answer with MDCC status
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETCOUNTERS",lcgi)
       rep =json.loads(sr)
@@ -1102,18 +1140,36 @@ class fdaqClient:
 
 
   def trig_pause(self):
+      """
+      MDCC: Send a PAUSE command to FDAQ
+
+      :return: JSON answer 
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","PAUSE",lcgi)
       rep =json.loads(sr)
       return json.dumps(rep)
 
   def trig_resume(self):
+      """
+      MDCC: Send a RESUME command to FDAQ
+
+      :return: JSON answer 
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESUME",lcgi)
       rep =json.loads(sr)
       return json.dumps(rep)
 
   def ecal_pause(self):
+      """
+      MDCC: Send a ECALPAUSE command to FDAQ
+
+      :return: JSON answer 
+      :obsolete: Use for ECAL SDHCAL tests
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","ECALPAUSE",lcgi)
       rep =json.loads(sr)
@@ -1121,6 +1177,13 @@ class fdaqClient:
 
 
   def ecal_resume(self):
+      """
+      MDCC: Send a ECALRESUME command to FDAQ
+
+      :return: JSON answer 
+      :obsolete: Use for ECAL SDHCAL tests
+      """
+
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","ECALRESUME",lcgi)
       rep =json.loads(sr)
@@ -1129,6 +1192,12 @@ class fdaqClient:
 
 
   def trig_spillon(self,clock):
+      """
+      MDCC: Send a SPILLON command to FDAQ, it sets the Spill length
+      
+      :param clock: number of clock length
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["clock"]=clock
       
@@ -1138,6 +1207,12 @@ class fdaqClient:
 
 
   def trig_spilloff(self,clock):
+      """
+      MDCC: Send a SPILLOFF command to FDAQ, it sets the Spill minimal delay
+
+      :param clock: number of clock length
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["clock"]=clock
       
@@ -1147,6 +1222,12 @@ class fdaqClient:
 
       
   def trig_beam(self,clock):
+      """
+      MDCC: Send a BEAMON command to FDAQ, it sets the beamon delay
+
+      :param clock: number of clock length
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["clock"]=clock
       
@@ -1156,6 +1237,12 @@ class fdaqClient:
 
 
   def trig_spillregister(self,value):
+      """
+      MDCC: Send a SPILLREGISTER command to FDAQ, it sets the MDCC mode
+
+      :param value: Spill register value
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       
@@ -1164,6 +1251,13 @@ class fdaqClient:
       return json.dumps(rep)
 
   def trig_setregister(self,address,value):
+      """
+      MDCC: Send a SETREGISTER command to FDAQ, it sets a register of the MDCC 
+
+      :param address: Register Address
+      :param value: Register Value
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["address"]=address
       lcgi["value"]=value
@@ -1174,6 +1268,12 @@ class fdaqClient:
 
       print sr    
   def trig_getregister(self,address):
+      """
+      MDCC: Send a GETREGISTER command to FDAQ, it reads a register of the MDCC 
+
+      :param address: Register Address
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["address"]=address
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TRIGGERGETREG",lcgi)
@@ -1182,6 +1282,11 @@ class fdaqClient:
 
       print sr    
   def trig_tdcreset(self):
+      """
+      MDCC: Send a RESETTDC command to FDAQ, it makes a full reset of FEBV1 firmware
+
+      :return: JSON answer 
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RESETTDC",lcgi)
       rep =json.loads(sr)
@@ -1190,6 +1295,12 @@ class fdaqClient:
 
 
   def trig_hardreset(self):
+      """
+      MDCC: Send a SETHARDRESET command to FDAQ
+
+      :return: JSON answer 
+      :obsolete: Used for FEBV0
+      """
       lcgi={}
       lcgi["value"]=0
       
@@ -1205,6 +1316,12 @@ class fdaqClient:
 
 
   def trig_calibcount(self,value):
+      """
+      MDCC: Send a CALIBCOUNT command to FDAQ, FEBV1 calibration
+
+      :param value: Number of calibration frame
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["clock"]=value
       
@@ -1215,6 +1332,12 @@ class fdaqClient:
 
 
   def trig_calibon(self,value):
+      """
+      MDCC: Send a CALIBON command to FDAQ, FEBV1 calibration
+
+      :param value: Calibration frame width
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       
@@ -1225,6 +1348,11 @@ class fdaqClient:
 
 
   def daq_process(self):
+      """
+      Send a LISTPROCESS command
+      :return: JSON answer 
+      :obsolete: Use jc_info instead
+      """
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","LISTPROCESS",lcgi)
       rep =json.loads(sr)
@@ -1233,6 +1361,12 @@ class fdaqClient:
 
 
   def trig_reloadcalib(self):
+      """
+      MDCC: Send a RELOADCALIB command to FDAQ, FEBV1 calibration rearming
+
+      :return: JSON answer 
+      """
+      
       lcgi={}
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","RELOADCALIB",lcgi)
       rep =json.loads(sr)
@@ -1241,6 +1375,12 @@ class fdaqClient:
 
 
   def tdc_set6bdac(self,value):
+      """
+      FEBV1: Send a SET6BDAC command to FDAQ, FEBV1 6BDAC scan
+
+      :param value: 6bdac value to be set on all active channels
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       
@@ -1249,6 +1389,13 @@ class fdaqClient:
       return json.dumps(rep)
   
   def tdc_cal6bdac(self,mask,shift):
+      """
+      FEBV1: Send a CAL6BDAC command to FDAQ, FEBV1 6BDAC calibration
+
+      :param mask: 32 Channel mask
+      :param shift: 6bdac shift value to be added to loaded value
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["mask"]=mask
       lcgi["shift"]=shift
@@ -1259,6 +1406,12 @@ class fdaqClient:
 
 
   def tdc_setvthtime(self,value):
+      """
+      FEBV1: Send a SETVTHTIME command to FDAQ, FEBV1 VTHTIME scan
+
+      :param value: VTHTIME value to be set on all Asics
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       
