@@ -2075,18 +2075,37 @@ class fdaqClient:
       return json.dumps(rep)
 
   def feb_injection_configure(self):
+      """
+      FEB Inj: Configure transition
+      
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeFSM(self.injhost,self.injport,"FebInj-0","CONFIGURE",lcgi)
       return sr
   def feb_injection_destroy(self):
+      """
+      FEB Inj: DESTROY transition
+      
+      :return: JSON answer
+      """
+
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeFSM(self.injhost,self.injport,"FebInj-0","DESTROY",lcgi)
       return sr
   def feb_injection_mask(self,side,mask):
+      """
+      FEB Inj: Channel masking command
+
+      :param side: 0/1 for High Radius / Low radius
+      :param mask: Channel mask
+      :return: JSON answer
+      """
+
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2096,6 +2115,13 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","MASK",lcgi)
       return sr
   def feb_injection_source(self,source):
+      """
+      FEB Inj: Injection source command
+
+      :param source: External/soft/Internal (to be precised)
+      :return: JSON answer
+      """
+
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2103,6 +2129,13 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOURCE",lcgi)
       return sr
   def feb_injection_number(self,nb):
+      """
+      FEB Inj: Injection number of trigger command
+
+      :param nb: Maximal number of trigger
+      :return: JSON answer
+      """
+
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2110,6 +2143,12 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERMAX",lcgi)
       return sr
   def feb_injection_delay(self,nb):
+      """
+      FEB Inj: Injection delay in the windows command
+
+      :param nb: delay in 25 ns clocks
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2117,6 +2156,12 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","DELAY",lcgi)
       return sr
   def feb_injection_duration(self,nb):
+      """
+      FEB Inj: Injection duration  command
+
+      :param nb: duration in 25 ns clocks
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2124,6 +2169,12 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","DURATION",lcgi)
       return sr
   def feb_injection_height(self,nb):
+      """
+      FEB Inj: Injection height  command
+
+      :param nb: pulse height (0-64) non linear
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -2131,30 +2182,56 @@ class fdaqClient:
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","PULSEHEIGHT",lcgi)
       return sr
   def feb_injection_soft(self):
+      """
+      FEB Inj: Injection sof trigger  command
+
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOFT",lcgi)
       return sr
   def feb_injection_internal(self):
+      """
+      FEB Inj: Injection internal trigger  command
+
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERINT",lcgi)
       return sr
   def feb_injection_pause(self):
+      """
+      FEB Inj: Injection pause  command
+
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","PAUSE",lcgi)
       return sr
   def feb_injection_resume(self):
+      """
+      FEB Inj: Injection resume  command
+
+      :return: JSON answer
+      """
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","RESUME",lcgi)
       return sr
   def feb_lut_calib(self,tdc,channel):
+      """
+      FEB LUT: LUT calibration command
+
+      :param tdc:FEB instance number
+      :param channel: FEB channel to be calibrated
+      """
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -2164,6 +2241,12 @@ class fdaqClient:
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
   def feb_testmask(self,tdc,mask):
+      """
+      FEB LUT: LUT Physic mask command
+
+      :param tdc:FEB instance number
+      :param mask: FEB channel mask used for physic runs.
+      """
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -2173,6 +2256,15 @@ class fdaqClient:
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
   def feb_lut_draw(self,tdc,channel,canvas=None,feb=15):
+      """
+      FEB LUT: LUT Draw for one TD and one channel
+
+      :param tdc:FEB instance number
+      :param channel: FEB channel
+      :param canvas: ROOT TCanvas if already existing
+      :param feb: FEB id, lowest byte of the IP address
+      """
+      
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -2246,6 +2338,12 @@ class fdaqClient:
           v=raw_input()
       return (h,tdorig,tdlen)
   def feb_lut_dump(self,tdc,feb=15):
+      """
+      FEB LUT: LUT dump for one TDC and all channels to summary_LUT_febid.txt
+
+      :param tdc:FEB instance number
+      :param feb: FEB id, lowest byte of the IP address
+      """
       f=open("summary_LUT_%d.txt" % feb,"w+")
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
@@ -2303,6 +2401,7 @@ class fdaqClient:
       return
 
   def  histo_draw(self,name):
+ 
         # If the changed item is not checked, don't bother checking others
         print name
         r=self.analysis_histo(name)
