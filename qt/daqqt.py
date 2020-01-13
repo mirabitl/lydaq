@@ -25,7 +25,7 @@ class Scurve(QtCore.QThread):
         self.step = step
         self.asic=asic
     def run(self):
-        self.daq.daq_fullscurve(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
+        self.daq.feb_fullscurve(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
         #self.terminate()
 class CalibDac(QtCore.QThread):
     def __init__(self,daq,ch,son,soff,beg,las,step,asic):
@@ -39,7 +39,7 @@ class CalibDac(QtCore.QThread):
         self.step = step
         self.asic=asic
     def run(self):
-        self.daq.daq_fullcalib(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
+        self.daq.feb_fullcalib(self.ch,self.son,self.soff,self.beg,self.las,self.step,self.asic)
         #self.terminate()
         
 class AllStatus(QtCore.QThread):
@@ -274,10 +274,10 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 
 
         if (self.CBTrigExt.isChecked()):
-            self.daq.daq_settdcmode(1)
+            self.daq.feb_settdcmode(1)
         else:
-            self.daq.daq_settdcmode(0)
-        self.daq.daq_settdcdelays(self.SBActive.value(),self.SBDead.value())
+            self.daq.feb_settdcmode(0)
+        self.daq.feb_settdcdelays(self.SBActive.value(),self.SBDead.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)
         l= self.daq.daq_state()
@@ -289,18 +289,18 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 
     def action_daq_settdc(self):
         if (self.CBTrigExt.isChecked()):
-            self.daq.daq_settdcmode(1)
+            self.daq.feb_settdcmode(1)
         else:
-            self.daq.daq_settdcmode(0)
-        self.daq.daq_settdcdelays(self.SBActive.value(),self.SBDead.value())
+            self.daq.feb_settdcmode(0)
+        self.daq.feb_settdcdelays(self.SBActive.value(),self.SBDead.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)
     def action_daq_setvth(self):
-        self.daq.tdc_setvthtime(self.SBThreshold.value())
+        self.daq.feb_setvthtime(self.SBThreshold.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)        
     def action_daq_setmask(self):
-        self.daq.tdc_setmask(int(str(self.LEMask.text()),16),self.SBAsic.value())
+        self.daq.feb_setmask(int(str(self.LEMask.text()),16),self.SBAsic.value())
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)        
     def action_daq_start(self):
@@ -357,7 +357,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
             self.allstatus.stop=False
             self.allstatus.start()
 
-        #r1=self.daq.daq_fullscurve(self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
+        #r1=self.daq.feb_fullscurve(self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
         #sr=json.loads(r1)
         self.LADAQStatus.setText("SCURVE")
         #print sr
@@ -373,7 +373,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
             self.allstatus.stop=False
             self.allstatus.start()
 
-        #r1=self.daq.daq_fullscurve(self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
+        #r1=self.daq.feb_fullscurve(self.SBChannel.value(),self.SBWindow.value(),1000,self.SBLowThreshold.value(),self.SBHighThreshold.value(),self.SBStep.value())
         #sr=json.loads(r1)
         self.LADAQStatus.setText("CALIB")
         #print sr
@@ -509,30 +509,30 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
 #Injection
 
     def action_injection_configure(self):
-        print self.daq.injection_configure()
+        print self.daq.feb_injection_configure()
     def action_injection_destroy(self):
-        print self.daq.injection_destroy()
+        print self.daq.feb_injection_destroy()
     def action_injection_soft(self):
-        print self.daq.injection_soft()
+        print self.daq.feb_injection_soft()
     def action_injection_internal(self):
-        print self.daq.injection_internal()
+        print self.daq.feb_injection_internal()
     def action_injection_pause(self):
-        print self.daq.injection_pause()
+        print self.daq.feb_injection_pause()
     def action_injection_resume(self):
-        print self.daq.injection_resume()
+        print self.daq.feb_injection_resume()
     def action_injection_mask(self):
         mhr=int(str(self.LEInjectionHR.text()),16)
         mlr=int(str(self.LEInjectionLR.text()),16)
-        print self.daq.injection_mask(1,mhr)
-        print self.daq.injection_mask(0,mlr)
+        print self.daq.feb_injection_mask(1,mhr)
+        print self.daq.feb_injection_mask(0,mlr)
     def action_injection_number(self):
-        print self.daq.injection_number(self.SBInjectionNumber.value())
+        print self.daq.feb_injection_number(self.SBInjectionNumber.value())
     def action_injection_delay(self):
-        print self.daq.injection_delay(self.SBInjectionDelay.value())
+        print self.daq.feb_injection_delay(self.SBInjectionDelay.value())
     def action_injection_duration(self):
-        print self.daq.injection_duration(self.SBInjectionDuration.value())
+        print self.daq.feb_injection_duration(self.SBInjectionDuration.value())
     def action_injection_height(self):
-        print self.daq.injection_height(self.SBInjectionHeight.value())
+        print self.daq.feb_injection_height(self.SBInjectionHeight.value())
     def action_injection_source(self):
         s=0
         if (self.RBInjectionInternalSingle.isChecked()):
@@ -548,21 +548,21 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         if (self.RBInjectionByPass.isChecked()):
             s=32
 
-        print self.daq.injection_source(s)
+        print self.daq.feb_injection_source(s)
 
 # calibration
     def action_lutcalib(self):
         self.luts=[]
         for i in range(self.SBNtdc.value()):
-            self.daq.lut_calib(0,i)
+            self.daq.feb_lut_calib(0,i)
     def action_lutdraw(self):
-        v=self.daq.lut_draw(0,self.SBLutchannel.value(),self.canvas,self.SBFEB.value())
+        v=self.daq.feb_lut_draw(0,self.SBLutchannel.value(),self.canvas,self.SBFEB.value())
         self.luts.append(v[0])
         print self.luts
     def action_lutdump(self):
-        self.daq.lut_dump(0,self.SBFEB.value())
+        self.daq.feb_lut_dump(0,self.SBFEB.value())
     def action_tdc_testmask(self):
-        self.daq.tdc_testmask(0,int(str(self.LEMaskTDC.text()),16))
+        self.daq.feb_testmask(0,int(str(self.LEMaskTDC.text()),16))
         r= self.daq.daq_list()
         self.PTEDaq.document().setPlainText(r)        
 

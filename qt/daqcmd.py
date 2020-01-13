@@ -446,7 +446,7 @@ elif(results.daq_tdcstatus):
     exit(0)
 elif(results.daq_resettdc):
     r_cmd = 'tdcstatus'
-    sr = fdc.daq_resettdc()
+    sr = fdc.feb_resettdc()
     print sr
     exit(0)
 elif(results.daq_evbstatus):
@@ -462,14 +462,14 @@ elif(results.daq_setgain):
     if (results.gain == None):
         print 'Please specify the gain --gain=value'
         exit(0)
-    fdc.daq_setgain(results.gain)
+    fdc.dif_setgain(results.gain)
     exit(0)
 elif(results.daq_setvth):
     r_cmd = 'SETVTH'
     if (results.vth == None):
         print 'Please specify the vth --vth=value'
         exit(0)
-    fdc.tdc_setvthtime(results.vth)
+    fdc.feb_setvthtime(results.vth)
     exit(0)
 elif(results.daq_setmask):
     r_cmd = 'SETMASK'
@@ -479,7 +479,7 @@ elif(results.daq_setmask):
     asic = 255
     if (results.asic != None):
         asic = results.asic
-    fdc.tdc_setmask(results.mask, asic)
+    fdc.feb_setmask(results.mask, asic)
     exit(0)
 
 elif(results.daq_setthreshold):
@@ -493,14 +493,14 @@ elif(results.daq_setthreshold):
     if (results.B2 == None):
         print 'Please specify the B2 --B2=value'
         exit(0)
-    fdc.setthreshold(results.B0, results.B1, results.B2)
+    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
     exit(0)
 elif(results.daq_settdcmode):
     r_cmd = 'SETTDCMODE'
     if (results.value == None):
         print 'Please specify the mode --value=XX'
         exit(0)
-    fdc.daq_settdcmode(results.value)
+    fdc.feb_settdcmode(results.value)
     exit(0)
 
 elif(results.daq_settdcdelays):
@@ -511,7 +511,7 @@ elif(results.daq_settdcdelays):
     if (results.dead == None):
         print 'Please specify the dead time --dead=XX'
         exit(0)
-    fdc.daq_settdcdelays(results.active, results.dead)
+    fdc.feb_settdcdelays(results.active, results.dead)
     exit(0)
 
 elif(results.daq_startrun):
@@ -541,7 +541,7 @@ elif(results.daq_dbstatus):
     exit(0)
 elif(results.daq_calibdac):
     r_cmd = 'calibdac'
-    fdc.daq_calibdac(200, 15, 15, 61, 4294967295)
+    fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
     exit(0)
 elif(results.daq_scurve):
     r_cmd = 'scurve'
@@ -570,7 +570,7 @@ elif(results.daq_scurve):
     print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
     val = raw_input()
 
-    fdc.daq_fullscurve(chan, spillon, spilloff, first, last, step, mask)
+    fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
     exit(0)
 elif(results.daq_downloaddb):
     r_cmd = 'downloadDB'
@@ -592,7 +592,7 @@ elif(results.daq_ctrlreg):
     else:
         print 'Please specify the value --ctrlreg=0X######'
         exit(0)
-    fdc.daq_ctrlreg(results.ctrlreg)
+    fdc.dif_ctrlreg(results.ctrlreg)
     exit(0)
 
 elif(results.trig_status):
@@ -891,7 +891,7 @@ elif(results.tdc_lutcalib):
     if (results.channel == None):
         print 'Please specify the channel --channel=#'
         exit(0)
-    fdc.lut_calib(results.tdc, results.channel)
+    fdc.feb_lut_calib(results.tdc, results.channel)
     exit(0)
 elif(results.tdc_lutdraw):
     r_cmd = 'lutdraw'
@@ -901,7 +901,7 @@ elif(results.tdc_lutdraw):
     if (results.channel == None):
         print 'Please specify the channel --channel=#'
         exit(0)
-    fdc.lut_draw(results.tdc, results.channel)
+    fdc.feb_lut_draw(results.tdc, results.channel)
     exit(0)
 elif(results.histo_draw):
     r_cmd = 'lutdraw'

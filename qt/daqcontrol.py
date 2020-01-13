@@ -976,9 +976,9 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","TDCSTATUS",lcgi)
       #print sr
       return sr
-  def daq_resettdc(self):
+  def feb_resettdc(self):
       """
-      Send a RESETTDC command to FDAQ. it resets the firmware of each FEB
+      FEBV1: Send a RESETTDC command to FDAQ. it resets the firmware of each FEB
       
       :return: answer to the command
       """
@@ -1032,9 +1032,9 @@ class fdaqClient:
          #print p_rep["STATE"]
          return p_rep["STATE"]
          
-  def daq_ctrlreg(self,ctrl):
+  def dif_ctrlreg(self,ctrl):
       """
-      Send a CTRLREG command to FDAQ
+      DIF: Send a CTRLREG command to FDAQ
       
       :param ctr: An hexadecimal string of the control register of DIF
       
@@ -1051,7 +1051,7 @@ class fdaqClient:
       return json.dumps(sr)
 
       
-  def daq_setgain(self,gain):
+  def dif_setgain(self,gain):
       """
       DIF: Send a SETGAIN command to FDAQ (DIF gain setting)
       
@@ -1065,7 +1065,7 @@ class fdaqClient:
       return json.dumps(sr)
 
       
-  def daq_setthreshold(self,b0,b1,b2):
+  def dif_setthreshold(self,b0,b1,b2):
       """
       DIF: Send a SETTHRESHOLD command to FDAQ (DIF thresholds setting)
       
@@ -1084,7 +1084,7 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(sr)
       
-  def daq_settdcmode(self,mode):
+  def feb_settdcmode(self,mode):
       """
       FEBV1: Send a SETTDCMODE command to FDAQ (FEBV1 mode)
       
@@ -1097,7 +1097,7 @@ class fdaqClient:
       sr=executeCMD(self.daqhost,self.daqport,"FDAQ","SETTDCMODE",lcgi)
       print sr
       
-  def daq_settdcdelays(self,active,dead):
+  def feb_settdcdelays(self,active,dead):
       """
       FEBV1: Send a SETTDCDELAYS command to FDAQ (FEBV1 latch settings)
       
@@ -1374,7 +1374,7 @@ class fdaqClient:
 
 
 
-  def tdc_set6bdac(self,value):
+  def feb_set6bdac(self,value):
       """
       FEBV1: Send a SET6BDAC command to FDAQ, FEBV1 6BDAC scan
 
@@ -1388,7 +1388,7 @@ class fdaqClient:
       rep =json.loads(sr)
       return json.dumps(rep)
   
-  def tdc_cal6bdac(self,mask,shift):
+  def feb_cal6bdac(self,mask,shift):
       """
       FEBV1: Send a CAL6BDAC command to FDAQ, FEBV1 6BDAC calibration
 
@@ -1405,7 +1405,7 @@ class fdaqClient:
       return json.dumps(rep)
 
 
-  def tdc_setvthtime(self,value):
+  def feb_setvthtime(self,value):
       """
       FEBV1: Send a SETVTHTIME command to FDAQ, FEBV1 VTHTIME scan
 
@@ -1420,7 +1420,7 @@ class fdaqClient:
       return json.dumps(rep)
 
 
-  def tdc_setmask(self,value,asic):
+  def feb_setmask(self,value,asic):
       """
       FEBV1: Send a SETMASK command to FDAQ, FEBV1 mask set
 
@@ -1438,6 +1438,14 @@ class fdaqClient:
 
 
   def daq_setrunheader(self,rtyp,value,mask=0XFFFFFFFF):
+      """
+      Event Builder: Set the run header (used for calibration)
+
+      :param rtyp: Type of run (0=physic,1= VTHTIME scan,2= CAL6B scan)
+      :param value: Value of VThTime or 6BDAC
+      :param mask: Channel mask
+      :return: JSON answer 
+      """
       lcgi={}
       lcgi["value"]=value
       lcgi["type"]=rtyp
@@ -1448,7 +1456,18 @@ class fdaqClient:
 
 
 
-  def daq_calibdac(self,ntrg,ncon,ncoff,dacmin,dacmax,mask,step=5,vth=480):
+  def feb_calibdac(self,ntrg,ncon,ncoff,dacmin,dacmax,mask,step=5,vth=480):
+      """
+      FEBV1: Acquisition loop for 6bdac scan
+
+      :param ntrg: Number of windows per point
+      :param ncon: Number of clock active
+      :param ncoff: Number of clock off
+      :param dacmin: lowest dac value
+      :param dacmax: highest dac value
+      :param step: Loop step
+      :param vth: Fixed Threshold
+      """
       self.trig_pause()
       self.trig_spillon(ncon)
       self.trig_spilloff(ncoff)
@@ -1456,7 +1475,7 @@ class fdaqClient:
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
       self.trig_status()
-      #self.tdc_setmask(63)
+      #self.feb_setmask(63)
       dacm=(dacmin-dacmax)/2
       dacrange=dacmax-dacmin+1
       for idac in range(dacrange):
@@ -1464,9 +1483,9 @@ class fdaqClient:
               break;
 
           self.trig_pause()
-          self.tdc_setvthtime(vth)
-          self.tdc_cal6bdac(mask,idac+dacm)
-          #self.tdc_setmask(mask)
+          self.feb_setvthtime(vth)
+          self.feb_cal6bdac(mask,idac+dacm)
+          #self.feb_setmask(mask)
           self.daq_setrunheader(1,idac)
           # check current evb status
           sr=self.daq_evbstatus()
@@ -1492,7 +1511,18 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_scurve(self,ntrg,ncon,ncoff,thmin,thmax,mask,step=5):
+  def feb_scurve(self,ntrg,ncon,ncoff,thmin,thmax,mask,step=5):
+      """
+      FEBV1: Acquisition loop for VTHTIME scan
+
+      :param ntrg: Number of windows per point
+      :param ncon: Number of clock active
+      :param ncoff: Number of clock off
+      :param thmin: lowest VTHTIME value
+      :param thmax: highest VTHTIME value
+      :param step: Loop step
+
+      """
       self.trig_pause()
       self.trig_spillon(ncon)
       print "ncon=",ncon
@@ -1502,23 +1532,23 @@ class fdaqClient:
       self.trig_calibon(1)
       self.trig_calibcount(ntrg)
       self.trig_status()
-      #self.tdc_setmask(mask)
+      #self.feb_setmask(mask)
       thrange=(thmax-thmin+1)/step
       for vth in range(0,thrange+1):
           if ( not self.scurve_running):
               break;
 
-          #self.tdc_setvthtime(thmax-vth*step)
+          #self.feb_setvthtime(thmax-vth*step)
           xi=thmin+vth*step
           xa=thmax-vth*step
           xi=xa
           self.trig_pause()
-          self.tdc_setvthtime(xi)
+          self.feb_setvthtime(xi)
           #name = input("What's your name? ")
           self.curvth=xi
           time.sleep(0.1)
          
-          #self.tdc_setmask(mask)
+          #self.feb_setmask(mask)
           #self.daq_setrunheader(2,(thmax-vth*step))
           self.daq_setrunheader(2,xi)
           # check current evb status
@@ -1546,7 +1576,21 @@ class fdaqClient:
       self.trig_calibon(0)
       self.trig_pause()
       return
-  def daq_fullscurve(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
+  
+  def feb_fullscurve(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
+      """
+      FEBV1: Acquisition loop interface for VTHTIME scan
+
+      :param ch: 255 = according tomode channel/channel, 1023 = all channels, other value= channel(PETIROC) 
+      :param spillon: Number of clock active
+      :param spiloff: Number of clock off
+      :param beg: lowest VTHTIME value
+      :param las: highest VTHTIME value
+      :param step: Loop step
+      :param asic: Asic mask (1,2,or 3)
+      :param mode: OLD=WT board,COAX=coaxial PCB, FEBV0=with return line PCB,FEBV1
+      """
+
       ### petiroc to scan OLD
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
       # Coaxial chamber COAX
@@ -1571,26 +1615,26 @@ class fdaqClient:
       self.daq_start()
       #### commenter en dessous
       if (ch==255):
-          self.tdc_setmask(0XFFFFFFFF,asic)
-          #self.tdc_setmask(0Xf7fffffb)
-          #self.tdc_setmask(1073741832)
+          self.feb_setmask(0XFFFFFFFF,asic)
+          #self.feb_setmask(0Xf7fffffb)
+          #self.feb_setmask(1073741832)
           mask=0
           for i in firmware:
               mask=mask|(1<<i)
-          self.daq_scurve(nevmax,spillon,spilloff,beg,las,mask,step)
+          self.feb_scurve(nevmax,spillon,spilloff,beg,las,mask,step)
           self.daq_normalstop()
           return
       if (ch==1023):
           #for ist in range(0,12):
-          #    self.tdc_setmask((1<<ist))
-          #    self.daq_scurve(100,200,beg,las,(1<<ist),step)
-          #    self.tdc_setmask((1<<(31-ist)))
-          #    self.daq_scurve(100,200,beg,las,(1<<(31-ist)),step)
+          #    self.feb_setmask((1<<ist))
+          #    self.feb_scurve(100,200,beg,las,(1<<ist),step)
+          #    self.feb_setmask((1<<(31-ist)))
+          #    self.feb_scurve(100,200,beg,las,(1<<(31-ist)),step)
           for ist in firmware:
               if ( not self.scurve_running):
                   break;
-              self.tdc_setmask((1<<ist),asic)
-              self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
+              self.feb_setmask((1<<ist),asic)
+              self.feb_scurve(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
       ipr=0
@@ -1599,15 +1643,27 @@ class fdaqClient:
       else:
           ipr=(31-ch/2)
       ipr=ch
-      self.tdc_setmask((1<<ipr),asic)
-      self.daq_scurve(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.feb_setmask((1<<ipr),asic)
+      self.feb_scurve(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
       
 
       #self.daq_stop()
       
-  def daq_fullcalib(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
+  def feb_fullcalib(self,ch,spillon,spilloff,beg,las,step=2,asic=255,mode="FEB1"):
+      """
+      FEBV1: Acquisition loop interface for 6BDAC scan
+
+      :param ch: 255 = according tomode channel/channel, 1023 = all channels, other value= channel(PETIROC) 
+      :param spillon: Number of clock active
+      :param spiloff: Number of clock off
+      :param beg: lowest DAC value
+      :param las: highest DAC value
+      :param step: Loop step
+      :param asic: Asic mask (1,2,or 3)
+      :param mode: OLD=WT board,COAX=coaxial PCB, FEBV0=with return line PCB,FEBV1
+      """
       ### petiroc to scan OLD
       firmware1=[31,0,30,1,29,2,28,3,27,4,26,5,25,6,24,7,23,8,22,9,21,10,20,11]
       # Coaxial chamber COAX
@@ -1633,19 +1689,19 @@ class fdaqClient:
       self.daq_start()
       #### commenter en dessous
       if (ch==255):
-          self.tdc_setmask(0XFFFFFFFF,asic)
+          self.feb_setmask(0XFFFFFFFF,asic)
           mask=0
           for i in firmware:
               mask=mask|(1<<i)
-          self.daq_calibdac(nevmax,spillon,spilloff,beg,las,mask,step)
+          self.feb_calibdac(nevmax,spillon,spilloff,beg,las,mask,step)
           self.daq_normalstop()
           return
       if (ch==1023):
           for ist in firmware:
               if ( not self.scurve_running):
                   break;
-              self.tdc_setmask((1<<ist),asic)
-              self.daq_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
+              self.feb_setmask((1<<ist),asic)
+              self.feb_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ist),step)
           self.daq_normalstop()
           return
       ipr=0
@@ -1654,13 +1710,16 @@ class fdaqClient:
       else:
           ipr=(31-ch/2)
       ipr=ch
-      self.tdc_setmask((1<<ipr),asic)
-      self.daq_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
+      self.feb_setmask((1<<ipr),asic)
+      self.feb_calibdac(nevmax,spillon,spilloff,beg,las,(1<<ipr),step)
       self.daq_normalstop()
       return
       
 
   def slow_create(self):
+      """
+      Slow Control: Find FSLOW application and send a CREATE transition
+      """
       lcgi={}
       if (self.daq_url!=None):
           lcgi["url"]=self.daq_url
@@ -1697,51 +1756,116 @@ class fdaqClient:
 
 
   def slow_discover(self):
+      """
+      Slow Control: FSLOW application: send a DISCOVER transition
+      """
       lcgi={}
       sr=executeFSM(self.slowhost,self.slowport,"FSLOW","DISCOVER",lcgi)
       print sr
       
   def slow_configure(self):
+      """
+      Slow Control:  FSLOW application : send a CONFIGURE transition
+
+      It configures all Slow Control application previuosly discovered
+      """
       lcgi={}
       sr=executeFSM(self.slowhost,self.slowport,"FSLOW","CONFIGURE",lcgi)
       print sr
+
   def slow_start(self):
+      """
+      Slow Control:  FSLOW application : send a START transition
+
+      It starts the monitoring loop of all monitorApplications.
+      It triggers the storage in the monitoring process
+      """
       lcgi={}
       sr=executeFSM(self.slowhost,self.slowport,"FSLOW","START",lcgi)
       print sr
           
   def slow_stop(self):
+      """
+      Slow Control:  FSLOW application : send a STOP transition
+
+      It stops any monitoring publication and storage
+      """
       lcgi={}
       sr=executeFSM(self.slowhost,self.slowport,"FSLOW","STOP",lcgi)
       print sr
           
   def slow_lvon(self):
+      """
+      Slow Control:  FSLOW application Command: Turns LV ON
+
+      It finds a LV controlling application and turn it on
+
+      :return: JSON LV status
+      """
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVON",lcgi)
       return sr
       
   def slow_lvoff(self):
+      """
+      Slow Control:  FSLOW application Command: Turns LV OFF
+
+      It finds a LV controlling application and turn it off
+
+      :return: JSON LV status
+      """
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVOFF",lcgi)
       return sr
       
   def slow_lvstatus(self):
+      """
+      Slow Control:  FSLOW application Command: LV status
+
+      It finds a LV controlling application and get it status
+
+      :return: JSON LV status
+      """
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","LVSTATUS",lcgi)
       return sr
       
   def slow_ptstatus(self):
+      """
+      Slow Control:  FSLOW application Command: BMP Pressure and Temperature
+
+      It finds a BMP controlling application and get it status
+
+      :return: JSON PT status
+      """
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","PTSTATUS",lcgi)
       return sr
   
   def slow_humstatus(self):
+      """
+      Slow Control:  FSLOW application Command: HIH8000 humidity and Temperature
+
+      It finds a HIH8000 controlling application and get it status
+
+      :return: JSON Humidity and temperature status
+      """
       lcgi={}
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","HUMSTATUS",lcgi)
       return sr
 
 
   def slow_hvstatus(self,first,last):
+      """
+      Slow Control:  FSLOW application Command: HV status
+
+      It finds a HV controlling application and get the status of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1749,6 +1873,16 @@ class fdaqClient:
       return sr
 
   def slow_hvon(self,first,last):
+      """
+      Slow Control:  FSLOW application Command: HV On
+
+      It finds a HV controlling application and turn HV on of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1756,6 +1890,16 @@ class fdaqClient:
       return sr
 
   def slow_hvoff(self,first,last):
+      """
+      Slow Control:  FSLOW application Command: HV Off
+
+      It finds a HV controlling application and turn HV off of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1763,6 +1907,16 @@ class fdaqClient:
       return sr
       
   def slow_clearalarm(self,first,last):
+      """
+      Slow Control:  FSLOW application Command: HV clear alarm
+
+      It finds a HV controlling application and clear alarm of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1770,6 +1924,16 @@ class fdaqClient:
       return sr
 
   def slow_vset(self,first,last,value):
+      """
+      Slow Control:  FSLOW application Command: HV voltage setting
+
+      It finds a HV controlling application and set the voltage of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+      :param value: Volatge in V
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1778,6 +1942,17 @@ class fdaqClient:
       return sr
 
   def slow_iset(self,first,last,value):
+      """
+      Slow Control:  FSLOW application Command: HV current limit setting
+
+      It finds a HV controlling application and set the maximum current (microA)  of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+      :param value: I max (microA)
+
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
@@ -1786,13 +1961,32 @@ class fdaqClient:
       return sr
 
   def slow_rampup(self,first,last,value):
+      """
+      Slow Control:  FSLOW application Command: HV ramp up 
+
+      It finds a HV controlling application and set the rising ramp of specified channels
+      
+      :param first: First channel
+      :param last: Last channel
+      :param value: ramp (V/s)
+      :return: JSON HV status
+      """
       lcgi={}
       lcgi["first"]=first
       lcgi["last"]=last
       lcgi["value"]=value
       sr=executeCMD(self.slowhost,self.slowport,"FSLOW","RAMPUP",lcgi)
       return sr
+  
   def analysis_process(self,run):
+      """
+      Analysis: Process one file 
+
+      :warning: Only FEBV1 is implemented yet
+
+      :param run:run to analyse
+      :return: JSON answer
+      """
       if (self.anhost==None):
           return "NO Analysis"
       lcgi={}
@@ -1800,6 +1994,15 @@ class fdaqClient:
       sr=executeFSM(self.anhost,self.anport,"RB","PROCESS",lcgi)
       return sr
   def analysis_monitor(self,run):
+      """
+      Analysis: Starts to Monitor data stored in /dev/shm/monitor
+
+      :warning: Only FEBV1 is implemented yet
+
+      :param run:run to analyse
+      :return: JSON answer
+      """
+
       if (self.anhost==None):
           return "NO Analysis"
       lcgi={}
@@ -1807,6 +2010,17 @@ class fdaqClient:
       sr=executeFSM(self.anhost,self.anport,"RB","MONITOR",lcgi)
       return sr
   def analysis_stop(self,run):
+      """
+      Analysis: Stop to Monitor data stored in /dev/shm/monitor
+
+      Histogram are written int /tmp
+
+      :warning: Only FEBV1 is implemented yet
+
+      :param run:run to analyse
+      :return: JSON answer
+      """
+
       if (self.anhost==None):
           return "NO Analysis"
       lcgi={}
@@ -1814,6 +2028,13 @@ class fdaqClient:
       sr=executeFSM(self.anhost,self.anport,"RB","STOP",lcgi)
       return sr
   def analysis_status(self):
+      """
+      Analysis: Get the status of the processing (run,evt)
+
+      :warning: Only FEBV1 is implemented yet
+
+      :return: JSON answer
+      """
       if (self.anhost==None):
           return "NO Analysis"
       
@@ -1821,6 +2042,15 @@ class fdaqClient:
       sr=executeCMD(self.anhost,self.anport,"RB","STATUS",lcgi)
       return sr
   def analysis_histolist(self):
+      """
+      Analysis: Get the JSON list of histogram available
+
+      :warning: Only FEBV1 is implemented yet
+
+      :return: JSON answer
+      """
+
+
       if (self.anhost==None):
           return "NO Analysis"
       lcgi={}
@@ -1829,6 +2059,13 @@ class fdaqClient:
       return json.dumps(rep)
   
   def analysis_histo(self,h):
+      """
+      Analysis: Get the JSON representation of a ROOT histogram
+
+      :warning: Only FEBV1 is implemented yet
+      :param h: Complete path of histo name
+      :return: JSON answer
+      """
       if (self.anhost==None):
           return "NO Analysis"
       lcgi={}
@@ -1837,19 +2074,19 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(rep)
 
-  def injection_configure(self):
+  def feb_injection_configure(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeFSM(self.injhost,self.injport,"FebInj-0","CONFIGURE",lcgi)
       return sr
-  def injection_destroy(self):
+  def feb_injection_destroy(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeFSM(self.injhost,self.injport,"FebInj-0","DESTROY",lcgi)
       return sr
-  def injection_mask(self,side,mask):
+  def feb_injection_mask(self,side,mask):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
@@ -1858,66 +2095,66 @@ class fdaqClient:
       print "Injection ",side," Mask ",mask
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","MASK",lcgi)
       return sr
-  def injection_source(self,source):
+  def feb_injection_source(self,source):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       lcgi["value"]=source
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOURCE",lcgi)
       return sr
-  def injection_number(self,nb):
+  def feb_injection_number(self,nb):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       lcgi["value"]=nb
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERMAX",lcgi)
       return sr
-  def injection_delay(self,nb):
+  def feb_injection_delay(self,nb):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       lcgi["value"]=nb
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","DELAY",lcgi)
       return sr
-  def injection_duration(self,nb):
+  def feb_injection_duration(self,nb):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       lcgi["value"]=nb
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","DURATION",lcgi)
       return sr
-  def injection_height(self,nb):
+  def feb_injection_height(self,nb):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       lcgi["value"]=nb
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","PULSEHEIGHT",lcgi)
       return sr
-  def injection_soft(self):
+  def feb_injection_soft(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERSOFT",lcgi)
       return sr
-  def injection_internal(self):
+  def feb_injection_internal(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","TRIGGERINT",lcgi)
       return sr
-  def injection_pause(self):
+  def feb_injection_pause(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","PAUSE",lcgi)
       return sr
-  def injection_resume(self):
+  def feb_injection_resume(self):
       if (self.injhost==None):
           return "No Injection board"
       lcgi={}
       sr=executeCMD(self.injhost,self.injport,"FebInj-0","RESUME",lcgi)
       return sr
-  def lut_calib(self,tdc,channel):
+  def feb_lut_calib(self,tdc,channel):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -1926,7 +2163,7 @@ class fdaqClient:
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
-  def tdc_testmask(self,tdc,mask):
+  def feb_testmask(self,tdc,mask):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -1935,7 +2172,7 @@ class fdaqClient:
       print sr
       sr=executeCMD(self.tdchost[tdc],self.tdcport[tdc],"TDC-%d" % tdc,"CALIBSTATUS",lcgi)
       print sr
-  def lut_draw(self,tdc,channel,canvas=None,feb=15):
+  def feb_lut_draw(self,tdc,channel,canvas=None,feb=15):
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
       lcgi={}
@@ -2008,7 +2245,7 @@ class fdaqClient:
       if (standalone):
           v=raw_input()
       return (h,tdorig,tdlen)
-  def lut_dump(self,tdc,feb=15):
+  def feb_lut_dump(self,tdc,feb=15):
       f=open("summary_LUT_%d.txt" % feb,"w+")
       if (len(self.tdchost)<tdc+1):
           return "non existing tdc"
