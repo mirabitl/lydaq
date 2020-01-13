@@ -78,30 +78,38 @@ grp_action.add_argument('--daq-evbstatus', action='store_true',
 grp_action.add_argument('--daq-dbstatus', action='store_true',
                         help='get current run and state from db')
 # Actions
-grp_action.add_argument('--daq-resettdc', action='store_true',
-                        help=' Send Reset to all TDC')
 grp_action.add_argument('--daq-downloaddb', action='store_true',
                         help='download the dbsate specified in --dbstate=state')
-grp_action.add_argument('--daq-calibdac', action='store_true',
-                        help='Start a PETIROC calibdac run')
-grp_action.add_argument('--daq-scurve', action='store_true',
-                        help='Start a PETIROC scurve run')
-grp_action.add_argument('--daq-ctrlreg', action='store_true',
+
+#DIF  Calibration
+grp_action.add_argument('--dif-setgain', action='store_true',
+                        help='change the gain of HARDROC2 and reconfigure chips with --gain=xxx')
+grp_action.add_argument('--dif-setthreshold', action='store_true',
+                        help='change the threholds of HARDROC2 and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
+grp_action.add_argument('--dif-ctrlreg', action='store_true',
                         help='set the SDHCAL DIF ctrlregister specified with --ctrlreg=register')
 
-# Calibration
-grp_action.add_argument('--daq-setgain', action='store_true',
-                        help='change the gain of HARDROC2 and reconfigure chips with --gain=xxx')
-grp_action.add_argument('--daq-setthreshold', action='store_true',
-                        help='change the threholds of HARDROC2 and reconfigure chips with --B0=xxx --B1=yyy --B2=zzz')
-grp_action.add_argument('--daq-setvth', action='store_true',
+#FEBV1 actions
+grp_action.add_argument('--feb-resettdc', action='store_true',
+                        help=' Send Reset to all FEB TDC')
+grp_action.add_argument('--feb-calibdac', action='store_true',
+                        help='Start a PETIROC calibdac run')
+grp_action.add_argument('--feb-scurve', action='store_true',
+                        help='Start a PETIROC scurve run')
+grp_action.add_argument('--feb-setvth', action='store_true',
                         help='change the VTHTIME threshold of PETIROC2 and reconfigure chips with -vth=xxx')
-grp_action.add_argument('--daq-setmask', action='store_true',
+grp_action.add_argument('--feb-setmask', action='store_true',
                         help='change the MASK of PETIROC2reconfigure chips with -mask=xxx')
-grp_action.add_argument('--daq-settdcmode', action='store_true',
+grp_action.add_argument('--feb-settdcmode', action='store_true',
                         help='change the trigger mode before starting the run with --value=1/0')
-grp_action.add_argument('--daq-settdcdelays', action='store_true',
+grp_action.add_argument('--feb-settdcdelays', action='store_true',
                         help='change the PETIROC mode before starting the run with --active=1-255, --dead=1-255 ')
+grp_action.add_argument('--feb-lutcalib', action='store_true',
+                        help='Calibrate --tdc=i --channel=k ')
+grp_action.add_argument('--feb-lutdraw', action='store_true',
+                        help='Calibrate --tdc=i --channel=k ')
+grp_action.add_argument('--histo-draw', action='store_true',
+                        help='Draw histo --name=histo ')
 
 
 # TRIGGER MDCC
@@ -163,12 +171,6 @@ grp_action.add_argument(
 #grp_action.add_argument('--slc-loadreferences',action='store_true',help='load in the wiener crate chambers references voltage download from DB')
 grp_action.add_argument('--slc-hvstatus', action='store_true',
                         help='display hvstatus of all channel of the wiener crate')
-grp_action.add_argument('--slc-ptstatus', action='store_true',
-                        help='display the P and T from the BMP183 readout')
-grp_action.add_argument('--slc-humstatus', action='store_true',
-                        help='display the Humidity and T from the HIH8000 readout')
-grp_action.add_argument('--slc-ptcor', action='store_true',
-                        help='display the needed voltage for --v0=v --p0=p (mbar) --t0=t (K)')
 
 #grp_action.add_argument('--slc-setperiod',action='store_true',help='set the readout period of Wiener and BMP with --period=second(s)')
 grp_action.add_argument('--slc-vset', action='store_true',
@@ -185,12 +187,15 @@ grp_action.add_argument('--slc-hvoff', action='store_true',
 grp_action.add_argument('--slc-clearalarm', action='store_true',
                         help='Clear alarm  of channel i to k with --first=i --last=k ')
 
-grp_action.add_argument('--tdc-lutcalib', action='store_true',
-                        help='Calibrate --tdc=i --channel=k ')
-grp_action.add_argument('--tdc-lutdraw', action='store_true',
-                        help='Calibrate --tdc=i --channel=k ')
-grp_action.add_argument('--histo-draw', action='store_true',
-                        help='Draw histo --name=histo ')
+
+# Environmental
+grp_action.add_argument('--slc-ptstatus', action='store_true',
+                        help='display the P and T from the BMP183 readout')
+grp_action.add_argument('--slc-humstatus', action='store_true',
+                        help='display the Humidity and T from the HIH8000 readout')
+grp_action.add_argument('--slc-ptcor', action='store_true',
+                        help='display the needed voltage for --v0=v --p0=p (mbar) --t0=t (K)')
+
 
 #grp_action.add_argument('--slc-store',action='store_true',help='start the data storage in the mysql DB at period p  with --period=p (s) ')
 #grp_action.add_argument('--slc-store-stop',action='store_true',help='stop the data storage in the mysql DB ')
@@ -199,7 +204,6 @@ grp_action.add_argument('--histo-draw', action='store_true',
 
 
 # Arguments
-# DAQ & trigger
 parser.add_argument('--config', action='store', dest='config',
                     default=None, help='json config file')
 parser.add_argument('--socks', action='store', type=int,
@@ -336,6 +340,7 @@ elif(results.app_info):
     else:
         print 'Please specify the name --name=name'
     exit(0)
+## JOBCONTROL
 elif(results.jc_create):
     r_cmd = 'createJobControl'
     fdc.jc_create()
@@ -389,6 +394,9 @@ elif(results.jc_info):
     else:
         print "Host name missing"
     exit(0)
+
+### DAQ
+
 elif(results.daq_state):
     r_cmd = 'state'
     fdc.daq_state()
@@ -405,8 +413,6 @@ elif(results.daq_getparameters):
     r_cmd = 'getParameters'
     fdc.daq_getparameters()
     exit(0)
-
-
 elif(results.daq_forceState):
     r_cmd = 'forceState'
     if (results.fstate != None):
@@ -418,19 +424,17 @@ elif(results.daq_services):
     r_cmd = 'prepareServices'
     fdc.daq_services()
     exit(0)
-
 elif(results.daq_initialise):
     r_cmd = 'initialise'
     fdc.daq_initialise()
     exit(0)
-
 elif(results.daq_configure):
     r_cmd = 'configure'
     fdc.daq_configure()
     exit(0)
 elif(results.daq_difstatus):
     r_cmd = 'status'
-    sr = fdc.daq_status()
+    sr = fdc.daq_difstatus()
     if (results.verbose):
         print sr
     else:
@@ -444,76 +448,6 @@ elif(results.daq_tdcstatus):
     else:
         dqc.parseReturn(r_cmd, sr)
     exit(0)
-elif(results.daq_resettdc):
-    r_cmd = 'tdcstatus'
-    sr = fdc.feb_resettdc()
-    print sr
-    exit(0)
-elif(results.daq_evbstatus):
-    r_cmd = 'shmStatus'
-    sr = fdc.daq_evbstatus()
-    if (results.verbose):
-        print sr
-    else:
-        dqc.parseReturn(r_cmd, sr)
-    exit(0)
-elif(results.daq_setgain):
-    r_cmd = 'SETGAIN'
-    if (results.gain == None):
-        print 'Please specify the gain --gain=value'
-        exit(0)
-    fdc.dif_setgain(results.gain)
-    exit(0)
-elif(results.daq_setvth):
-    r_cmd = 'SETVTH'
-    if (results.vth == None):
-        print 'Please specify the vth --vth=value'
-        exit(0)
-    fdc.feb_setvthtime(results.vth)
-    exit(0)
-elif(results.daq_setmask):
-    r_cmd = 'SETMASK'
-    if (results.mask == None):
-        print 'Please specify the vth --mask=value'
-        exit(0)
-    asic = 255
-    if (results.asic != None):
-        asic = results.asic
-    fdc.feb_setmask(results.mask, asic)
-    exit(0)
-
-elif(results.daq_setthreshold):
-    r_cmd = 'SETTHRESHOLD'
-    if (results.B0 == None):
-        print 'Please specify the B0 --B0=value'
-        exit(0)
-    if (results.B1 == None):
-        print 'Please specify the B1 --B1=value'
-        exit(0)
-    if (results.B2 == None):
-        print 'Please specify the B2 --B2=value'
-        exit(0)
-    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
-    exit(0)
-elif(results.daq_settdcmode):
-    r_cmd = 'SETTDCMODE'
-    if (results.value == None):
-        print 'Please specify the mode --value=XX'
-        exit(0)
-    fdc.feb_settdcmode(results.value)
-    exit(0)
-
-elif(results.daq_settdcdelays):
-    r_cmd = 'SETTDCDELAYS'
-    if (results.active == None):
-        print 'Please specify the active time --active=XX'
-        exit(0)
-    if (results.dead == None):
-        print 'Please specify the dead time --dead=XX'
-        exit(0)
-    fdc.feb_settdcdelays(results.active, results.dead)
-    exit(0)
-
 elif(results.daq_startrun):
     r_cmd = 'start'
     if (results.comment != None):
@@ -539,11 +473,110 @@ elif(results.daq_dbstatus):
     else:
         dqc.parseReturn(r_cmd, sr)
     exit(0)
-elif(results.daq_calibdac):
+elif(results.daq_evbstatus):
+    r_cmd = 'shmStatus'
+    sr = fdc.daq_evbstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_downloaddb):
+    r_cmd = 'downloadDB'
+    if (results.dbstate != None):
+        lcgi['state'] = results.dbstate
+    else:
+        print 'Please specify the state --dbstate=STATE'
+        exit(0)
+    version=0
+    if (results.dbversion != None):
+        version = results.dbversion
+    fdc.daq_downloaddb(results.dbstate,version)
+    exit(0)
+
+### DIF
+
+elif(results.dif_setgain):
+    r_cmd = 'SETGAIN'
+    if (results.gain == None):
+        print 'Please specify the gain --gain=value'
+        exit(0)
+    fdc.dif_setgain(results.gain)
+    exit(0)
+elif(results.dif_setthreshold):
+    r_cmd = 'SETTHRESHOLD'
+    if (results.B0 == None):
+        print 'Please specify the B0 --B0=value'
+        exit(0)
+    if (results.B1 == None):
+        print 'Please specify the B1 --B1=value'
+        exit(0)
+    if (results.B2 == None):
+        print 'Please specify the B2 --B2=value'
+        exit(0)
+    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
+    exit(0)
+elif(results.dif_ctrlreg):
+    r_cmd = 'setControlRegister'
+    lct = 0
+    if (results.ctrlreg != None):
+        lct = int(results.ctrlreg, 16)
+    else:
+        print 'Please specify the value --ctrlreg=0X######'
+        exit(0)
+    fdc.dif_ctrlreg(results.ctrlreg)
+    exit(0)
+
+
+### FEB
+
+elif(results.feb_resettdc):
+    r_cmd = 'tdcstatus'
+    sr = fdc.feb_resettdc()
+    print sr
+    exit(0)
+elif(results.feb_setvth):
+    r_cmd = 'SETVTH'
+    if (results.vth == None):
+        print 'Please specify the vth --vth=value'
+        exit(0)
+    fdc.feb_setvthtime(results.vth)
+    exit(0)
+elif(results.feb_setmask):
+    r_cmd = 'SETMASK'
+    if (results.mask == None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    asic = 255
+    if (results.asic != None):
+        asic = results.asic
+    fdc.feb_setmask(results.mask, asic)
+    exit(0)
+
+elif(results.feb_settdcmode):
+    r_cmd = 'SETTDCMODE'
+    if (results.value == None):
+        print 'Please specify the mode --value=XX'
+        exit(0)
+    fdc.feb_settdcmode(results.value)
+    exit(0)
+
+elif(results.feb_settdcdelays):
+    r_cmd = 'SETTDCDELAYS'
+    if (results.active == None):
+        print 'Please specify the active time --active=XX'
+        exit(0)
+    if (results.dead == None):
+        print 'Please specify the dead time --dead=XX'
+        exit(0)
+    fdc.feb_settdcdelays(results.active, results.dead)
+    exit(0)
+
+elif(results.feb_calibdac):
     r_cmd = 'calibdac'
     fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
     exit(0)
-elif(results.daq_scurve):
+elif(results.feb_scurve):
     r_cmd = 'scurve'
     first = 300
     last = 600
@@ -572,28 +605,36 @@ elif(results.daq_scurve):
 
     fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
     exit(0)
-elif(results.daq_downloaddb):
-    r_cmd = 'downloadDB'
-    if (results.dbstate != None):
-        lcgi['state'] = results.dbstate
-    else:
-        print 'Please specify the state --dbstate=STATE'
+elif(results.feb_lutcalib):
+    r_cmd = 'lutcalib'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
         exit(0)
-    version=0
-    if (results.dbversion != None):
-        version = results.dbversion
-    fdc.daq_downloaddb(results.dbstate,version)
-    exit(0)
-elif(results.daq_ctrlreg):
-    r_cmd = 'setControlRegister'
-    lct = 0
-    if (results.ctrlreg != None):
-        lct = int(results.ctrlreg, 16)
-    else:
-        print 'Please specify the value --ctrlreg=0X######'
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
         exit(0)
-    fdc.dif_ctrlreg(results.ctrlreg)
+    fdc.feb_lut_calib(results.tdc, results.channel)
     exit(0)
+elif(results.feb_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
+    exit(0)
+
+
+### MDCC
 
 elif(results.trig_status):
     r_cmd = 'triggerStatus'
@@ -706,6 +747,9 @@ elif(results.trig_resume):
     r_cmd = 'resume'
     fdc.trig_resume()
     exit(0)
+
+### SLOW CONTROL
+
 elif(results.slc_create):
     r_cmd = 'createSlowControl'
     fdc.slow_create()
@@ -882,31 +926,4 @@ elif(results.slc_rampup):
         print sr
     else:
         dqc.parseReturn('hvStatus', sr)
-    exit(0)
-elif(results.tdc_lutcalib):
-    r_cmd = 'lutcalib'
-    if (results.tdc == None):
-        print 'Please specify the tdc process --tdc=#'
-        exit(0)
-    if (results.channel == None):
-        print 'Please specify the channel --channel=#'
-        exit(0)
-    fdc.feb_lut_calib(results.tdc, results.channel)
-    exit(0)
-elif(results.tdc_lutdraw):
-    r_cmd = 'lutdraw'
-    if (results.tdc == None):
-        print 'Please specify the tdc process --tdc=#'
-        exit(0)
-    if (results.channel == None):
-        print 'Please specify the channel --channel=#'
-        exit(0)
-    fdc.feb_lut_draw(results.tdc, results.channel)
-    exit(0)
-elif(results.histo_draw):
-    r_cmd = 'lutdraw'
-    if (results.name == None):
-        print 'Please specify the histo name --name=#'
-        exit(0)
-    fdc.histo_draw(results.name)
     exit(0)

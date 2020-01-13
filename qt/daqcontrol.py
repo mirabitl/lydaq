@@ -957,7 +957,7 @@ class fdaqClient:
       rep=json.loads(sr)
       return json.dumps(sr)
 
-  def daq_status(self):
+  def daq_difstatus(self):
       """
       Send A DIFSTATUS command to FDAQ
       
