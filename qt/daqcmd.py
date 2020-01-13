@@ -13,6 +13,7 @@ import time
 import argparse
 import requests
 import daqcontrol as dqc
+import sys
 
 parser = argparse.ArgumentParser()
 
@@ -20,11 +21,12 @@ parser = argparse.ArgumentParser()
 grp_action = parser.add_mutually_exclusive_group()
 # JOB Control
 grp_action.add_argument('--available', action='store_true',
-                        help='Check availability of daq,jobcontrol and slowcontrol')
+                        help='Obsolete: Use --jc-status instead')
 grp_action.add_argument('--app-info', action='store_true',
-                        help='Check availability of daq,jobcontrol and slowcontrol')
+                        help='Obsolete:  Use --jc-status instead')
 grp_action.add_argument('--webstatus', action='store_true',
-                        help='Check availability of daq,jobcontrol,slowcontrol and Ecal web servers')
+                        help='Obsolete:  Use --jc-status instead')
+
 grp_action.add_argument('--jc-create', action='store_true',
                         help='Loads configuration in all jobcontrol process ')
 grp_action.add_argument('--jc-kill', action='store_true',
@@ -299,6 +301,9 @@ parser.add_argument('-v', '--verbose', action='store_true',
 parser.add_argument('--comment', action='store', default=None,
                     dest='comment', help=' Comment for start run')
 
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 results = parser.parse_args()
 
 
