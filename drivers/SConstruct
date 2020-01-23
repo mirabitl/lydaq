@@ -30,4 +30,5 @@ else:
                 'Zup/SConscript',
                 'Wiener/SConscript',
                 'utils/netLink/SConscript'
+                'TmvDb/SConscript'
     ])
