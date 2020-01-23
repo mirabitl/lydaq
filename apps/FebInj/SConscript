@@ -108,7 +108,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_app_"+package
+lyname="lib/lydaq_app_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
@@ -125,7 +125,7 @@ plist=[]
 mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/FebInjDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(mdccd)
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)
