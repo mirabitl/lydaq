@@ -134,7 +134,7 @@ tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/FebDaemon.cxx",LIBPATH=
 
 plist.append(tdcd)
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)

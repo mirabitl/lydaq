@@ -140,7 +140,7 @@ plist.append(mdccd)
 mdcsd=env.Program("bin/lydaq_daemon_Slow_"+package,source="src/FSlowDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(mdcsd)
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)

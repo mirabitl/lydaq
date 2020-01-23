@@ -126,7 +126,7 @@ plist=[]
 mdccd=env.Program("bin/lydaq_daemon_"+package,source="src/LCaenDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(mdccd)
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)

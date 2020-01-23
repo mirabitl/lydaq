@@ -119,7 +119,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_app_"+package
+lyname="lib/lydaq_app_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
@@ -138,7 +138,7 @@ plist.append(tdcd)
 testtdc=env.Program("bin/lydaq_testtdc",source="src/TestTdc.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 plist.append(testtdc)
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)
