@@ -38,6 +38,11 @@ if (kl[len(kl)-2][0:3] == 'el6'):
 
 Arm=os.uname()[4]=='armv7l'
 
+fgcc=os.popen("gcc --version | grep ^gcc | sed 's/^.* //g'")
+kl=fgcc.readline().split(".")
+
+NOOCCI=(int(kl[0])>4)
+
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'
   boostthread='boost_thread'
@@ -76,10 +81,14 @@ if (Use_Oracle):
   INCLUDES.append("/usr/include/ILCConfDB")
 
 
+OCCIACCESS= not NOOCCI
 if (Use_Oracle):
-  LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
-  if (not Arm):
-      LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
+    if ( not Arm and OCCIACCESS):
+        LIBRARIES=LIBRARIES+['dl','uuid', 'occi', 'clntsh', 'nnz11', 'ilcconfdb', 'dbi','xerces-c']
+    else:
+        LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
+        
+
 #link flags
 LDFLAGS=["-fPIC","-dynamiclib"]
 
@@ -97,7 +106,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-#LIBRARY_SOURCES=Glob("#src/*.cc")
+#LIBRARY_SOURCES=Glob("src/*.cc")
 
 #print LIBRARY_SOURCES
 LIBRARY_SOURCES=['src/LMdccEcalServer.cxx']
@@ -106,7 +115,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_app_"+package
+lyname="lib/lydaq_app_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 

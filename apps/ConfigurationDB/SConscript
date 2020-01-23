@@ -109,7 +109,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-#LIBRARY_SOURCES=Glob("#src/*.cc")
+#LIBRARY_SOURCES=Glob("src/*.cc")
 
 #print LIBRARY_SOURCES
 LIBRARY_SOURCES=['src/DIFDBInterface.cxx','src/OracleDIFDBInterface.cxx','src/DbCache.cxx']
@@ -118,7 +118,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_app_"+package
+lyname="lib/lydaq_app_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
