@@ -34,7 +34,7 @@ else:
 
 
 
-LIBRARY_SOURCES=Glob("#src/*.cc")
+LIBRARY_SOURCES=Glob("src/*.cc")
 INCLUDES=['include']
 if (platform=="SLC5"):
     INCLUDES.append('/usr/include/boost141')
@@ -63,14 +63,14 @@ LDFLAGS=["-fPIC","-dynamiclib"]
 
 env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
 
-netlink=env.SharedLibrary("#lib/netlink",source=LIBRARY_SOURCES)
+netlink=env.SharedLibrary("lib/netlink",source=LIBRARY_SOURCES)
 
-CSLM_SOURCES=Glob("#cslm/*.cc")
+CSLM_SOURCES=Glob("cslm/*.cc")
 
 LIBRARY_PATHS.append("./lib")
 LIBRARIES=["pthread","netlink",boostsystem,boostthread]
 env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
-cslm=env.SharedLibrary("#lib/cslm",source=CSLM_SOURCES)
+cslm=env.SharedLibrary("lib/cslm",source=CSLM_SOURCES)
 
 
 

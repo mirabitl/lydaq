@@ -82,11 +82,11 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/*.cxx")
+LIBRARY_SOURCES=Glob("src/*.cxx")
 
 #print LIBRARY_SOURCES
 #Shared library
-lyname="#lib/lydaq_"+package
+lyname="lib/lydaq_"+package
 print "building ",lyname
 if (not Arm):
     print "This package can be built only on raspberry"

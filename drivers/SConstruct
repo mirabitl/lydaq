@@ -1,0 +1,33 @@
+import os
+Arm=os.uname()[4]=='armv7l'
+
+
+if (Arm):
+    SConscript(['Bmp/SConscript',
+	        'Dif/SConscript',
+	        'FebInj/SConscript',
+                'Ftdi/SConscript',
+                'Genesys/SConscript',
+                'GPIO/SConscript',
+                'hih8000/SConscript',
+                'Mdcc/SConscript',
+                'MdccEcal/SConscript',
+                'N1470/SConscript',
+                'Sdcc/SConscript',
+                'Zup/SConscript',
+                'Wiener/SConscript',
+                'utils/netLink/SConscript'
+    ])
+else:
+    SConscript(['Dif/SConscript',
+                'Ftdi/SConscript',
+                'Genesys/SConscript',
+                'Caen/SConscript',
+                'Mdcc/SConscript',
+                'MdccEcal/SConscript',
+                'N1470/SConscript',
+                'Sdcc/SConscript',
+                'Zup/SConscript',
+                'Wiener/SConscript',
+                'utils/netLink/SConscript'
+    ])

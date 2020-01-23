@@ -118,11 +118,11 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 env['BUILDERS']['PythonModule'] = SWIGSharedLibrary
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/*.cxx")
+LIBRARY_SOURCES=Glob("src/*.cxx")
 
 #print LIBRARY_SOURCES
 #Shared library
-lyname="#lib/lydaq_"+package
+lyname="lib/lydaq_"+package
 print "building ",lyname
 if (not Arm):
     print "This package can be built only on raspberry"
@@ -133,7 +133,7 @@ else:
     env.Install("../include",INCLUDE_FILES)
     env.Alias('install', ["../lib","../include"])
     #Python module
-    _FebInj=env.PythonModule('_LFebInj', ['LFebInj.i'],LIBPATH="#lib",LIBS="lydaq_FebInj")
+    #_FebInj=env.PythonModule('_LFebInj', ['LFebInj.i'],LIBPATH="#lib",LIBS="lydaq_FebInj")
 
 #env.Install(DHCAL_ROOT+"/opt/dhcal/lib",levbdimdaq)
 #env.Install(DHCAL_ROOT+"/opt/dhcal/bin",plist)
