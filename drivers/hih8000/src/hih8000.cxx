@@ -55,8 +55,10 @@ int hih8000::Read()
   unsigned char buf[4];                 /* Buffer for data read/written on the i2c bus */
 
   digitalWrite (4, 1) ;  // capteur sur la partir etroite de la carte
-  if ((i2c_smbus_write_quick(_fd, 0)) != 0)
-  {
+  //  if ((i2c_smbus_write_quick(_fd, 0)) != 0)
+  // {
+  if (wiringPiI2CWrite (_fd, 0)!=0)
+      {
     printf("Error writing bit to i2c slave 1 \n");
     // exit(1);
   }
@@ -84,8 +86,10 @@ int hih8000::Read()
 
 
   digitalWrite (4, 0) ;  // capteur sur la partir large de la carte
-  if ((i2c_smbus_write_quick(_fd, 0)) != 0)
-  {
+  //if ((i2c_smbus_write_quick(_fd, 0)) != 0)
+  //{
+   if (wiringPiI2CWrite (_fd, 0)!=0)
+      {   
     printf("Error writing bit to i2c slave\n");
     //exit(1);
   }
