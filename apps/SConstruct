@@ -20,7 +20,7 @@ if (Arm):
            'Zup/SConscript',
            'Wiener/SConscript'
     ]
-    #plist.append('hih8000/SConscript')
+    plist.append('hih8000/SConscript')
     SConscript('Gric/SConscript')
     SConscript(plist)
 else:
