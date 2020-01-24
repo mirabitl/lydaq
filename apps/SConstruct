@@ -3,32 +3,33 @@ Arm=os.uname()[4]=='armv7l'
 
 
 if (Arm):
-    SConscript(['Builder/SConscript',
-                'Bmp/SConscript',
-                'FebInj/SConscript',
-                'GPIO/SConscript',
-                'hih8000/SConscript',
-                'ConfigurationDB/SConscript',
-                'Control/SConscript',
-		'Dif/SConscript',
-                'Gric/SConscript',	
-                'DIF/SConscript',
-                'FebCms/SConscript',
-                'Genesys/SConscript',
-                'Mdcc/SConscript',
-                'MdccEcal/SConscript',
-                'monitoring/SConscript',
-                'Sdcc/SConscript',
-                'Zup/SConscript',
-                'Wiener/SConscript'
-    ])
+    plist=['Builder/SConscript',
+           'Bmp/SConscript',
+           'FebInj/SConscript',
+           'GPIO/SConscript',
+           'ConfigurationDB/SConscript',
+           'Control/SConscript',
+	   'Dif/SConscript',
+           'DIF/SConscript',
+           'FebCms/SConscript',
+           'Genesys/SConscript',
+           'Mdcc/SConscript',
+           'MdccEcal/SConscript',
+           'monitoring/SConscript',
+           'Sdcc/SConscript',
+           'Zup/SConscript',
+           'Wiener/SConscript'
+    ]
+    #plist.append('hih8000/SConscript')
+    SConscript('Gric/SConscript')
+    SConscript(plist)
 else:
+    SConscript('Gric/SConscript')
     SConscript(['Builder/SConscript',
                 'Caen/SConscript',
                 'ConfigurationDB/SConscript',
                 'Control/SConscript',
 		'Dif/SConscript',
-                'Gric/SConscript',	
                 'DIF/SConscript',
                 'FebCms/SConscript',
                 'Genesys/SConscript',
