@@ -1,1 +1,1 @@
-SConscript(['drivers/SConstruct','apps/SConstruct'])
+SConscript(['drivers/SConstruct','apps/SConstruct','analysis/SConstruct'])

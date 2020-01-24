@@ -115,7 +115,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 
 # Library source
-LIBRARY_SOURCES=Glob("#src/bin25.cc")
+LIBRARY_SOURCES=Glob("src/bin25.cc")
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/LMdccServer.cxx']
@@ -124,7 +124,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="#lib/lydaq_pluggins_"+package
+lyname="lib/lydaq_pluggins_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
@@ -132,7 +132,7 @@ lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 
 
 myinc=[]
-for x in Glob("#include/*.hh"):
+for x in Glob("include/*.hh"):
   myinc.append("include/"+x.name)
 #print plist
 env.Install("../lib",lypack)
