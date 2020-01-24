@@ -19,7 +19,7 @@ if (Arm):
                 'utils/netLink/SConscript'
     ])
 else:
-    SConscript(['Dif/SConscript',
+    plist=['Dif/SConscript',
                 'Ftdi/SConscript',
                 'Genesys/SConscript',
                 'Caen/SConscript',
@@ -29,6 +29,9 @@ else:
                 'Sdcc/SConscript',
                 'Zup/SConscript',
                 'Wiener/SConscript',
-                'utils/netLink/SConscript',
-                'TmvDb/SConscript'
-    ])
+                'utils/netLink/SConscript'
+    ]
+    Use_Mysql=os.path.exists("/usr/include/mysql")
+    if (Use_Mysql):
+        plist.append('TmvDb/SConscript')
+    SConscript(plist)

@@ -16,7 +16,7 @@
 #include <math.h>
 #include <dirent.h>
 extern "C" {
-#include <linux/i2c-dev.h>
+
 #include <linux/types.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
