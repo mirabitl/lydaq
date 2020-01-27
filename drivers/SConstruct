@@ -16,6 +16,7 @@ if (Arm):
                 'Sdcc/SConscript',
                 'Zup/SConscript',
                 'Wiener/SConscript',
+                'MgRoc/SConscript',
                 'utils/netLink/SConscript'
     ])
 else:
@@ -29,6 +30,7 @@ else:
                 'Sdcc/SConscript',
                 'Zup/SConscript',
                 'Wiener/SConscript',
+                'MgRoc/SConscript',
                 'utils/netLink/SConscript'
     ]
     Use_Mysql=os.path.exists("/usr/include/mysql")

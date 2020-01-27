@@ -13,13 +13,22 @@
 #include <arpa/inet.h>
 #include <boost/format.hpp>
 #include "fsmwebCaller.hh"
-#include "WiznetMessageHandler.hh"
+//#include "WiznetMessageHandler.hh"
 #include <ILCConfDB.h>
 #include <stdlib.h>
-
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <errno.h>
 
 
 using namespace lydaq;
+
+
+
+
 lydaq::TdcConfigAccess::TdcConfigAccess()
 {
   _slcBytes = 0;
@@ -108,7 +117,7 @@ void lydaq::TdcConfigAccess::parseJson()
       uint8_t header = asic["header"].asUInt();
       lydaq::PR2 prs;
       prs.setJson(asic);
-      uint64_t eid = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32 | header;
+      uint64_t eid = ((uint64_t)lydaq::TdcConfigAccess::convertIP(ipadr)) << 32 | header;
       _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
     }
   }
@@ -133,7 +142,7 @@ std::cout<<"entering TDCConfigAccess.cc  lydaq::TdcConfigAccess::prepareSlowCont
 
   // Initialise
   _slcBytes = 0;
-  uint64_t eid = ((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32;
+  uint64_t eid = ((uint64_t)lydaq::TdcConfigAccess::convertIP(ipadr)) << 32;
   // Loop on 4 Asic maximum
   for (int ias = 4; ias >= 1; ias--)
   {
@@ -241,7 +250,7 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
       if (itDIF->getInt("ID") != difid)
         continue;
       string ipadr = itDIF->getString("IP_ADDRESS");
-      eid = (((uint64_t)lydaq::WiznetMessageHandler::convertIP(ipadr)) << 32) | itMR->getInt("HEADER");
+      eid = (((uint64_t)lydaq::TdcConfigAccess::convertIP(ipadr)) << 32) | itMR->getInt("HEADER");
       break;
     }
 
@@ -367,4 +376,27 @@ void lydaq::TdcConfigAccess::connect()
 }
 void lydaq::TdcConfigAccess::publish()
 {
+}
+uint32_t lydaq::TdcConfigAccess::convertIP(std::string hname)
+{
+  struct hostent *he;
+  struct in_addr **addr_list;
+  int i;
+  char ip[100];
+  if ((he = gethostbyname(hname.c_str())) == NULL)
+  {
+    return 0;
+  }
+
+  addr_list = (struct in_addr **)he->h_addr_list;
+
+  for (i = 0; addr_list[i] != NULL; i++)
+  {
+    //Return the first one;
+    strcpy(ip, inet_ntoa(*addr_list[i]));
+    break;
+  }
+
+  in_addr_t ls1 = inet_addr(ip);
+  return (uint32_t)ls1;
 }

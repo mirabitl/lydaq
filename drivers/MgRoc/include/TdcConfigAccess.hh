@@ -63,7 +63,7 @@ public:
   void connect();
   /// Not implemented
   void publish();
-
+  static uint32_t convertIP(std::string hname);
 private:
   uint16_t _slcBuffer[0x1000];
   uint16_t _slcAddr[0x1000];
