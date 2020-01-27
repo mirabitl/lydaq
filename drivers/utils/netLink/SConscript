@@ -110,6 +110,6 @@ env.Install("../../lib",[netlink,cslm])
 
 ###env.Alias('install', [DHCAL_ROOT+"/opt/dhcal/lib","/opt/dhcal/lib","/opt/dhcal/include/netlink","/opt/dhcal/include/cslm"])
 
-env.Alias('install', ["../../lib","../../bin","../../include"])
+env.Alias('install', ["../../lib","../../include"])
 
 #env.Alias('install',[DHCAL_ROOT+"/opt/dhcal/lib"])
