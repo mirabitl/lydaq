@@ -115,7 +115,7 @@ print LIBRARY_SOURCES
 
 
 #Shared library
-lyname="lib/lydaq_app_"+package
+lyname="lib/lydaq_"+package
 print "building ",lyname
 lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
 

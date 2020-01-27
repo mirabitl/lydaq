@@ -57,12 +57,12 @@ package=os.path.basename(os.getcwd())
 Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 
 # includes
-INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
+INCLUDES=['include',LYDAQROOT+"/drivers/MgRoc/include",LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O4","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
 if (Arm or NOOCCI):
     CPPFLAGS.append("-DNO_DB")
-LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','netlink','cslm','zdaq','z','log4cxx']
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','netlink','cslm','zdaq','z','log4cxx','lydaq_MgRoc']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python
@@ -110,7 +110,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc','src/WiznetManager.cc']
-LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc','src/GricManager.cc']
+LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/GricMpi.cc','src/GricManager.cc']
 
 print LIBRARY_SOURCES
 

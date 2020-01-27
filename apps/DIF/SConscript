@@ -52,17 +52,17 @@ package=os.path.basename(os.getcwd())
 Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 
 # includes
-INCLUDES=['include',LYDAQROOT+"/apps/Gric/include",LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
+INCLUDES=['include',LYDAQROOT+"/drivers/MgRoc/include",LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
   
 CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
-LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','lydaq_Ftdi','lydaq_Dif','zdaq','z','ftdi','log4cxx','netlink','cslm']
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','lydaq_Ftdi','lydaq_Dif','lydaq_MgRoc','zdaq','z','ftdi','log4cxx','netlink','cslm']
 
 
 #Library path XDAQ,DHCAL and ROOT + Python
 if (Bit64):
   LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib",LYDAQROOT+"/apps/Gric/lib"]
 else:
-  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib",LYDAQROOT+"/apps/Gric/lib"]
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
 
 if (Use_Mongoose):
   LIBRARY_PATHS.append('/usr/local/lib')
@@ -70,7 +70,6 @@ if (Use_Mongoose):
   INCLUDES.append('/usr/local/include/')
   INCLUDES.append('/usr/local/include/mongoose')
 
-LIBRARIES.append('lydaq_app_Gric')
 Use_Oracle=False
 #os.path.exists("/usr/include/ILCConfDB")
 
