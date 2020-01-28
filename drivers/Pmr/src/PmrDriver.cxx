@@ -317,4 +317,44 @@ int32_t lydaq::PmrDriver::readData(unsigned char* tro,uint32_t size)
   return ret;
 }
 
-
+uint32_t lydaq::PmrDriver::readOneEvent(unsigned char* cbuf)
+{
+  int32_t tret=0;
+  int32_t header_size=0,idx=0,frame_size=0,trailer=0;
+  // Read Header (16 bytes)
+  while (header_size<PMR_HEADER_SIZE)
+    {
+      tret=ftdi_read_data(&theFtdi,&cbuf[idx],PMR_HEADER_SIZE);
+      if (tret==0) return 0; // No data on bus
+      header_size+=tret;
+      idx+=tret;
+    }
+  // Read Frames
+  for (;;)
+    {
+      // Read on frame or A0
+      while(frame_size <PMR_FRAME_SIZE)
+	{
+	  tret=ftdi_read_data(&theFtdi,&cbuf[idx],PMR_FRAME_SIZE);
+	  frame_size+=tret;
+	  idx+=tret;
+	  if ((tret==4) && (cbuf[idx-tret]==PMR_EVENT_STOP))
+	    {
+	      trailer=1;					
+	      break;
+	    }	
+	}
+      // Continue to next frame
+      if (trailer ==0) 
+	{
+	  frame_size=0;
+	}	
+      else	
+	{
+	  // Exit
+	  trailer=0;
+	  break;
+	}
+    }
+  return idx;
+}

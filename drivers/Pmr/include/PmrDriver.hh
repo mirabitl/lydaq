@@ -33,6 +33,17 @@
 #define PMR_PP_DIG_2_AN_REG 0x24
 #define PMR_PP_CONTROL_REG 0x25
 
+#define PMR_HEADER_SIZE 16
+#define PMR_FRAME_SIZE 160
+#define PMR_EVENT_START 0xB0
+#define PMR_EVENT_STOP 0xA0
+
+
+#define PMR_ID_SHIFT 1
+#define PMR_DTC_SHIFT 2
+#define PMR_GTC_SHIFT 6
+#define PMR_BCID_SHIFT 10
+
 namespace lydaq
 {
 class PmrDriver {
@@ -50,6 +61,7 @@ public:
   int32_t setAcquisitionMode(bool active=true,bool autoreset=true);
   int32_t resetFSM();
   int32_t readData(unsigned char* tro,uint32_t size);
+  uint32_t readOneEvent(unsigned char* cbuf);
 protected:
   struct ftdi_context theFtdi;
   uint32_t _productId;

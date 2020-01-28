@@ -1,0 +1,93 @@
+#ifndef _PMRInterface_h
+
+#define _PMRInterface_h
+#include <iostream>
+
+#include <string.h>
+#include<stdio.h>
+#include "zmPusher.hh"
+using namespace std;
+#include <sstream>
+#include <map>
+#include <vector>
+#include <boost/function.hpp>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include "ReadoutLogger.hh"
+
+
+#include "PmrDriver.hh"
+
+///< Local definition of struct
+namespace pmr {
+  
+typedef struct 
+{
+  uint32_t vendorid;
+  uint32_t productid;
+  char name[12];
+  uint32_t id;
+  uint32_t type;
+} FtdiDeviceInfo;
+
+typedef struct
+{
+  uint32_t id;
+  uint32_t status;
+  uint32_t slc;
+  uint32_t gtc;
+  uint64_t bcid;
+  uint64_t bytes;
+  char host[80];
+} DIFStatus;
+
+};
+
+namespace lydaq {
+class PMRInterface
+{
+public:
+  PMRInterface(pmr::FtdiDeviceInfo *ftd);
+  ~PMRInterface();
+  void setTransport(zdaq::zmPusher* p);
+  // initialise
+  void initialise(zdaq::zmPusher* p=NULL);
+  // configure
+ 
+  void configure(unsigned char* b, uint32_t nb);
+  // Start Stop
+  void start();
+  void readout();
+  void stop();
+  // destroy
+  void destroy();
+  // Getter and setters
+  inline pmr::DIFStatus* status() const {return _status;}
+  inline lydaq::PmrDriver* rd() const {return _rd;}
+  void setState(std::string s){_state.assign(s);}
+  inline std::string state() const {return _state;}
+  inline uint32_t* data()  {return (uint32_t*) _dsData->buffer()->ptr();}
+  
+  // run control
+  inline void setReadoutStarted(bool t){_readoutStarted=t;}
+  inline bool readoutStarted() const { return _readoutStarted;}
+  inline bool running() const { return _running;}
+  inline uint32_t detectorId() const {return _detid;}
+  inline void publishState(std::string s){setState(s);}
+
+  static uint32_t getBufferID(unsigned char* cb,uint32_t idx=0);
+  static uint32_t getBufferDTC(unsigned char* cb,uint32_t idx=0);
+  static uint32_t getBufferGTC(unsigned char* cb,uint32_t idx=0);
+  static unsigned long long getBufferABCID(unsigned char* cb,uint32_t idx=0);
+private:
+  pmr::FtdiDeviceInfo _ftd;
+  pmr::DIFStatus* _status;
+  std::string _state;
+  uint32_t _data[32768];
+  PmrDriver* _rd;
+  zdaq::zmPusher* _dsData;
+  uint32_t _detid;
+  bool _running,_readoutStarted,_readoutCompleted;
+};
+};
+#endif
