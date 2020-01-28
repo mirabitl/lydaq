@@ -4,6 +4,7 @@ Arm=os.uname()[4]=='armv7l'
 
 if (Arm):
     SConscript(['Bmp/SConscript',
+	        'Pmr/SConscript',
 	        'Dif/SConscript',
 	        'FebInj/SConscript',
                 'Ftdi/SConscript',
@@ -22,6 +23,8 @@ if (Arm):
 else:
     plist=['Dif/SConscript',
                 'Ftdi/SConscript',
+	        'Pmr/SConscript',
+	        'Dif/SConscript',
                 'Genesys/SConscript',
                 'Caen/SConscript',
                 'Mdcc/SConscript',
