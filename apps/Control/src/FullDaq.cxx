@@ -21,6 +21,7 @@ FullDaq::FullDaq(std::string name) : zdaq::baseApplication(name)
     _DIFClients.clear();
     _GRICClients.clear();
     _NDIFClients.clear();
+    _PMRClients.clear();
     _fsm=this->fsm();
     
     
@@ -242,6 +243,7 @@ void FullDaq::discover(zdaq::fsmmessage* m)
   _DIFClients.clear();
   _GRICClients.clear();
   _NDIFClients.clear();
+  _PMRClients.clear();
   Json::Value cjs=this->configuration()["HOSTS"];
   //  std::cout<<cjs<<std::endl;
   std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
@@ -431,6 +433,19 @@ void FullDaq::discover(zdaq::fsmmessage* m)
 
 	      _NDIFClients.push_back(dc);
 	    }
+	  if (p_name.compare("PMRMANAGER")==0)
+	    {
+	      fsmwebCaller* dc= new fsmwebCaller(host,port);
+	      //printf("DIF client %x \n",dc);
+	      std::string state=dc->queryState();
+	      printf("PMR client %x  %s \n",dc,state.c_str());
+	      if (state.compare("VOID")==0 && !_jConfigContent.empty())
+		{
+		  dc->sendTransition("CREATE",_jConfigContent);
+		}
+
+	      _PMRClients.push_back(dc);
+	    }
 	}
 
     }
@@ -558,6 +573,13 @@ std::string FullDaq::difstatus()
       for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
        	devlist.append(*jt);
     }
+ for (auto dc:_PMRClients)
+    {
+      dc->sendCommand("STATUS");
+      const Json::Value& jdevs=dc->answer()["DIFLIST"];
+      for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
+       	devlist.append(*jt);
+    }
   //std::cout<<devlist<<std::endl;
   Json::FastWriter fastWriter;
   return fastWriter.write(devlist);
@@ -670,6 +692,14 @@ void FullDaq::initialise(zdaq::fsmmessage* m)
       tdc->sendTransition("INITIALISE");
       fprintf(stderr,"End  of transition to GRIC \n");
     }
+  for (auto tdc:_PMRClients)
+    {
+      fprintf(stderr,"send SCAN transition to NDIF \n");
+      tdc->sendTransition("SCAN");
+      fprintf(stderr,"send INITIALISE transition to NDIF \n");
+      tdc->sendTransition("INITIALISE");
+      fprintf(stderr,"End  of transition to GRIC \n");
+    }
   // Fill status
   m->setAnswer(toJson(this->difstatus()));
 }
@@ -724,6 +754,33 @@ void FullDaq::configure(zdaq::fsmmessage* m)
     }
   // Configure NDIF
      for (auto tdc:_NDIFClients)
+    {
+      tdc->sendTransition("CONFIGURE");
+      LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"sending command DIF STATUS ");
+      tdc->sendCommand("STATUS");
+      std::cout<<"ANSWER "<<tdc->answer()<<std::endl;
+      if (!tdc->answer().empty())
+	{
+
+	  Json::Value rep=Json::Value::null;
+	  if ( tdc->answer().isMember("answer"))
+	    rep=tdc->answer()["answer"];
+	  if (rep.isMember("DIFLIST"))
+	    {
+	      //std::cout<<rep["DIFLIST"]<<"\n";
+	      const Json::Value& jdevs=rep["DIFLIST"];
+	      for (Json::ValueConstIterator it = jdevs.begin(); it != jdevs.end(); ++it)
+		{
+		  Json::Value jd;
+		  jd["detid"]=(*it)["detid"];
+		  jd["sourceid"]=(*it)["id"];
+		  jsou.append(jd);
+		} 
+	    }
+	}
+    }
+     // Configure PMR
+     for (auto tdc:_PMRClients)
     {
       tdc->sendTransition("CONFIGURE");
       LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<"sending command DIF STATUS ");
@@ -908,6 +965,11 @@ void FullDaq::start(zdaq::fsmmessage* m)
      {
       tdc->sendTransition("START");
      }
+    // PMR
+    for (auto tdc:_PMRClients)
+     {
+      tdc->sendTransition("START");
+     }
   //Start the CCC
    if (_cccClient)
      {
@@ -962,6 +1024,12 @@ void FullDaq::stop(zdaq::fsmmessage* m)
      {
       tdc->sendTransition("STOP");
      }
+
+   // Stop the PMR
+   for (auto tdc:_PMRClients)
+     {
+      tdc->sendTransition("STOP");
+     }
   ::sleep(1);
    LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<"end of STOP of TDC Status ");
   // Stop the builder
@@ -1003,6 +1071,11 @@ void FullDaq::destroy(zdaq::fsmmessage* m)
      {
       tdc->sendTransition("DESTROY");
      }
+    // Destroy the PMR
+   for (auto tdc:_PMRClients)
+     {
+      tdc->sendTransition("DESTROY");
+     }
 }
 
 FullDaq::~FullDaq() 
@@ -1025,8 +1098,10 @@ FullDaq::~FullDaq()
   _tdcClients.clear();
   for (std::vector<fsmwebCaller*>::iterator it=_NDIFClients.begin();it!=_NDIFClients.end();it++)
     delete (*it);
-  
   _NDIFClients.clear();
+  for (std::vector<fsmwebCaller*>::iterator it=_PMRClients.begin();it!=_PMRClients.end();it++)
+    delete (*it);
+  _PMRClients.clear();
   for (std::vector<fsmwebCaller*>::iterator it=_GRICClients.begin();it!=_GRICClients.end();it++)
     delete (*it);
   
@@ -1223,6 +1298,22 @@ void FullDaq::downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &res
 
 	 }
      else
+       if (_PMRClients.size()>0)
+	 {
+	   	 _dbstate=statereq;
+	 this->parameters()["db"]["dbstate"]=statereq;
+	 this->parameters()["db"]["state"]=statereq;
+	 
+	 for (auto grc:_PMRClients)
+	   {
+	     std::stringstream sp;sp<<"&state="<<statereq<<"&version="<<version;
+	     grc->sendCommand("DOWNLOADDB",sp.str());
+	   }
+	 response["STATUS"]="DONE";
+	 response["DOWNLOADBD"]=_dbstate;
+
+	 }
+     else
        {
 	 LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<< "No DB client"); response["STATUS"]="NO DB Client";return;
        }
@@ -1342,6 +1433,20 @@ void FullDaq::status(Mongoose::Request &request, Mongoose::JsonResponse &respons
 	  }
     }
   for (std::vector<fsmwebCaller*>::iterator it=_NDIFClients.begin();it!=_NDIFClients.end();it++)
+    {
+
+      (*it)->sendCommand("STATUS");
+      const Json::Value& jdevs=(*it)->answer();
+      if (jdevs.isMember("answer"))
+	if (jdevs["answer"].isMember("DIFLIST"))
+	  {
+	    const Json::Value& jdev1=jdevs["answer"]["DIFLIST"];
+	    //std::cout<<"GROS DEBUG "<<jdevs<<std::endl;
+	    for (Json::ValueConstIterator jt = jdev1.begin(); jt != jdev1.end(); ++jt)
+	      devlist.append(*jt);
+	  }
+    }
+   for (std::vector<fsmwebCaller*>::iterator it=_PMRClients.begin();it!=_PMRClients.end();it++)
     {
 
       (*it)->sendCommand("STATUS");

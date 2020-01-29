@@ -97,6 +97,7 @@ private:
   std::vector<fsmwebCaller*> _GRICClients;
   std::vector<fsmwebCaller*> _tdcClients;
   std::vector<fsmwebCaller*> _NDIFClients;
+  std::vector<fsmwebCaller*> _PMRClients;
 
   std::string _dbstate;
   uint32_t _ctrlreg,_run;
