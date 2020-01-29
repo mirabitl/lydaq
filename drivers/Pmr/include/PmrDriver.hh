@@ -39,10 +39,21 @@
 #define PMR_EVENT_STOP 0xA0
 
 
+
 #define PMR_ID_SHIFT 1
-#define PMR_DTC_SHIFT 2
-#define PMR_GTC_SHIFT 6
-#define PMR_BCID_SHIFT 10
+#define PMR_NBASIC_SHIFT 2
+#define PMR_FORMAT_SHIFT 3
+#define PMR_GTC_SHIFT 4
+#define PMR_ABCID_SHIFT 7
+#define PMR_BCID_SHIFT 13
+#define PMR_HEADER_SHIFT 16
+
+#define PmrID(a) (a[PMR_ID_SHIFT])
+#define PmrNbAsic(a) (a[PMR_NBASIC_SHIFT])
+#define PmrFormat(a) (a[PMR_FORMAT_SHIFT])
+#define PmrGTC(a) ((a[PMR_GTC_SHIFT]<<16)|(a[PMR_GTC_SHIFT+1]<<8)|(a[PMR_GTC_SHIFT+2]))
+#define PmrABCID(a) (((a[PMR_ABCID_SHIFT]<<8)|(a[PMR_ABCID_SHIFT+1]))*16777216ULL+((a[PMR_ABCID_SHIFT+2]<<24)|(a[PMR_ABCID_SHIFT+3]<<16)|(a[PMR_ABCID_SHIFT+4]<<8)|(a[PMR_ABCID_SHIFT+5])))
+#define PmrBCID(a) ((a[PMR_BCID_SHIFT]<<16)|(a[PMR_BCID_SHIFT+1]<<8)|(a[PMR_BCID_SHIFT+2]))
 
 namespace lydaq
 {

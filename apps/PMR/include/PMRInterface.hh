@@ -75,10 +75,6 @@ public:
   inline uint32_t detectorId() const {return _detid;}
   inline void publishState(std::string s){setState(s);}
 
-  static uint32_t getBufferID(unsigned char* cb,uint32_t idx=0);
-  static uint32_t getBufferDTC(unsigned char* cb,uint32_t idx=0);
-  static uint32_t getBufferGTC(unsigned char* cb,uint32_t idx=0);
-  static unsigned long long getBufferABCID(unsigned char* cb,uint32_t idx=0);
 private:
   pmr::FtdiDeviceInfo _ftd;
   pmr::DIFStatus* _status;

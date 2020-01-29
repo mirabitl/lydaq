@@ -102,8 +102,8 @@ void lydaq::PMRInterface::readout()
       //printf(" Je lis %d bytes => %d %x\n",_status->id,nread,_dsData);fflush(stdout);
       //this->publishData(nread);
       
-      _status->gtc=lydaq::PMRInterface::getBufferDTC(cbuf);
-      _status->bcid=lydaq::PMRInterface::getBufferABCID(cbuf);
+      _status->gtc=PmrGTC(cbuf);
+      _status->bcid=PmrABCID(cbuf);
       _status->bytes+=nread;
       if (_dsData==NULL) continue;;
       memcpy((unsigned char*) _dsData->payload(),cbuf,nread);
@@ -166,21 +166,3 @@ void lydaq::PMRInterface::configure(unsigned char* b,uint32_t nb)
 }
 
 
-uint32_t lydaq::PMRInterface::getBufferID(unsigned char* cb,uint32_t idx)
-{
-  return cb[idx+PMR_ID_SHIFT];
-}
-uint32_t lydaq::PMRInterface::getBufferDTC(unsigned char* cb,uint32_t idx)
-{
-  return (cb[idx+PMR_DTC_SHIFT]<<24)+(cb[idx+PMR_DTC_SHIFT+1]<<16)+(cb[idx+PMR_DTC_SHIFT+2]<<8)+cb[idx+PMR_DTC_SHIFT+3];
-}
-uint32_t lydaq::PMRInterface::getBufferGTC(unsigned char* cb,uint32_t idx)
-{
-  return (cb[idx+PMR_GTC_SHIFT]<<24)+(cb[idx+PMR_GTC_SHIFT+1]<<16)+(cb[idx+PMR_GTC_SHIFT+2]<<8)+cb[idx+PMR_GTC_SHIFT+3];
-}
-unsigned long long lydaq::PMRInterface::getBufferABCID(unsigned char* cb,uint32_t idx)
-{
-  unsigned long long Shift=16777216ULL;//to shift the value from the 24 first bits
-  unsigned long long LBC= ( (cb[idx+PMR_BCID_SHIFT]<<16) | (cb[idx+PMR_BCID_SHIFT+1]<<8) | (cb[idx+PMR_BCID_SHIFT+2]))*Shift+( (cb[idx+PMR_BCID_SHIFT+3]<<16) | (cb[idx+PMR_BCID_SHIFT+4]<<8) | (cb[idx+PMR_BCID_SHIFT+5]));
-  return LBC;
-}
