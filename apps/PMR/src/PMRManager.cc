@@ -81,7 +81,7 @@ void lydaq::PMRManager::scan(zdaq::fsmmessage* m)
   this->prepareDevices();
   std::map<uint32_t,pmr::FtdiDeviceInfo*>& fm=this->getFtdiMap();
   std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
-  //LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE clear Maps");
+ LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE clear Maps");
   for (  auto it=dm.begin();it!=dm.end();it++)
     { if (it->second!=NULL) delete it->second;}
   dm.clear();
@@ -90,8 +90,9 @@ void lydaq::PMRManager::scan(zdaq::fsmmessage* m)
   Json::Value array;
   for ( auto it=fm.begin();it!=fm.end();it++)
     {
-
+      LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"Creating "<<it->second->name);
       PMRInterface* d= new PMRInterface(it->second);
+       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"After Creating "<<it->second->name);
       this->getPMRMap().insert(std::make_pair(it->first,d));
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE created PMRInterface @ "<<std::hex<<d<<std::dec);
       Json::Value jd;
@@ -409,7 +410,7 @@ void lydaq::PMRManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
 
     }
   response["STATUS"]="DONE";
-  response["PMRLIST"]=array_slc;
+  response["DIFLIST"]=array_slc;
 
 
   return;

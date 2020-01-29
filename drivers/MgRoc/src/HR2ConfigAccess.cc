@@ -151,7 +151,7 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr,bool inverted
 	  printf("\t ===> DIF %lx ,Asic %d disabled\n",eid>>32,ias);
 	  continue;
 	}
-      printf("DIF %lx ,Asic %d Found\n",eid>>32,ias);
+      printf("DIF %llx ,Asic %d Found\n",eid,ias);
       if (!inverted)
 	memcpy(&_slcBuffer[_slcBytes],im->second.ucPtr(),109);
       else
