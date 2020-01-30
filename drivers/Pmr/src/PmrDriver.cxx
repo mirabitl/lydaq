@@ -14,7 +14,7 @@ lydaq::PmrDriver::PmrDriver(char * deviceIdentifier, uint32_t productid )
   memset(_deviceId,0,12);
   memcpy(_deviceId,deviceIdentifier,8);
   this->setup();
-
+  sscanf(deviceIdentifier,"FT101%d",&_difId);
 }
 
 lydaq::PmrDriver::~PmrDriver()     
@@ -53,6 +53,18 @@ int32_t lydaq::PmrDriver::open(char * deviceIdentifier, uint32_t productid )
       return -2;   
     }
 
+  ret=ftdi_usb_reset(&theFtdi); 
+  printf("Reset %d %s %x \n",ret,deviceIdentifier,productid);
+  ftdi_disable_bitbang(&theFtdi); 	
+  ftdi_setflowctrl(&theFtdi,SIO_DISABLE_FLOW_CTRL);
+  ftdi_set_latency_timer(&theFtdi,1); // ca marchait avec0x200 on remet 2
+
+  ftdi_write_data_set_chunksize (&theFtdi,65535);
+  ftdi_read_data_set_chunksize (&theFtdi,65535);
+  if (_productId==0x6014) ftdi_set_bitmode(&theFtdi,0,0);
+  ftdi_usb_purge_buffers(&theFtdi);
+
+  
   LOG4CXX_INFO(_logDIF,"Access open to ftdi device "<<deviceIdentifier<<" id "<<std::hex<<productid<<std::dec<<" rc:"<<ret);
   return 0;
 }
@@ -197,7 +209,8 @@ int32_t lydaq::PmrDriver::setup()
   //  printf ("test ....reg read, ret=%d , data =0x%x\n",ret,tdata);
   if (tdata!=0xABCD1234)
     LOG4CXX_ERROR(_logDIF,"Invalid Test register test 2 "<<std::hex<<tdata<<std::dec);
-
+  // Unset PowerPulsing
+  this->setPowerPulsing(false);	
   return 0;
 }
 
@@ -263,7 +276,7 @@ int32_t lydaq::PmrDriver::loadSLC(unsigned char* SLC,uint32_t slc_size)
     printf ("           SLC OK\n");
   else
     printf ("           SLC fail\n");
-  	
+
   return tdata;
 }
 
@@ -298,7 +311,7 @@ int32_t lydaq::PmrDriver::setAcquisitionMode(bool active,bool autoreset)
   if (!autoreset)
     tdata |=0x2;
   ret=registerWrite(PMR_RO_CONTROL_REG, tdata);
-  //printf ("enable acq reg write (0x%08x at 0x%x), ret=%d\n",tdata, taddr, ret);
+  printf ("enable acq reg write (0x%08x at 0x%x), ret=%d\n",tdata, PMR_RO_CONTROL_REG, ret);fflush(stdout);
 
   return 0;
 }
@@ -307,6 +320,8 @@ int32_t lydaq::PmrDriver::resetFSM()
 {
   int32_t ret;
   ret=registerWrite(PMR_RO_RESET_REG, 0x1);
+  ret=registerWrite(PMR_RO_RESET_REG, 0x0);
+  
   //	printf ("reset_FSM write (0x%08x at 0x%x), ret=%d\n",tdata, taddr, ret);
 
   return 0;
@@ -322,9 +337,11 @@ uint32_t lydaq::PmrDriver::readOneEvent(unsigned char* cbuf)
   int32_t tret=0;
   int32_t header_size=0,idx=0,frame_size=0,trailer=0;
   // Read Header (16 bytes)
+  //fprintf(stderr,"On rentre dans readOne\n");
   while (header_size<PMR_HEADER_SIZE)
     {
       tret=ftdi_read_data(&theFtdi,&cbuf[idx],PMR_HEADER_SIZE);
+      //fprintf(stderr," tret header %d \n",tret);
       if (tret==0) return 0; // No data on bus
       header_size+=tret;
       idx+=tret;
@@ -336,9 +353,10 @@ uint32_t lydaq::PmrDriver::readOneEvent(unsigned char* cbuf)
       while(frame_size <PMR_FRAME_SIZE)
 	{
 	  tret=ftdi_read_data(&theFtdi,&cbuf[idx],PMR_FRAME_SIZE);
+	  //fprintf(stderr," tret frame %d \n",tret);
 	  frame_size+=tret;
 	  idx+=tret;
-	  if ((tret==4) && (cbuf[idx-tret]==PMR_EVENT_STOP))
+	  if ((tret<160) && (cbuf[idx-4]==PMR_EVENT_STOP))
 	    {
 	      trailer=1;					
 	      break;

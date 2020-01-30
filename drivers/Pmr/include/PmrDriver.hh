@@ -34,7 +34,7 @@
 #define PMR_PP_CONTROL_REG 0x25
 
 #define PMR_HEADER_SIZE 16
-#define PMR_FRAME_SIZE 160
+#define PMR_FRAME_SIZE  20
 #define PMR_EVENT_START 0xB0
 #define PMR_EVENT_STOP 0xA0
 
@@ -73,10 +73,12 @@ public:
   int32_t resetFSM();
   int32_t readData(unsigned char* tro,uint32_t size);
   uint32_t readOneEvent(unsigned char* cbuf);
+  inline uint32_t difId(){return _difId;}
 protected:
   struct ftdi_context theFtdi;
   uint32_t _productId;
   char _deviceId[12];
+  uint32_t _difId;
 };
 };
 #endif

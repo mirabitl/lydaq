@@ -44,7 +44,7 @@ void lydaq::PMRInterface::initialise(zdaq::zmPusher* p)
     {
 
       _rd = new PmrDriver(_ftd.name,_ftd.productid);
-      
+      _status->id= _rd->difId();
     }
   catch (...)
     {
@@ -71,7 +71,7 @@ void lydaq::PMRInterface::start()
       this->publishState("START_FAILED");
       return;
     }
-  _rd->setAcquisitionMode();
+  _rd->setAcquisitionMode(true,false);
   this->publishState("STARTED");
   LOG4CXX_INFO(_logLdaq,"PMR "<<_status->id<<" is started");
   _status->bytes=0;
@@ -88,7 +88,7 @@ void lydaq::PMRInterface::stop()
       this->publishState("STOP_FAILED");
       return;
     }
-  _rd->setAcquisitionMode(false);
+  _rd->setAcquisitionMode(false,false);
   this->publishState("STOPPED");
   
 }
@@ -109,16 +109,17 @@ void lydaq::PMRInterface::readout()
   _readoutCompleted=false;
   while (_readoutStarted)
     {
-      printf("On rentre dans la boucle \n");fflush(stdout);
+      //printf("On rentre dans la boucle \n");fflush(stdout);
       if (!_running) {usleep((uint32_t) 100000);continue;}
       usleep((uint32_t) 100);
 		
 		
-      printf("Trying to read \n");fflush(stdout);
+      //printf("Trying to read \n");fflush(stdout);
       uint32_t nread=_rd->readOneEvent(cbuf);
-      printf(" Je lis %d => %d \n",_status->id,nread);
+      //printf(" Je lis %d => %d \n",_status->id,nread);
       if (nread==0) continue;
-      printf(" Je lis %d bytes => %d %x\n",_status->id,nread,_dsData);fflush(stdout);
+      _rd->resetFSM();
+      //printf(" Je lis %d bytes => %d %x\n",_status->id,nread,_dsData);fflush(stdout);
       //this->publishData(nread);
       
       _status->gtc=PmrGTC(cbuf);
@@ -126,10 +127,11 @@ void lydaq::PMRInterface::readout()
       _status->bytes+=nread;
       if (_dsData==NULL) continue;;
       memcpy((unsigned char*) _dsData->payload(),cbuf,nread);
-      printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
+      //printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
       _dsData->publish(_status->bcid,_status->gtc,nread);
-      printf(" Je publie %uud => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
-      _rd->resetFSM();
+      if (_status->gtc%50 ==0)
+	printf(" Je publie %llu => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
+      //_rd->resetFSM();
     }
   _readoutCompleted=true;
   LOG4CXX_INFO(_logLdaq,"Thread of dif "<<_status->id<<" is stopped"<<_readoutStarted);
