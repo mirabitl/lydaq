@@ -13,8 +13,8 @@ lydaq::PmrDriver::PmrDriver(char * deviceIdentifier, uint32_t productid )
   _productId=productid;
   memset(_deviceId,0,12);
   memcpy(_deviceId,deviceIdentifier,8);
-  this->setup();
   sscanf(deviceIdentifier,"FT101%d",&_difId);
+  this->setup();
 }
 
 lydaq::PmrDriver::~PmrDriver()     
@@ -210,6 +210,8 @@ int32_t lydaq::PmrDriver::setup()
   if (tdata!=0xABCD1234)
     LOG4CXX_ERROR(_logDIF,"Invalid Test register test 2 "<<std::hex<<tdata<<std::dec);
   // Unset PowerPulsing
+
+  ret=registerWrite(PMR_ID_REG,_difId);
   this->setPowerPulsing(false);	
   return 0;
 }

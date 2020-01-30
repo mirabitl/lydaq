@@ -9,6 +9,8 @@ lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("
 
   _status = new pmr::DIFStatus();
   memset(_status,0,sizeof(pmr::DIFStatus));
+
+  sscanf(ftd->name,"FT101%d",&(_status->id));
   _readoutStarted=false;
   _readoutCompleted=true;
 
@@ -123,14 +125,17 @@ void lydaq::PMRInterface::readout()
       //this->publishData(nread);
       
       _status->gtc=PmrGTC(cbuf);
-      _status->bcid=PmrABCID(cbuf);
+      unsigned long long Shift=16777216ULL;//to shift the value from the 24 first bits
+      unsigned long long LBC= ( (cbuf[PMR_ABCID_SHIFT]<<16) | (cbuf[PMR_ABCID_SHIFT+1]<<8) | (cbuf[PMR_ABCID_SHIFT+2]))*Shift+( (cbuf[PMR_ABCID_SHIFT+3]<<16) | (cbuf[PMR_ABCID_SHIFT+4]<<8) | (cbuf[PMR_ABCID_SHIFT+5]));
+
+      _status->bcid=LBC;//PmrABCID(cbuf);
       _status->bytes+=nread;
       if (_dsData==NULL) continue;;
       memcpy((unsigned char*) _dsData->payload(),cbuf,nread);
       //printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
       _dsData->publish(_status->bcid,_status->gtc,nread);
       if (_status->gtc%50 ==0)
-	printf(" Je publie %llu => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
+	printf(" Je publie %llx => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
       //_rd->resetFSM();
     }
   _readoutCompleted=true;
