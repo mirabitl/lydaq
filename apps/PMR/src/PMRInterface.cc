@@ -1,7 +1,7 @@
 #include "PMRInterface.hh"
 #include <unistd.h>
 #include <stdint.h>
-lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(100)
+lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(150)
 {
   // Creation of data structure
 

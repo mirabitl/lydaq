@@ -358,7 +358,7 @@ uint32_t lydaq::PmrDriver::readOneEvent(unsigned char* cbuf)
 	  //fprintf(stderr," tret frame %d \n",tret);
 	  frame_size+=tret;
 	  idx+=tret;
-	  if ((tret<160) && (cbuf[idx-4]==PMR_EVENT_STOP))
+	  if ((tret<PMR_FRAME_SIZE) && (cbuf[idx-4]==PMR_EVENT_STOP))
 	    {
 	      trailer=1;					
 	      break;
