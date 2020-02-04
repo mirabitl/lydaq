@@ -69,7 +69,7 @@ public:
   int32_t setup();
   int32_t loadSLC(unsigned char* SLC,uint32_t size);
   int32_t setPowerPulsing(bool enable=false,uint32_t an2d=0,uint32_t d2ac=0,uint32_t ac2d=0,uint32_t d2an=0);
-  int32_t setAcquisitionMode(bool active=true,bool autoreset=true);
+  int32_t setAcquisitionMode(bool active=true,bool autoreset=true,bool external=false);
   int32_t resetFSM();
   int32_t readData(unsigned char* tro,uint32_t size);
   uint32_t readOneEvent(unsigned char* cbuf);

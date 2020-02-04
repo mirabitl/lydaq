@@ -302,7 +302,7 @@ int32_t lydaq::PmrDriver::setPowerPulsing(bool enable,uint32_t an2d,uint32_t d2a
 
 
 
-int32_t lydaq::PmrDriver::setAcquisitionMode(bool active,bool autoreset)
+int32_t lydaq::PmrDriver::setAcquisitionMode(bool active,bool autoreset,bool external)
 {
   int32_t ret;
   uint32_t tdata;
@@ -312,6 +312,8 @@ int32_t lydaq::PmrDriver::setAcquisitionMode(bool active,bool autoreset)
     tdata = 0x01;
   if (!autoreset)
     tdata |=0x2;
+  if (external)
+    tdata |=0x4;
   ret=registerWrite(PMR_RO_CONTROL_REG, tdata);
   printf ("enable acq reg write (0x%08x at 0x%x), ret=%d\n",tdata, PMR_RO_CONTROL_REG, ret);fflush(stdout);
 

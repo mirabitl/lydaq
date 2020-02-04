@@ -75,6 +75,8 @@ public:
   inline uint32_t detectorId() const {return _detid;}
   inline void publishState(std::string s){setState(s);}
 
+  // Exteranl trigger used
+  void setExternalTrigger(bool t);
 private:
   pmr::FtdiDeviceInfo _ftd;
   pmr::DIFStatus* _status;
@@ -84,6 +86,7 @@ private:
   zdaq::zmPusher* _dsData;
   uint32_t _detid;
   bool _running,_readoutStarted,_readoutCompleted;
+  bool _external;
 };
 };
 #endif

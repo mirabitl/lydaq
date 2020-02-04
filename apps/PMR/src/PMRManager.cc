@@ -342,20 +342,23 @@ void lydaq::PMRManager::c_setchannelmask(Mongoose::Request &request, Mongoose::J
   response["LEVEL"]=level;
   response["ON"]=on;
 }
-void lydaq::PMRManager::c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response)
+void lydaq::PMRManager::c_external(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<request.get("value","0").c_str());
+  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"EXTERNAL called "<<request.get("value","0").c_str());
 
-  uint32_t  ctrlreg=0;
-  sscanf(request.get("value","0").c_str(),"%u",&ctrlreg);
-   
-  if (ctrlreg!=0)
-    this->parameters()["ctrlreg"]=ctrlreg;
-
-  fprintf(stderr,"CTRLREG %s %lx %d\n",request.get("value","0").c_str(),ctrlreg,this->parameters()["ctrlreg"].asUInt());
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<std::hex<<ctrlreg<<std::dec);
+  uint32_t external=atol(request.get("value","0").c_str());
+  if (external!=0)
+    this->parameters()["external"]=external;
+  std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
+  for ( std::map<uint32_t,PMRInterface*>::iterator it=dm.begin();it!=dm.end();it++)
+    {
+      it->second->setExternalTrigger((external==1));
+      
+    }
+  
+  //LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<"CTRLREG called "<<std::hex<<ctrlreg<<std::dec);
   response["STATUS"]="DONE";
-  response["CTRLREG"]= ctrlreg;
+  response["TRIGGEREXT"]= external;
   
 }
 void lydaq::PMRManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -420,8 +423,8 @@ void lydaq::PMRManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
 Json::Value lydaq::PMRManager::configureHR2()
 {
   /// A reecrire
-  uint32_t ctrlreg=this->parameters()["ctrlreg"].asUInt();
-  printf("CTRLREG %lx \n",ctrlreg);
+  uint32_t external=this->parameters()["external"].asUInt();
+  printf("TRigger EXT %lx \n",external);
   int32_t rc=1;
   std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
   Json::Value array_slc=Json::Value::null;
@@ -448,12 +451,7 @@ void lydaq::PMRManager::configure(zdaq::fsmmessage* m)
 {
 
   LOG4CXX_DEBUG(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
-  if (m->content().isMember("ctrlreg"))
-    {
-      this->parameters()["ctrlreg"]=m->content()["ctrlreg"].asUInt();
-    }
-  uint32_t ctrlreg=this->parameters()["ctrlreg"].asUInt();
-  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Configuring with  ctr "<<ctrlreg<<" cont "<<m->content());
+ 
   int32_t rc=1;
 
   Json::Value array_slc=this->configureHR2();
@@ -561,7 +559,7 @@ lydaq::PMRManager::PMRManager(std::string name)  : zdaq::baseApplication(name)
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::PMRManager::c_setmask,this,_1,_2));
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::PMRManager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::PMRManager::c_downloadDB,this,_1,_2));
-  _fsm->addCommand("CTRLREG",boost::bind(&lydaq::PMRManager::c_ctrlreg,this,_1,_2));
+  _fsm->addCommand("TRIGEXT",boost::bind(&lydaq::PMRManager::c_external,this,_1,_2));
 
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)

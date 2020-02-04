@@ -105,7 +105,7 @@ namespace lydaq
     void c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response);
-    void c_ctrlreg(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_external(Mongoose::Request &request, Mongoose::JsonResponse &response);
     /**
        Change the threshold on all Asics of the PMR
        @param b0 First threshold

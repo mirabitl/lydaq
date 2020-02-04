@@ -1,7 +1,7 @@
 #include "PMRInterface.hh"
 #include <unistd.h>
 #include <stdint.h>
-lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(150)
+lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(150),_external(true)
 {
   // Creation of data structure
 
@@ -15,6 +15,7 @@ lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("
   _readoutCompleted=true;
 
 }
+void lydaq::PMRInterface::setExternalTrigger(bool t) {_external=t;}
 void lydaq::PMRInterface::setTransport(zdaq::zmPusher* p)
 {
   _dsData=p;
@@ -73,7 +74,7 @@ void lydaq::PMRInterface::start()
       this->publishState("START_FAILED");
       return;
     }
-  _rd->setAcquisitionMode(true,false);
+  _rd->setAcquisitionMode(true,false,_external);
   this->publishState("STARTED");
   LOG4CXX_INFO(_logLdaq,"PMR "<<_status->id<<" is started");
   _status->bytes=0;
@@ -90,7 +91,7 @@ void lydaq::PMRInterface::stop()
       this->publishState("STOP_FAILED");
       return;
     }
-  _rd->setAcquisitionMode(false,false);
+  _rd->setAcquisitionMode(false,false,_external);
   this->publishState("STOPPED");
   
 }
