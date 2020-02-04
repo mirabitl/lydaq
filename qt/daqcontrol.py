@@ -123,8 +123,9 @@ def parseReturn(command,sr,res=None,verbose=False):
     if (command=="shmStatus" ):
         sj=json.loads(sr)
         ssj=sj["answer"]
-        print "== %10s %10s ==" % ('Run','Event')
-        print " %10d %10d " % (ssj['run'],ssj['event'])
+        #print ssj
+        print "== %10s %10s %10s ==" % ('Run','Event','Built')
+        print " %10d %10d %10d" % (ssj['run'],ssj['event'],ssj['builder']['answer']['answer']['build'])
     if (command=="state"):
         sj=json.loads(sr)
         print "== State == :",sj["STATE"]
