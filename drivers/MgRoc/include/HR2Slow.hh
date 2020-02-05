@@ -333,13 +333,17 @@ namespace lydaq {
 	setBitState(818+i,r&(1<<i));
     }
     uint8_t getHEADER(){return getByte(810);}
-    //void setHEADER(uint8_t val){setByte(810,val,8);}
+#undef HEADER_INVERTED
+#ifndef HEADER_INVERTED
+    void setHEADER(uint8_t val){setByte(810,val,8);}
+#else
      void setHEADER(uint16_t val)
     {
       uint16_t r=val&0xFF;
       for (int i=0;i<8;i++)
 	setBitState(817-i,r&(1<<i));
     }
+ #endif
     uint64_t getMASK(uint8_t level)
     {
       uint64_t mask=0;
