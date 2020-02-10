@@ -333,7 +333,7 @@ namespace lydaq {
 	setBitState(818+i,r&(1<<i));
     }
     uint8_t getHEADER(){return getByte(810);}
-#undef HEADER_INVERTED
+#define HEADER_INVERTED
 #ifndef HEADER_INVERTED
     void setHEADER(uint8_t val){setByte(810,val,8);}
 #else
