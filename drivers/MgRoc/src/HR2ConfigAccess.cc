@@ -141,7 +141,7 @@ void  lydaq::HR2ConfigAccess::prepareSlowControl(std::string ipadr,bool inverted
   _slcBytes=0;
   uint64_t eid=((uint64_t) lydaq::TdcConfigAccess::convertIP(ipadr))<<32;
   // Loop on 48 Asic maximum
-  for (int ias=1;ias<=48;ias++)
+  for (int ias=48;ias>=1;ias--)
     {
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::HR2Slow>::iterator im=_asicMap.find(eisearch);
