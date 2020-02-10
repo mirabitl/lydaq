@@ -757,7 +757,7 @@ class MongoRoc:
         """
         set Power pulsing on all ASICs
         """
-        for a in self.asics: 
+        for a in self.asiclist: 
 
             a["slc"]["CLKMUX"]=0;a["_id"]=None
             a["slc"]["SCON"]=0;a["_id"]=None
@@ -774,8 +774,7 @@ class MongoRoc:
             a["slc"]["PWRONFSB0"]=0;a["_id"]=None
             a["slc"]["PWRONFSB1"]=1;a["_id"]=None
             a["slc"]["PWRONFSB2"]=1;a["_id"]=None
-            print a.getInt("DISCRI0")
-            a.setModified(1)
+
  
 
     def HR2_ChangeThreshold(self,B0,B1,B2,idif=0,iasic=0):
