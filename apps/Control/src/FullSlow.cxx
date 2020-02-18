@@ -88,6 +88,9 @@ void  FullSlow::userCreate(zdaq::fsmmessage* m)
   else
     if (m->content().isMember("file"))
       _jConfigContent["file"]=m->content()["file"];
+    else
+      if (m->content().isMember("mongo"))
+	_jConfigContent["mongo"]=m->content()["mongo"];
 }
 
 void FullSlow::destroy(zdaq::fsmmessage* m)

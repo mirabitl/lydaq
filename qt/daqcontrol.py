@@ -1722,6 +1722,7 @@ class fdaqClient:
       Slow Control: Find FSLOW application and send a CREATE transition
       """
       lcgi={}
+      
       if (self.daq_url!=None):
           lcgi["url"]=self.daq_url
           if (self.login!="NONE"):
@@ -1729,6 +1730,9 @@ class fdaqClient:
       else:
           if (self.daq_file!=None):
               lcgi["file"]=self.daq_file
+          else:
+              if (self.daq_mongo!=None):
+                  lcgi["mongo"]=self.daq_mongo
       for x,y in self.p_conf["HOSTS"].iteritems():
           for p in y:
               if (p["NAME"] != "FSLOW"):
