@@ -5,7 +5,8 @@
 
 #include <string.h>
 #include<stdio.h>
-#include "zmPusher.hh"
+//#include "zmPusher.hh"
+#include "zmSender.hh"
 using namespace std;
 #include <sstream>
 #include <map>
@@ -49,9 +50,9 @@ class PMRInterface
 public:
   PMRInterface(pmr::FtdiDeviceInfo *ftd);
   ~PMRInterface();
-  void setTransport(zdaq::zmPusher* p);
+  void setTransport(zdaq::zmSender* p);
   // initialise
-  void initialise(zdaq::zmPusher* p=NULL);
+  void initialise(zdaq::zmSender* p=NULL);
   // configure
  
   void configure(unsigned char* b, uint32_t nb);
@@ -83,7 +84,7 @@ private:
   std::string _state;
   uint32_t _data[32768];
   PmrDriver* _rd;
-  zdaq::zmPusher* _dsData;
+  zdaq::zmSender* _dsData;
   uint32_t _detid;
   bool _running,_readoutStarted,_readoutCompleted;
   bool _external;

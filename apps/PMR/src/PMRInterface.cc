@@ -16,7 +16,7 @@ lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("
 
 }
 void lydaq::PMRInterface::setExternalTrigger(bool t) {_external=t;}
-void lydaq::PMRInterface::setTransport(zdaq::zmPusher* p)
+void lydaq::PMRInterface::setTransport(zdaq::zmSender* p)
 {
   _dsData=p;
   printf("DSDATA is %x\n",_dsData);
@@ -36,7 +36,7 @@ lydaq::PMRInterface::~PMRInterface()
       _rd=NULL;
     }
 }
-void lydaq::PMRInterface::initialise(zdaq::zmPusher* p)
+void lydaq::PMRInterface::initialise(zdaq::zmSender* p)
 {
   uint32_t difid=_ftd.id;
   //  create services

@@ -1,4 +1,6 @@
 #!/bin/bash
+rsync -axv /opt/zdaq/example/lib/ $1:/opt/dhcal/lib/
+rsync -axv /opt/zdaq/example/bin/ $1:/opt/dhcal/bin/
 rsync -axv /opt/zdaq/lib/ $1:/opt/dhcal/lib/
 rsync -axv /opt/zdaq/bin/ $1:/opt/dhcal/bin/
 rsync -axv /opt/zdaq/etc/ $1:/opt/dhcal/etc

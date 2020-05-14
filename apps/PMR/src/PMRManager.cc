@@ -191,8 +191,18 @@ void lydaq::PMRManager::initialise(zdaq::fsmmessage* m)
   for (auto x:_vDif)
     {
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<this->parameters()["publish"].asString());
+      /** Old single method
       zdaq::zmPusher* push=new zdaq::zmPusher(_context,x->detectorId(),x->status()->id);
       push->connect(this->parameters()["publish"].asString());
+      */
+
+      zdaq::zmSender* push= new zdaq::zmSender(_context,x->detectorId(),x->status()->id);
+      //ds->connect(this->parameters()["pushdata"].asString());
+      push->autoDiscover(this->configuration(),"BUILDER","collectingPort");
+      //for (uint32_t i=0;i<_mStream.size();i++)
+      //	ds->connect(_mStream[i]);
+      push->collectorRegister();
+
       x->initialise(push);
 
     }
