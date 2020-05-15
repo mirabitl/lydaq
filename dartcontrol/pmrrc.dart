@@ -51,7 +51,7 @@ class pmrRC extends daqControl {
       if (k.key != name) continue;
       for (var s in k.value) {
         var mr = json.decode(await s.sendCommand("STATUS", new Map()));
-        //print(mr);
+        print(mr);
         if (mr['status'] == "FAILED") {
           rep["${s.host_name}_${s.infos['instance']}"] = mr;
         } else
