@@ -56,7 +56,7 @@ class pmrRC extends daqControl {
           rep["${s.host_name}_${s.infos['instance']}"] = mr;
         } else
           rep["${s.host_name}_${s.infos['instance']}"] =
-              mr["answer"]["zmSenders"];
+              mr["answer"]["DIFLIST"];
       }
     }
     return json.encode(rep);
@@ -187,9 +187,9 @@ class pmrRC extends daqControl {
 
     /// Start trigger
     var s = json
-        .decode(await appMap['TRIGGER'][0].sendTransition("RESET", new Map()));
+        .decode(await appMap['MDCCSERVER'][0].sendTransition("RESET", new Map()));
     s = json.decode(
-        await appMap['TRIGGER'][0].sendTransition("ECALRESUME", new Map()));
+        await appMap['MDCCSERVER'][0].sendTransition("ECALRESUME", new Map()));
     r["TRIGGER"] = s;
     print(s);
 
