@@ -190,6 +190,7 @@ ${argParser.usage}
   }
 
   if (argResults['Command'] != "NONE" && argResults['Application'] != "NONE") {
+    print(argResults['Parameters']);
     var rep = json.decode(await d.processCommand(argResults['Command'],
         argResults['Application'], json.decode(argResults['Parameters'])));
     print(rep);

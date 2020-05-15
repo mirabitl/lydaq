@@ -100,7 +100,10 @@ class daqControl {
         print("${x.url} has NO Jobs : ${s}");
       else
         for (var pcs in m['answer']['JOBS']) {
-          //print("${pcs['NAME']} on ${pcs['HOST']}:${pcs['PORT']}");
+          if (pcs['STATUS'].split(' ')[0]=='X')
+          {
+          print(pcs); continue;
+          }
           var bapp = new FSMaccess(pcs['HOST'], int.parse(pcs['PORT']));
           await bapp.getInfo();
           //print(bapp.infos);

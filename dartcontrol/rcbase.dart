@@ -58,6 +58,8 @@ class FSMaccess {
     getInfo();
     appType = 'UNKNOWN';
     appInstance = 0;
+    infos={};
+    procInfos={};
   }
 
   /// Proc and FSM info
@@ -78,6 +80,8 @@ class FSMaccess {
       prefix = 'NONE';
       fUrl = "http://${host}:${port}/${prefix}";
       state = "FAILED";
+      pid=-1;
+      procInfos['STATE']="FAILED";
       return;
     }
 
@@ -92,7 +96,7 @@ class FSMaccess {
   ///
   Future<void> getInfo() async {
     await getProcInfo();
-
+    if (pid<0) return;
     if (isBaseApplication(procInfos)) {
       var sinf = await this.sendCommand('INFO', new Map());
       infos = json.decode(sinf)['answer']['INFO'];

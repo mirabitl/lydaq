@@ -51,12 +51,12 @@ class pmrRC extends daqControl {
       if (k.key != name) continue;
       for (var s in k.value) {
         var mr = json.decode(await s.sendCommand("STATUS", new Map()));
-        print(mr);
+        //print(mr);
         if (mr['status'] == "FAILED") {
           rep["${s.host_name}_${s.infos['instance']}"] = mr;
         } else
           rep["${s.host_name}_${s.infos['instance']}"] =
-              mr["answer"]["zmSenders"];
+              mr["answer"]["DIFLIST"];
       }
     }
     return json.encode(rep);
@@ -187,9 +187,9 @@ class pmrRC extends daqControl {
 
     /// Start trigger
     var s = json
-        .decode(await appMap['TRIGGER'][0].sendTransition("RESET", new Map()));
+        .decode(await appMap['MDCCSERVER'][0].sendTransition("RESET", new Map()));
     s = json.decode(
-        await appMap['TRIGGER'][0].sendTransition("ECALRESUME", new Map()));
+        await appMap['MDCCSERVER'][0].sendTransition("ECALRESUME", new Map()));
     r["TRIGGER"] = s;
     print(s);
 
