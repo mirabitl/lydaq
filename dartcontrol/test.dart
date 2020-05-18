@@ -2,12 +2,11 @@
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:mongo_dart/mongo_dart.dart';
+//import 'package:mongo_dart/mongo_dart.dart';
 import 'mgaccess.dart' as mg;
 
 // Create a class for Point.
 class Point {
-
   // Final variables cannot be changed once they are assigned.
   // Create two instance variables.
   num x, y;
@@ -30,7 +29,7 @@ class Point {
 
   // Example of Operator Overloading
   Point operator +(Point other) => Point(x + other.x, y + other.y);
-  // When you instantiate a class such as Point in Dart 2+, new is 
+  // When you instantiate a class such as Point in Dart 2+, new is
   // an optional word
 }
 
@@ -39,23 +38,22 @@ void main() async {
   // Instantiate point objects.
   var p1 = Point(10, 10);
   var p2 = Point.origin();
-  for( var i = 1 ; i <= 10000000; i++ ) { 
-        p1.x=p1.x+1.0*math.sqrt(p1.y);
-	p1.y=p1.y+1.0*math.sqrt(p1.x);	
-	
-        var distance = p1.distanceTo(p2);
-	 // print(distance);
-   } 
+  for (var i = 1; i <= 10000000; i++) {
+    p1.x = p1.x + 1.0 * math.sqrt(p1.y);
+    p1.y = p1.y + 1.0 * math.sqrt(p1.x);
 
+    var distance = p1.distanceTo(p2);
+    print(distance);
+  }
 
-var rep=await http.read('http://lyocmsmu04:9999');
+  var rep = await http.read('http://lyocmsmu04:9999');
 
-final decoded = json.decode(rep);
+  final decoded = json.decode(rep);
 //print(decoded);
-decoded.forEach((k,v) => print('${k}: ${v}'));
-int pid=decoded['PID'].toInt();
+  decoded.forEach((k, v) => print('${k}: ${v}'));
+  int pid = decoded['PID'].toInt();
 
-print('the pid of the job control is ${pid}');
+  print('the pid of the job control is ${pid}');
 
 /*
 var url = 'https://example.com/whatsit/create';
@@ -78,9 +76,10 @@ Db db =
   conf.forEach((v) => print(json.encode(v['content'])));
   await db.close();
 */
-  mg.MongoAccess m = new mg.MongoAccess("mongodb://acqilc:RPC_2008@lyocmsmu04:27017/LYONROC");
+  mg.MongoAccess m =
+      new mg.MongoAccess("mongodb://acqilc:RPC_2008@lyocmsmu04:27017/LYONROC");
   await m.open();
   await m.listConfigurations();
-  await m.downloadConfiguration("daq_*",6);
+  await m.downloadConfiguration("daq_*", 6);
   await m.close();
 }
