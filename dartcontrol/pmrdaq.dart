@@ -32,7 +32,7 @@ void main(List<String> arguments) async {
         abbr: 'p', defaultsTo: "{}", help: "Parameters list")
     ..addOption('run', defaultsTo: '0')
     ..addOption('setup', defaultsTo: 'UNKNOWN')
-    ..addOption('comment', defaultsTo: 'Test run')
+    ..addOption('comment', defaultsTo: 'NOTSET')
     ..addFlag('infos',
         abbr: 'i',
         negatable: false,
@@ -179,8 +179,17 @@ ${argParser.usage}
     print(rep);
   }
   if (argResults['daqcontrol'] && argResults['start']) {
+    String sloc = argResults['setup'];
+    if (sloc == "UNKNOWN" && Platform.environment.containsKey('DAQSETUP'))
+      sloc = Platform.environment['DAQSETUP'];
+    String scomment = argResults['comment'];
+    if (argResults['comment'] == 'NOTSET') {
+      print("Please enter a comment for this run");
+      var line = stdin.readLineSync(encoding: Encoding.getByName('utf-8'));
+      scomment = line;
+    }
     var rep = json.decode(await d.daq_start(int.parse(argResults['run']),
-        location: argResults['setup'], comment: argResults['comment']));
+        location: sloc, comment: scomment));
     print(rep);
   }
 
