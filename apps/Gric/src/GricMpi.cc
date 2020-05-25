@@ -122,8 +122,9 @@ bool lydaq::GricMpi::processPacket()
 	 _lastABCID = ((uint64_t) _buf[9] <<48)|((uint64_t) _buf[10] <<32)|((uint64_t) _buf[11] <<24)|((uint64_t) _buf[12] <<16)|((uint64_t) _buf[13] <<8)|((uint64_t) _buf[14]);
 
 	 // Write Event
-   _chlines=(ntohs(_sBuf[0])-16)/20;
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Writing completed Event"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<std::hex<<_id<<std::dec);
+	 _chlines=(ntohs(_sBuf[0])-16)/20;
+	 if (_event%100==0)
+	   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Writing completed Event"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<std::hex<<_id<<std::dec);
 	 // To be done
 	 this->processEventGric();
 	 //fprintf(stderr,"Event send \n");
