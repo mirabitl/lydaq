@@ -77,8 +77,21 @@ void lydaq::GricMpi::connect(zmq::context_t* c,std::string dest)
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmPusher(c,_detid,_id);
+  _dsData = new zdaq::zmSender(c,_detid,_id);
   _dsData->connect(dest);
+}
+
+
+void lydaq::GricMpi::autoRegister(zmq::context_t* c,Json::Value config,std::string appname,std::string portname)
+{
+  if (_dsData!=NULL)
+    delete _dsData;
+  _dsData = new zdaq::zmSender(c,_detid,_id);
+  _dsData->autoDiscover(config,appname,portname);//
+      //for (uint32_t i=0;i<_mStream.size();i++)
+      //	ds->connect(_mStream[i]);
+  _dsData->collectorRegister();
+
 }
 void lydaq::GricMpi::clear()
 {

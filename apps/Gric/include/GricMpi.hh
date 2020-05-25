@@ -1,6 +1,6 @@
 #ifndef _GRICMPI_HH
 #define _GRICMPI_HH
-#include "zmPusher.hh"
+#include "zmSender.hh"
 #define GRIC_VERSION 140
 #include <iostream>
 #include <list>
@@ -44,6 +44,7 @@ public:
   inline uint32_t address(){return _adr;}
   void clear();
   void connect(zmq::context_t* c,std::string dest);
+  void autoRegister(zmq::context_t* c,Json::Value config,std::string appname,std::string portname);
 private:
   uint32_t _adr,_idx,_chlines;
   uint8_t _buf[MBSIZE];
@@ -52,7 +53,7 @@ private:
   uint64_t _lastABCID;
   uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
   uint32_t _nProcessed;
-  zdaq::zmPusher* _dsData;
+  zdaq::zmSender* _dsData;
   uint8_t _triggerId;
   // temporary buffer
   uint8_t _b[0x1000000];

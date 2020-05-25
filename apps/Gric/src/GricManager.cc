@@ -396,6 +396,8 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        _mpi->registerDataHandler(idif->second,lydaq::MpiInterface::PORT::SENSOR,boost::bind(&lydaq::GricMpi::processBuffer, _gric,_1,_2,_3));
 
        _vGric.push_back(_gric);
+
+       
        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
      }
    //std::string network=
@@ -414,7 +416,8 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
        return;
     }
   for (auto x:_vGric)
-    x->connect(_context,this->parameters()["publish"].asString());
+    x->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
+    //x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All Gric sockets
   _mpi->listen();
