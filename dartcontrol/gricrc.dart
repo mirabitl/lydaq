@@ -55,7 +55,7 @@ class gricRC extends daqControl {
           rep["${s.host_name}_${s.infos['instance']}"] = mr;
         } else
           rep["${s.host_name}_${s.infos['instance']}"] =
-              mr["answer"]["DIFLIST"];
+              mr["answer"]["GRICSTATUS"];
       }
     }
     return json.encode(rep);

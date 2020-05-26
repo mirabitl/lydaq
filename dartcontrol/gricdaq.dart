@@ -114,7 +114,10 @@ ${argParser.usage}
         if (x.key != "builder")
           print("\t ${x.key} ${x.value}");
         else {
-          if (x.value != null) for (var y in x.value) print("\t \t ${y}");
+          if (x.value != null) for (var y in x.value)
+	  {
+	  print("\t \t ID ${int.parse(y['id'].split('-')[2]).toRadixString(16)} => ${y['received']}");
+	  }
         }
     }
   }
