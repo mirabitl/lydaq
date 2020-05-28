@@ -146,6 +146,21 @@ class gricRC extends daqControl {
     return json.encode(r);
   }
 
+  ///
+  /// DESTROY
+  ///
+  Future<String> daq_destroy() async {
+    Map r = new Map();
+
+    /// Stop GRICSERVER
+    for (var x in appMap['GRICSERVER']) {
+      var s = json.decode(await x.sendTransition("DESTROY", new Map()));
+      r["GRICSERVER_${x.appInstance}"] = s;
+    }
+
+    return json.encode(r);
+  }
+
   /// Start
   Future<String> daq_start(int run,
       {String location = "UNKNOWN", String comment = "Not set"}) async {

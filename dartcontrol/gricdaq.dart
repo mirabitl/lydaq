@@ -114,10 +114,11 @@ ${argParser.usage}
         if (x.key != "builder")
           print("\t ${x.key} ${x.value}");
         else {
-          if (x.value != null) for (var y in x.value)
-	  {
-	  print("\t \t ID ${int.parse(y['id'].split('-')[2]).toRadixString(16)} => ${y['received']}");
-	  }
+          if (x.value != null)
+            for (var y in x.value) {
+              print(
+                  "\t \t ID ${int.parse(y['id'].split('-')[2]).toRadixString(16)} => ${y['received']}");
+            }
         }
     }
   }
@@ -174,6 +175,10 @@ ${argParser.usage}
 
   if (argResults['daqcontrol'] && argResults['initialise']) {
     var rep = json.decode(await d.daq_initialise());
+    print(rep);
+  }
+  if (argResults['daqcontrol'] && argResults['destroy']) {
+    var rep = json.decode(await d.daq_destroy());
     print(rep);
   }
 
