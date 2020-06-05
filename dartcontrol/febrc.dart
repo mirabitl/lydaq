@@ -97,6 +97,81 @@ class febRC extends daqControl {
     return await processCommand("CAL6BDAC", "TDCSERVER", param);
   }
 
+  ///setVthTime
+  ///
+  Future<String> setVthTime(int Threshold) async {
+    Map param = new Map();
+    param["value"] = Threshold;
+    return await processCommand("SETVTHTIME", "TDCSERVER", param);
+  }
+
+  ///setTdcMode
+  ///
+  Future<String> setTdcMode(int mode) async {
+    Map param = new Map();
+    param["value"] = mode;
+    return await processCommand("SETMODE", "TDCSERVER", param);
+  }
+
+  ///setTdcDelays
+  ///
+  Future<String> setTdcDelays(int active, int dead) async {
+    Map param = new Map();
+    param["value"] = active;
+    var sact = await processCommand("SETDELAY", "TDCSERVER", param);
+    Map r = new Map();
+    r["active"] = json.decode(sact);
+    param["value"] = dead;
+    var sdead = await processCommand("SETDURATION", "TDCSERVER", param);
+    r["dead"] = json.decode(sdead);
+    return json.encode(r);
+  }
+
+  ///setTdcMask
+  ///
+  Future<String> setTdcMask(int channelmask, int asicmask) async {
+    Map param = new Map();
+    param["value"] = channelmask;
+    param["asic"] = asicmask;
+    return await processCommand("SETMASK", "TDCSERVER", param);
+  }
+
+  /// tdcLUTCalib
+  ///
+  Future<String> tdcLUTCalib(int instance, int channel) async {
+    if (!appMap.containsKey("TDCSERVER"))
+      return '{"answer":"NOTDCSERVER","status":"FAILED"}';
+    if (appMap["TDCSERVER"].length <= instance)
+      return '{"answer":"InvalidInstance","status":"FAILED"}';
+    var tdc = appMap["TDCSERVER"][instance];
+
+    int n = (1 << channel);
+    Map param = new Map();
+    param["value"] = n.toRadixString(16);
+    Map r = new Map();
+    r["cal_mask"] = json.decode(await tdc.sendCommand("CALIBMASK", param));
+    r["cal_status"] = json.decode(await tdc.sendCommand("CALIBSTATUS", param));
+    return json.encode(r);
+  }
+  
+  /// tdcLUTMask
+  ///
+  Future<String> tdcLUTMask(int instance, int channel) async {
+    if (!appMap.containsKey("TDCSERVER"))
+      return '{"answer":"NOTDCSERVER","status":"FAILED"}';
+    if (appMap["TDCSERVER"].length <= instance)
+      return '{"answer":"InvalidInstance","status":"FAILED"}';
+    var tdc = appMap["TDCSERVER"][instance];
+
+    int n = (1 << channel);
+    Map param = new Map();
+    param["value"] = n.toRadixString(16);
+    Map r = new Map();
+    r["test_mask"] = json.decode(await tdc.sendCommand("TESTMASK", param));
+    r["cal_status"] = json.decode(await tdc.sendCommand("CALIBSTATUS", param));
+    return json.encode(r);
+  }
+
   /// DAQ
   ///
   /// Initialise
