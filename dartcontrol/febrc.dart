@@ -172,6 +172,12 @@ class febRC extends daqControl {
     return json.encode(r);
   }
 
+
+  /// febSCurve
+  /// 
+  Future<String> febSCurve(int ntrg,int ncon,int ncoff,int thmin,int thmax,int mask,int  step) async {
+    
+  }
   /// DAQ
   ///
   /// Initialise

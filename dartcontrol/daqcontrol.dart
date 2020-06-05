@@ -14,15 +14,13 @@ class daqControl {
   final _log = Logger('daqControl');
 
   mg.MongoAccess _mongoAccess;
+
   /// getters
   ///
   ///
-   mg.MongoAccess get mongoAccess
-   {
-     return _mongoAccess;
-   }
-
-
+  mg.MongoAccess get mongoAccess {
+    return _mongoAccess;
+  }
 
   Map get appMap {
     return _appMap;
@@ -100,9 +98,9 @@ class daqControl {
         print("${x.url} has NO Jobs : ${s}");
       else
         for (var pcs in m['answer']['JOBS']) {
-          if (pcs['STATUS'].split(' ')[0]=='X')
-          {
-          print(pcs); continue;
+          if (pcs['STATUS'].split(' ')[0] == 'X') {
+            print(pcs);
+            continue;
           }
           var bapp = new FSMaccess(pcs['HOST'], int.parse(pcs['PORT']));
           await bapp.getInfo();
@@ -206,6 +204,7 @@ class daqControl {
     return await this.jc_command("APPCREATE", new Map());
   }
 
+  /// Standard command
   Future<String> processCommand(String cmd, String appname, Map param) async {
     Map r = new Map();
 
@@ -220,5 +219,175 @@ class daqControl {
     }
 
     return json.encode(r);
+  }
+
+  ///  MDCC specific
+  ///
+  /// Status
+  ///
+  Future<String> mdcc_Status() async {
+    Map param = new Map();
+    return await processCommand("STATUS", "MDCCSERVER", param);
+  }
+
+  /// Pause
+  ///
+  Future<String> mdcc_Pause() async {
+    Map param = new Map();
+    return await processCommand("PAUSE", "MDCCSERVER", param);
+  }
+
+  /// Resume
+  ///
+  Future<String> mdcc_Resume() async {
+    Map param = new Map();
+    return await processCommand("RESUME", "MDCCSERVER", param);
+  }
+
+  /// ECAL Pause
+  ///
+  Future<String> mdcc_EcalPause() async {
+    Map param = new Map();
+    return await processCommand("ECALPAUSE", "MDCCSERVER", param);
+  }
+
+  /// ECAL Resume
+  ///
+  Future<String> mdcc_EcalResume() async {
+    Map param = new Map();
+    return await processCommand("ECALRESUME", "MDCCSERVER", param);
+  }
+
+  /// Calib On
+  ///
+  Future<String> mdcc_CalibOn() async {
+    Map param = new Map();
+    return await processCommand("CALIBON", "MDCCSERVER", param);
+  }
+
+  /// Calib Off
+  ///
+  Future<String> mdcc_CalibOff() async {
+    Map param = new Map();
+    return await processCommand("CALIBOFF", "MDCCSERVER", param);
+  }
+
+  /// Reload Calibration count
+  ///
+  Future<String> mdcc_ReloadCalibCount() async {
+    Map param = new Map();
+    return await processCommand("RELOADCALIB", "MDCCSERVER", param);
+  }
+
+  /// Set Calibration count
+  ///
+  Future<String> mdcc_setCalibCount(int nclock) async {
+    Map param = new Map();
+    param["nclock"] = nclock;
+    return await processCommand("SETCALIBCOUNT", "MDCCSERVER", param);
+  }
+
+  /// Reset
+  ///
+  Future<String> mdcc_Reset() async {
+    Map param = new Map();
+    return await processCommand("RESET", "MDCCSERVER", param);
+  }
+
+  /// read register
+  ///
+  Future<String> mdcc_ReadRegister(int address) async {
+    Map param = new Map();
+    param["address"] = address;
+    return await processCommand("READREG", "MDCCSERVER", param);
+  }
+
+  /// Write register
+  ///
+  Future<String> mdcc_WriteRegister(int address, int value) async {
+    Map param = new Map();
+    param["address"] = address;
+    param["value"] = value;
+    return await processCommand("WRITEREG", "MDCCSERVER", param);
+  }
+
+  /// set Spill on length
+  ///
+  Future<String> mdcc_setSpillOn(int nclock) async {
+    Map param = new Map();
+    param["nclock"] = nclock;
+    return await processCommand("SPILLON", "MDCCSERVER", param);
+  }
+
+  /// set Spill off length
+  ///
+  Future<String> mdcc_setSpillOff(int nclock) async {
+    Map param = new Map();
+    param["nclock"] = nclock;
+    return await processCommand("SPILLOFF", "MDCCSERVER", param);
+  }
+
+  /// set Reset TDC bit
+  ///
+  Future<String> mdcc_setResetTdcBit(int value) async {
+    Map param = new Map();
+    param["value"] = value;
+    return await processCommand("RESETTDC", "MDCCSERVER", param);
+  }
+
+  /// reset TDC
+  ///
+  Future<String> mdcc_resetTdc(int nclock) async {
+    await mdcc_setResetTdcBit(0);
+    return await mdcc_setResetTdcBit(1);
+  }
+
+  /// set Beam On length
+  ///
+  Future<String> mdcc_setBeamOn(int nclock) async {
+    Map param = new Map();
+    param["nclock"] = nclock;
+    return await processCommand("BEAMON", "MDCCSERVER", param);
+  }
+
+  /// set HardReset
+  ///
+  Future<String> mdcc_setHardReset(int value) async {
+    Map param = new Map();
+    param["value"] = value;
+    return await processCommand("SETHARDRESET", "MDCCSERVER", param);
+  }
+
+  /// set Spill Register
+  ///
+  Future<String> mdcc_setSpillRegister(int value) async {
+    Map param = new Map();
+    param["value"] = value;
+    return await processCommand("SETSPILLREGISTER", "MDCCSERVER", param);
+  }
+
+  /// set External Trigger delay
+  ///
+  Future<String> mdcc_setExternal(int value) async {
+    Map param = new Map();
+    param["value"] = value;
+    return await processCommand("SETEXTERNAL", "MDCCSERVER", param);
+  }
+
+  /// set Calibration Register
+  ///
+  Future<String> mdcc_setCalibRegister(int value) async {
+    Map param = new Map();
+    param["value"] = value;
+    return await processCommand("SETCALIBREGISTER", "MDCCSERVER", param);
+  }
+
+  /// set trigger external delays
+  ///
+  Future<String> mdcc_setTriggerDelays(int delay, int busy) async {
+    Map param = new Map();
+    param["delay"] = delay;
+    param["busy"] = busy;
+    return await processCommand("SETTRIGEXT", "MDCCSERVER", param);
   }
 }
