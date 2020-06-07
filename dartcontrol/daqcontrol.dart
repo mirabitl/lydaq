@@ -390,4 +390,17 @@ class daqControl {
     param["busy"] = busy;
     return await processCommand("SETTRIGEXT", "MDCCSERVER", param);
   }
+
+  /// Builder specific
+  ///
+  /// RUn Header
+  Future<String> builder_setHeader(int type, int value, int mask) async {
+    Map param = new Map();
+    List<int> l = new List(3);
+    l[0] = type;
+    l[1] = value;
+    l[2] = mask;
+    param["header"] = l;
+    return await processCommand("SETHEADER", "BUILDER", param);
+  }
 }
