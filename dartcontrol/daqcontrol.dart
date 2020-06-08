@@ -260,8 +260,9 @@ class daqControl {
 
   /// Calib On
   ///
-  Future<String> mdcc_CalibOn() async {
+  Future<String> mdcc_CalibOn(int value) async {
     Map param = new Map();
+    param["value"]=value;
     return await processCommand("CALIBON", "MDCCSERVER", param);
   }
 

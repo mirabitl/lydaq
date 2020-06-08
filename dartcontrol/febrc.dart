@@ -176,7 +176,58 @@ class febRC extends daqControl {
   /// febSCurve
   /// 
   Future<String> febSCurve(int ntrg,int ncon,int ncoff,int thmin,int thmax,int mask,int  step) async {
-    
+    mdcc_Pause();
+    mdcc_setSpillOn(ncon);
+    print(" Clock On ${ncon} Off ${ncoff}"); 
+      mdcc_setSpillOff(ncoff);
+      mdcc_setSpillRegister(4);
+      mdcc_CalibOn(1);
+      mdcc_setCalibCount(ntrg);
+      mdcc_Status();
+      int thrange=(thmax-thmin+1)~/step;
+      for (int vth=0;vth<=thrange;vth++) {
+        mdcc_Pause();
+        setVthTime(thmax-vth*step);
+        builder_setHeader(2, thmax-vth*step, 0xFF);
+        /// Check Lat built event
+        /// Resume Calibration
+        mdcc_ReloadCalibCount();
+          mdcc_Resume();
+          mdcc_Status();
+        /// Wait for ntrg events capture
+      /// End of point
+        mdcc_Calibon(0);
+      mdcc_Pause();
+      }
+          if ( not self.scurve_running):
+              break;
+
+  
+         
+          #self.feb_setmask(mask)
+          #self.daq_setrunheader(2,(thmax-vth*step))
+          self.daq_setrunheader(2,xi)
+          # check current evb status
+          sr=self.daq_evbstatus()
+          sj=json.loads(sr)
+          ssj=sj["answer"]
+          firstEvent=int(ssj["event"])
+          time.sleep(0.1)
+          
+          
+          lastEvent=firstEvent
+          nloop=0;
+          while (lastEvent<(firstEvent+ntrg-20)):
+              sr=self.daq_evbstatus()
+              sj=json.loads(sr)
+              ssj=sj["answer"]
+              lastEvent=int(ssj["event"])
+              print firstEvent,lastEvent,xi
+              time.sleep(0.5)
+              nloop=nloop+1
+              if (nloop>20):
+                  break
+      
   }
   /// DAQ
   ///
