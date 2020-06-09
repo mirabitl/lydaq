@@ -1,6 +1,7 @@
 import 'daqcontrol.dart';
 //import 'rcbase.dart';
 import 'dart:convert';
+import 'dart:io';
 
 class febRC extends daqControl {
   /// Constructor
@@ -153,82 +154,74 @@ class febRC extends daqControl {
     r["cal_status"] = json.decode(await tdc.sendCommand("CALIBSTATUS", param));
     return json.encode(r);
   }
-  
+
   /// tdcLUTMask
   ///
-  Future<String> tdcLUTMask(int instance, int channel) async {
+  Future<String> tdcLUTMask(int instance, int mask) async {
     if (!appMap.containsKey("TDCSERVER"))
       return '{"answer":"NOTDCSERVER","status":"FAILED"}';
     if (appMap["TDCSERVER"].length <= instance)
       return '{"answer":"InvalidInstance","status":"FAILED"}';
     var tdc = appMap["TDCSERVER"][instance];
 
-    int n = (1 << channel);
     Map param = new Map();
-    param["value"] = n.toRadixString(16);
+    param["value"] = mask.toRadixString(16);
     Map r = new Map();
     r["test_mask"] = json.decode(await tdc.sendCommand("TESTMASK", param));
     r["cal_status"] = json.decode(await tdc.sendCommand("CALIBSTATUS", param));
     return json.encode(r);
   }
 
-
   /// febSCurve
-  /// 
-  Future<String> febSCurve(int ntrg,int ncon,int ncoff,int thmin,int thmax,int mask,int  step) async {
+  ///
+  Future<String> febSCurve(int ntrg, int ncon, int ncoff, int thmin, int thmax,
+      int mask, int step) async {
+    Map r = new Map();
     mdcc_Pause();
     mdcc_setSpillOn(ncon);
-    print(" Clock On ${ncon} Off ${ncoff}"); 
-      mdcc_setSpillOff(ncoff);
-      mdcc_setSpillRegister(4);
-      mdcc_CalibOn(1);
-      mdcc_setCalibCount(ntrg);
-      mdcc_Status();
-      int thrange=(thmax-thmin+1)~/step;
-      for (int vth=0;vth<=thrange;vth++) {
-        mdcc_Pause();
-        setVthTime(thmax-vth*step);
-        builder_setHeader(2, thmax-vth*step, 0xFF);
-        /// Check Lat built event
-        /// Resume Calibration
-        mdcc_ReloadCalibCount();
-          mdcc_Resume();
-          mdcc_Status();
-        /// Wait for ntrg events capture
-      /// End of point
-        mdcc_Calibon(0);
+    print(" Clock On ${ncon} Off ${ncoff}");
+    mdcc_setSpillOff(ncoff);
+    mdcc_setSpillRegister(4);
+    mdcc_CalibOn(1);
+    mdcc_setCalibCount(ntrg);
+    mdcc_Status();
+    int thrange = (thmax - thmin + 1) ~/ step;
+    for (int vth = 0; vth <= thrange; vth++) {
       mdcc_Pause();
+      setVthTime(thmax - vth * step);
+      sleep(const Duration(milliseconds: 100));
+      builder_setHeader(2, thmax - vth * step, 0xFF);
+
+      /// Check Last built event
+      var sr = json.decode(await BuilderStatus());
+      int firstEvent = sr["event"];
+
+      /// Resume Calibration
+      mdcc_ReloadCalibCount();
+      mdcc_Resume();
+      mdcc_Status();
+
+      /// Wait for ntrg events capture
+      int lastEvent = firstEvent;
+      int nloop = 0;
+      while (lastEvent < (firstEvent + ntrg - 20)) {
+        sr = json.decode(await BuilderStatus());
+        lastEvent = sr["event"];
+        print(" First ${firstEvent} Last ${lastEvent} Step ${vth}");
+        sleep(const Duration(milliseconds: 200));
+        nloop++;
+        if (nloop > 20) break;
       }
-          if ( not self.scurve_running):
-              break;
+      r["${thmax - vth * step}"] = lastEvent - firstEvent + 1;
+
+      /// End of point
+      mdcc_CalibOn(0);
+      mdcc_Pause();
+    }
+    return json.encode(r);
+  }
 
   
-         
-          #self.feb_setmask(mask)
-          #self.daq_setrunheader(2,(thmax-vth*step))
-          self.daq_setrunheader(2,xi)
-          # check current evb status
-          sr=self.daq_evbstatus()
-          sj=json.loads(sr)
-          ssj=sj["answer"]
-          firstEvent=int(ssj["event"])
-          time.sleep(0.1)
-          
-          
-          lastEvent=firstEvent
-          nloop=0;
-          while (lastEvent<(firstEvent+ntrg-20)):
-              sr=self.daq_evbstatus()
-              sj=json.loads(sr)
-              ssj=sj["answer"]
-              lastEvent=int(ssj["event"])
-              print firstEvent,lastEvent,xi
-              time.sleep(0.5)
-              nloop=nloop+1
-              if (nloop>20):
-                  break
-      
-  }
   /// DAQ
   ///
   /// Initialise
