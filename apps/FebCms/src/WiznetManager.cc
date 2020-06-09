@@ -125,9 +125,9 @@ void lydaq::WiznetManager::c_cal6bdac(Mongoose::Request &request, Mongoose::Json
 
   uint32_t mask = atol(request.get("mask", "4294967295").c_str());
   int32_t shift = atol(request.get("shift", "0").c_str());
-  LOG4CXX_INFO(_logFeb, "cal6bdac called with mask=" << mask<<" Shift:"<<shift);
+  LOG4CXX_INFO(_logFeb, "cal6bdac called with mask=" << mask << " Shift:" << shift);
 
-  this->cal6bDac(mask,shift);
+  this->cal6bDac(mask, shift);
   response["6BDAC"] = _jControl;
 }
 void lydaq::WiznetManager::c_setvthtime(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -153,7 +153,7 @@ void lydaq::WiznetManager::c_set1vthtime(Mongoose::Request &request, Mongoose::J
   response["VTH"] = vth;
   response["FEB"] = feb;
   response["ASIC"] = asic;
-  response["1VTH"]=_jControl;
+  response["1VTH"] = _jControl;
 }
 void lydaq::WiznetManager::c_setMask(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -199,7 +199,7 @@ void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::Json
   _delay = delay;
   this->setDelay();
   LOG4CXX_INFO(_logFeb, "SetDelay called with " << delay << " " << _delay);
-  response["DELAY"] =_delay;
+  response["DELAY"] = _delay;
 }
 void lydaq::WiznetManager::c_getLUT(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -244,19 +244,17 @@ void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::Js
   response["STATUS"] = "DONE";
 
   std::string dbstate = request.get("state", "NONE");
-  uint32_t version=atol(request.get("version","0").c_str());
+  uint32_t version = atol(request.get("version", "0").c_str());
 
   Json::Value jTDC = this->parameters()["tdc"];
   if (jTDC.isMember("db"))
   {
     Json::Value jTDCdb = jTDC["db"];
     _tca->clear();
-    if (jTDCdb["mode"].asString().compare("mongo")!=0)
+    if (jTDCdb["mode"].asString().compare("mongo") != 0)
       _tca->parseDb(dbstate, jTDCdb["mode"].asString());
     else
       _tca->parseMongoDb(dbstate, version);
-
-    
   }
   LOG4CXX_INFO(_logFeb, "DownloadDB called  for " << dbstate);
 
@@ -310,7 +308,7 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
   if (jTDC.isMember("db"))
   {
     Json::Value jTDCdb = jTDC["db"];
-    if (jTDCdb["mode"].asString().compare("mongo")!=0)
+    if (jTDCdb["mode"].asString().compare("mongo") != 0)
       _tca->parseDb(jTDCdb["state"].asString(), jTDCdb["mode"].asString());
     else
       _tca->parseMongoDb(jTDCdb["state"].asString(), jTDCdb["version"].asUInt());
@@ -355,15 +353,14 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
   {
     this->parameters()["publish"] = m->content()["publish"];
   }
-  if (!this->parameters().isMember("publish"))
+  if (this->parameters().isMember("publish"))
   {
-
-    LOG4CXX_ERROR(_logFeb, __PRETTY_FUNCTION__ << " No publish tag found ");
-    return;
+    for (auto x : _vTdc)
+      x->connect(_context, this->parameters()["publish"].asString());
   }
   else
     for (auto x : _vTdc)
-      x->connect(_context, this->parameters()["publish"].asString());
+      x->autoRegister(_context, this->configuration(), "BUILDER", "collectingPort");
 
   // Listen All Wiznet sockets
   _wiznet->listen();
@@ -442,35 +439,37 @@ void lydaq::WiznetManager::set6bDac(uint8_t dac)
 
   ::usleep(50000);
 }
-void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
+void lydaq::WiznetManager::cal6bDac(uint32_t mask, int32_t dacShift)
 {
-  LOG4CXX_INFO(_logFeb, "CAL6BDAC called "<<mask<<" Shift "<<dacShift);
+  LOG4CXX_INFO(_logFeb, "CAL6BDAC called " << mask << " Shift " << dacShift);
   //::usleep(50000);
-  std::map<uint64_t,uint16_t*> ascopy;
+  std::map<uint64_t, uint16_t *> ascopy;
   // Modify ASIC SLC
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
   {
 
-    if (ascopy.find(it->first)==ascopy.end())
-      {
-	uint16_t* b=new uint16_t[32];
-	std::pair<uint64_t,uint16_t*> p(it->first,b);
-	ascopy.insert(p);
-      }
-    auto ic=ascopy.find(it->first);
+    if (ascopy.find(it->first) == ascopy.end())
+    {
+      uint16_t *b = new uint16_t[32];
+      std::pair<uint64_t, uint16_t *> p(it->first, b);
+      ascopy.insert(p);
+    }
+    auto ic = ascopy.find(it->first);
     for (int i = 0; i < 32; i++)
     {
-      ic->second[i]=it->second.get6bDac(i);
-      if ((mask>>i)&1)
-	{
-	  uint32_t dac=it->second.get6bDac(i);
-	  int32_t ndac=dac+dacShift;
-	  if (ndac<0) ndac=0;
-	  if (ndac>63) ndac=63;
-	  std::cout<<"channel "<<i<<" DAC "<<dac<<" shifted to "<<ndac<<std::endl;
+      ic->second[i] = it->second.get6bDac(i);
+      if ((mask >> i) & 1)
+      {
+        uint32_t dac = it->second.get6bDac(i);
+        int32_t ndac = dac + dacShift;
+        if (ndac < 0)
+          ndac = 0;
+        if (ndac > 63)
+          ndac = 63;
+        std::cout << "channel " << i << " DAC " << dac << " shifted to " << ndac << std::endl;
 
-	  it->second.set6bDac(i, ndac);
-	}
+        it->second.set6bDac(i, ndac);
+      }
     }
   }
   // Now loop on slowcontrol socket and send packet
@@ -484,36 +483,36 @@ void lydaq::WiznetManager::cal6bDac(uint32_t mask,int32_t dacShift)
   }
 
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
-    {
-	
-      auto ic=ascopy.find(it->first);
-      for (int i = 0; i < 32; i++)
+  {
 
-	it->second.set6bDac(i,ic->second[i]);
-      
-    }
-  for (auto it =ascopy.begin(); it != ascopy.end(); it++) delete it->second;
-  
+    auto ic = ascopy.find(it->first);
+    for (int i = 0; i < 32; i++)
+
+      it->second.set6bDac(i, ic->second[i]);
+  }
+  for (auto it = ascopy.begin(); it != ascopy.end(); it++)
+    delete it->second;
+
   ::usleep(50000);
 }
 void lydaq::WiznetManager::c_asics(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   response["STATUS"] = "DONE";
-  Json::Value jlist;;
+  Json::Value jlist;
+  ;
   for (auto it = _tca->asicMap().begin(); it != _tca->asicMap().end(); it++)
   {
     Json::Value jasic;
-    uint32_t iasic=it->first & 0xFF;
+    uint32_t iasic = it->first & 0xFF;
     jasic["num"] = iasic;
-    uint32_t difid= ((it->first)>>32 & 0xFFFFFFFF);
+    uint32_t difid = ((it->first) >> 32 & 0xFFFFFFFF);
     jasic["dif"] = difid;
     it->second.toJson();
-    jasic["slc"]=it->second.getJson();
+    jasic["slc"] = it->second.getJson();
     jlist.append(jasic);
   }
-  response["asics"]=jlist;
+  response["asics"] = jlist;
 }
-
 
 void lydaq::WiznetManager::setMask(uint32_t mask, uint8_t asic)
 {
@@ -610,7 +609,7 @@ void lydaq::WiznetManager::setSingleVthTime(uint32_t vth, uint32_t feb, uint32_t
     _tca->prepareSlowControl(x.second->hostTo());
 
     _wiznet->writeRamAvm(x.second, _tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
-     this->readShm(x.second->hostTo(), x.second->portTo());
+    this->readShm(x.second->hostTo(), x.second->portTo());
   }
   LOG4CXX_DEBUG(_logFeb, __PRETTY_FUNCTION__ << " Fin ");
 }
@@ -731,35 +730,35 @@ void lydaq::WiznetManager::destroy(zdaq::fsmmessage *m)
 
   // To be done: _wiznet->clear();
 }
-void lydaq::WiznetManager::readShm(std::string host,uint32_t port)
+void lydaq::WiznetManager::readShm(std::string host, uint32_t port)
 {
   ::sleep(1);
   std::stringstream s;
-  s<<"/dev/shm/"<<host<<"/"<<port<<"/data";
+  s << "/dev/shm/" << host << "/" << port << "/data";
 
-  int fd= ::open(s.str().c_str(),O_RDONLY);
-  if (fd<0)
+  int fd = ::open(s.str().c_str(), O_RDONLY);
+  if (fd < 0)
   {
-    
-    LOG4CXX_FATAL(_logFeb," Cannot open shm file "<<s.str());
+
+    LOG4CXX_FATAL(_logFeb, " Cannot open shm file " << s.str());
     perror("No way to store to file :");
-    _controlSize=fd;
+    _controlSize = fd;
     return;
   }
-  _controlSize=65536;
-  int32_t ier=::read(fd,_controlData,_controlSize);
-  _controlSize=ier;
+  _controlSize = 65536;
+  int32_t ier = ::read(fd, _controlData, _controlSize);
+  _controlSize = ier;
   ::close(fd);
   _jControl.clear();
   Json::Value jl;
-  jl["size"]=_controlSize;
-  if (_controlSize>0)
-    {
-      
-      Json::Value jt;
-      for (int i =0;i<_controlSize;i++)       
-	jt.append((uint16_t) _controlData[i]);
-      jl["content"]=jt;
-    }
-  _jControl[host]=jl;
+  jl["size"] = _controlSize;
+  if (_controlSize > 0)
+  {
+
+    Json::Value jt;
+    for (int i = 0; i < _controlSize; i++)
+      jt.append((uint16_t)_controlData[i]);
+    jl["content"] = jt;
+  }
+  _jControl[host] = jl;
 }
