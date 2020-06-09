@@ -174,8 +174,8 @@ class febRC extends daqControl {
 
   /// febSCurve
   ///
-  Future<String> febSCurve(int ntrg, int ncon, int ncoff, int thmin, int thmax,
-      int mask, int step) async {
+  Future<String> febSCurve(
+      int ntrg, int ncon, int ncoff, int thmin, int thmax, int step) async {
     Map r = new Map();
     mdcc_Pause();
     mdcc_setSpillOn(ncon);
@@ -221,7 +221,92 @@ class febRC extends daqControl {
     return json.encode(r);
   }
 
-  
+  /// SCURVE run
+  ///
+  /*
+      FEBV1: Acquisition loop interface for VTHTIME scan
+
+      :param ch: 255 = according tomode channel/channel, 1023 = all channels, other value= channel(PETIROC) 
+      :param spillon: Number of clock active
+      :param spiloff: Number of clock off
+      :param beg: lowest VTHTIME value
+      :param las: highest VTHTIME value
+      :param step: Loop step
+      :param asic: Asic mask (1,2,or 3)
+      :param mode: OLD=WT board,COAX=coaxial PCB, FEBV0=with return line PCB,FEBV1
+      */
+
+  Future<String> runScurve(
+      int run, int ch, int spillon, int spilloff, int beg, int las,
+      {int step = 2,
+      int asic = 255,
+      String Comment = "PR2 Calibration",
+      String Location = "UNKNOWN",
+      int nevmax = 50}) {
+    List<int> firmware = [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      26,
+      28,
+      30
+    ];
+    daq_start(run, location: Location, comment: Comment);
+    switch (ch) {
+      case 255:
+        {
+          print("Run Scurve on all channel together");
+          int mask = 0;
+          for (int i in firmware) mask = mask | (1 << i);
+          setTdcMask(mask, asic);
+          febSCurve(nevmax, spillon, spilloff, beg, las, step);
+          daq_stop();
+        }
+        break;
+
+      case 1023:
+        {
+          print("Run Scurve on all channel One by One");
+          for (int i in firmware) {
+            int mask = (1 << i);
+            setTdcMask(mask, asic);
+            febSCurve(nevmax, spillon, spilloff, beg, las, step);
+          }
+          daq_stop();
+        }
+        break;
+
+      default:
+        {
+          print("SCurve on PR2 channel ${ch}");
+          int mask = (1 << ch);
+          setTdcMask(mask, asic);
+          febSCurve(nevmax, spillon, spilloff, beg, las, step);
+          daq_stop();
+        }
+        break;
+    }
+  }
+
   /// DAQ
   ///
   /// Initialise
