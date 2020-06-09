@@ -242,7 +242,7 @@ class febRC extends daqControl {
       int asic = 255,
       String Comment = "PR2 Calibration",
       String Location = "UNKNOWN",
-      int nevmax = 50}) {
+      int nevmax = 50}) async {
     List<int> firmware = [
       3,
       4,
@@ -270,7 +270,9 @@ class febRC extends daqControl {
       28,
       30
     ];
-    daq_start(run, location: Location, comment: Comment);
+    await daq_start(run, location: Location, comment: Comment);
+    Map r = new Map();
+    r["run"] = run;
     switch (ch) {
       case 255:
         {
@@ -278,8 +280,9 @@ class febRC extends daqControl {
           int mask = 0;
           for (int i in firmware) mask = mask | (1 << i);
           setTdcMask(mask, asic);
-          febSCurve(nevmax, spillon, spilloff, beg, las, step);
-          daq_stop();
+          r["${ch}"] = json.decode(
+              await febSCurve(nevmax, spillon, spilloff, beg, las, step));
+          await daq_stop();
         }
         break;
 
@@ -289,9 +292,10 @@ class febRC extends daqControl {
           for (int i in firmware) {
             int mask = (1 << i);
             setTdcMask(mask, asic);
-            febSCurve(nevmax, spillon, spilloff, beg, las, step);
+            r["${ch}_${i}"] = json.decode(
+                await febSCurve(nevmax, spillon, spilloff, beg, las, step));
           }
-          daq_stop();
+         await  daq_stop();
         }
         break;
 
@@ -300,11 +304,14 @@ class febRC extends daqControl {
           print("SCurve on PR2 channel ${ch}");
           int mask = (1 << ch);
           setTdcMask(mask, asic);
-          febSCurve(nevmax, spillon, spilloff, beg, las, step);
-          daq_stop();
+          r["${ch}"] = json.decode(
+              await febSCurve(nevmax, spillon, spilloff, beg, las, step));
+
+          await daq_stop();
         }
         break;
     }
+    return json.encode(r);
   }
 
   /// DAQ
