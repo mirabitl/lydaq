@@ -59,6 +59,16 @@ void main(List<String> arguments) async {
     ..addFlag('builder', negatable: false, help: "Event Builder flag ")
     ..addFlag('source', negatable: false, help: "Data Source flag ")
     ..addFlag('trigger', negatable: false, help: "trigger flag ")
+
+    /// FEB calib
+    ..addFlag('resetfeb', negatable: false, help: "MDCC Reset TDC flag ")
+    ..addFlag('lutcalib', negatable: false, help: "LUT calibration flag ")
+    ..addOption('channels', defaultsTo: '56')
+    ..addFlag('lutdump', negatable: false, help: "LUT Dump one channel ")
+    ..addFlag('lutmask', negatable: false, help: "LUT Run Mask ")
+    ..addOption('mask', defaultsTo: '0xFFFFFFFFFFFFFFFF')
+
+    ///Help
     ..addFlag('help',
         abbr: 'h', negatable: false, help: "Displays this help information.");
   argResults = argParser.parse(arguments);
@@ -173,9 +183,40 @@ ${argParser.usage}
     print(rep);
   }
 
-  if (argResults['daqcontrol'] && argResults['initialise']) {
-    var rep = json.decode(await d.daq_initialise());
+  if (argResults['jobcontrol'] && argResults['create']) {
+    var rep = json.decode(await d.jc_appcreate());
     print(rep);
+  }
+
+  if (argResults['daqcontrol'] && argResults['initialise']) {
+    var rep =
+        json.decode(await d.daq_initialise(resettdc: argResults['resettdc']));
+    print(rep);
+  }
+
+  if (argResults['lutcalib']) {
+    int nchannels = int.parse(argResults['channels']);
+    for (var x in d.appMap['TDCSERVER'])
+      for (int i = 0; i < nchannels; i++) {
+        var rep = json.decode(await d.tdcLUTCalib(x.value.appInstance, i));
+        print(rep);
+      }
+  }
+  if (argResults['lutmask']) {
+    final mask = int.parse(argResults['mask'], radix: 16);
+    print("Mask ${mask}");
+    for (var x in d.appMap['TDCSERVER']) {
+      var rep = json.decode(await d.tdcLUTMask(x.value.appInstance, mask));
+      print(rep);
+    }
+  }
+
+  if (argResults['lutdump']) {
+    int nchannel = int.parse(argResults['channels']);
+    for (var x in d.appMap['TDCSERVER']) {
+      var rep = json.decode(await d.tdcLUTDump(x.value.appInstance, nchannel));
+      print(rep);
+    }
   }
   if (argResults['daqcontrol'] && argResults['destroy']) {
     var rep = json.decode(await d.daq_destroy());

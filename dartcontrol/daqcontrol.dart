@@ -338,7 +338,7 @@ class daqControl {
 
   /// reset TDC
   ///
-  Future<String> mdcc_resetTdc(int nclock) async {
+  Future<String> mdcc_resetTdc() async {
     await mdcc_setResetTdcBit(0);
     return await mdcc_setResetTdcBit(1);
   }

@@ -155,6 +155,22 @@ class febRC extends daqControl {
     return json.encode(r);
   }
 
+  /// tdcLUTDump
+  ///
+  Future<String> tdcLUTDump(int instance, int channel) async {
+    if (!appMap.containsKey("TDCSERVER"))
+      return '{"answer":"NOTDCSERVER","status":"FAILED"}';
+    if (appMap["TDCSERVER"].length <= instance)
+      return '{"answer":"InvalidInstance","status":"FAILED"}';
+    var tdc = appMap["TDCSERVER"][instance];
+    Map param = new Map();
+    param["value"] = channel;
+    Map r = new Map();
+    r["lut_${channel}"] = json.decode(await tdc.sendCommand("GETLUT", param));
+    
+    return json.encode(r);
+  }
+
   /// tdcLUTMask
   ///
   Future<String> tdcLUTMask(int instance, int mask) async {
@@ -254,13 +270,6 @@ class febRC extends daqControl {
       10,
       11,
       12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
       20,
       21,
       22,
@@ -295,7 +304,7 @@ class febRC extends daqControl {
             r["${ch}_${i}"] = json.decode(
                 await febSCurve(nevmax, spillon, spilloff, beg, las, step));
           }
-         await  daq_stop();
+          await daq_stop();
         }
         break;
 
@@ -318,7 +327,7 @@ class febRC extends daqControl {
   ///
   /// Initialise
   ///
-  Future<String> daq_initialise() async {
+  Future<String> daq_initialise({bool resettdc = false}) async {
     Map r = new Map();
 
     /// Initilise MDCC
@@ -332,6 +341,10 @@ class febRC extends daqControl {
       var s = json.decode(await x.sendTransition("CONFIGURE", new Map()));
       r["BUILDER_${x.appInstance}"] = s;
     }
+
+    /// Hard reset TDC ?
+
+    if (resettdc) mdcc_resetTdc();
 
     /// Initialise TDCSERVER
     for (var x in appMap['TDCSERVER']) {
