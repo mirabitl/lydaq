@@ -198,6 +198,7 @@ ${argParser.usage}
     int nchannels = int.parse(argResults['channels']);
     for (var x in d.appMap['TDCSERVER'])
       for (int i = 0; i < nchannels; i++) {
+        print("Calibrating ${i} ${x.value.appInstance}");
         var rep = json.decode(await d.tdcLUTCalib(x.value.appInstance, i));
         print(rep);
       }
