@@ -190,7 +190,7 @@ ${argParser.usage}
 
   if (argResults['daqcontrol'] && argResults['initialise']) {
     var rep =
-        json.decode(await d.daq_initialise(resettdc: argResults['resettdc']));
+        json.decode(await d.daq_initialise(resettdc: argResults['resetfeb']));
     print(rep);
   }
 
