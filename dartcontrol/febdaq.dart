@@ -68,6 +68,15 @@ void main(List<String> arguments) async {
     ..addFlag('lutmask', negatable: false, help: "LUT Run Mask ")
     ..addOption('mask', defaultsTo: '0xFFFFFFFFFFFFFFFF')
 
+    /// SCurve
+    ..addFlag('scurve', negatable: false, help: "PR2 Scurve flag ")
+    ..addOption('step', defaultsTo: '1')
+    ..addOption('vthmin', defaultsTo: '400')
+    ..addOption('vthmax', defaultsTo: '550')
+    ..addOption('spillon', defaultsTo: '2000')
+    ..addOption('spilloff', defaultsTo: '100')
+    ..addOption('asics', defaultsTo: '255')
+
     ///Help
     ..addFlag('help',
         abbr: 'h', negatable: false, help: "Displays this help information.");
