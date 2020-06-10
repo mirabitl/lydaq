@@ -195,13 +195,12 @@ ${argParser.usage}
   }
 
   if (argResults['resetfeb']) {
-   d.mdcc_resetTdc();
+    d.mdcc_resetTdc();
   }
 
   if (argResults['lutcalib']) {
     int nchannels = int.parse(argResults['channels']);
-    for (var x in d.appMap['TDCSERVER'])
-    {
+    for (var x in d.appMap['TDCSERVER']) {
       for (int i = 0; i < nchannels; i++) {
         print("Calibrating ${i} ${x.appInstance}");
         var rep = json.decode(await d.tdcLUTCalib(x.appInstance, i));
@@ -210,7 +209,7 @@ ${argParser.usage}
     }
   }
   if (argResults['lutmask']) {
-    String mask=argResults['mask'];
+    String mask = argResults['mask'];
     print("Mask ${mask}");
     for (var x in d.appMap['TDCSERVER']) {
       var rep = json.decode(await d.tdcLUTMask(x.appInstance, mask));
@@ -225,6 +224,31 @@ ${argParser.usage}
       print(rep);
     }
   }
+
+  if (argResults['scurve']) {
+    int mode = int.parse(argResults['channels']);
+    int vthmin = int.parse(argResults['vthmin']);
+    int vthmax = int.parse(argResults['vthmax']);
+    int step = int.parse(argResults['step']);
+    int asic = int.parse(argResults['asics']);
+    int spillon = int.parse(argResults['spillon']);
+    int spilloff = int.parse(argResults['spilloff']);
+
+    String sloc = argResults['setup'];
+    if (sloc == "UNKNOWN" && Platform.environment.containsKey('DAQSETUP'))
+      sloc = Platform.environment['DAQSETUP'];
+    String scomment = argResults['comment'];
+    if (argResults['comment'] == 'NOTSET') {
+      scomment =
+          "Calibration Mode ${mode} Th min ${vthmin} max ${vthmax} Step ${step} Asic ${asic} ";
+    }
+    var rep = d.runScurve(
+        int.parse(argResults['run']), mode, spillon, spilloff, vthmin, vthmax,
+        Comment: scomment, Location: sloc);
+
+    print(rep);
+  }
+
   if (argResults['daqcontrol'] && argResults['destroy']) {
     var rep = json.decode(await d.daq_destroy());
     print(rep);
