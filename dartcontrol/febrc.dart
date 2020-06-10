@@ -173,7 +173,7 @@ class febRC extends daqControl {
 
   /// tdcLUTMask
   ///
-  Future<String> tdcLUTMask(int instance, int mask) async {
+  Future<String> tdcLUTMask(int instance, String mask) async {
     if (!appMap.containsKey("TDCSERVER"))
       return '{"answer":"NOTDCSERVER","status":"FAILED"}';
     if (appMap["TDCSERVER"].length <= instance)
@@ -181,7 +181,7 @@ class febRC extends daqControl {
     var tdc = appMap["TDCSERVER"][instance];
 
     Map param = new Map();
-    param["value"] = mask.toRadixString(16);
+    param["value"] = mask;
     Map r = new Map();
     r["test_mask"] = json.decode(await tdc.sendCommand("TESTMASK", param));
     r["cal_status"] = json.decode(await tdc.sendCommand("CALIBSTATUS", param));
@@ -345,6 +345,8 @@ class febRC extends daqControl {
     /// Hard reset TDC ?
 
     if (resettdc) mdcc_resetTdc();
+    sleep(const Duration(milliseconds: 2000));
+
 
     /// Initialise TDCSERVER
     for (var x in appMap['TDCSERVER']) {

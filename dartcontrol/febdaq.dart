@@ -194,20 +194,26 @@ ${argParser.usage}
     print(rep);
   }
 
+  if (argResults['resetfeb']) {
+   d.mdcc_resetTdc();
+  }
+
   if (argResults['lutcalib']) {
     int nchannels = int.parse(argResults['channels']);
     for (var x in d.appMap['TDCSERVER'])
+    {
       for (int i = 0; i < nchannels; i++) {
-        print("Calibrating ${i} ${x.value.appInstance}");
-        var rep = json.decode(await d.tdcLUTCalib(x.value.appInstance, i));
+        print("Calibrating ${i} ${x.appInstance}");
+        var rep = json.decode(await d.tdcLUTCalib(x.appInstance, i));
         print(rep);
       }
+    }
   }
   if (argResults['lutmask']) {
-    final mask = int.parse(argResults['mask'], radix: 16);
+    String mask=argResults['mask'];
     print("Mask ${mask}");
     for (var x in d.appMap['TDCSERVER']) {
-      var rep = json.decode(await d.tdcLUTMask(x.value.appInstance, mask));
+      var rep = json.decode(await d.tdcLUTMask(x.appInstance, mask));
       print(rep);
     }
   }
@@ -215,7 +221,7 @@ ${argParser.usage}
   if (argResults['lutdump']) {
     int nchannel = int.parse(argResults['channels']);
     for (var x in d.appMap['TDCSERVER']) {
-      var rep = json.decode(await d.tdcLUTDump(x.value.appInstance, nchannel));
+      var rep = json.decode(await d.tdcLUTDump(x.appInstance, nchannel));
       print(rep);
     }
   }
