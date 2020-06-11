@@ -205,12 +205,16 @@ class febRC extends daqControl {
     for (int vth = 0; vth <= thrange; vth++) {
       mdcc_Pause();
       setVthTime(thmax - vth * step);
-      sleep(const Duration(milliseconds: 100));
+      sleep(const Duration(milliseconds: 500));
       builder_setHeader(2, thmax - vth * step, 0xFF);
 
       /// Check Last built event
       var sr = json.decode(await BuilderStatus());
-      int firstEvent = sr["event"];
+      print("${sr}");
+      int firstEvent=0;
+      for (dynamic x in sr.entries)
+      	  if (x.value["event"]>firstEvent) firstEvent=x.value["event"];
+
 
       /// Resume Calibration
       mdcc_ReloadCalibCount();
@@ -222,9 +226,12 @@ class febRC extends daqControl {
       int nloop = 0;
       while (lastEvent < (firstEvent + ntrg - 20)) {
         sr = json.decode(await BuilderStatus());
-        lastEvent = sr["event"];
+
+	for (dynamic x in sr.entries)
+            	if (x.value["event"]>lastEvent) lastEvent=x.value["event"];
+
         print(" First ${firstEvent} Last ${lastEvent} Step ${vth}");
-        sleep(const Duration(milliseconds: 200));
+        sleep(const Duration(milliseconds: 500));
         nloop++;
         if (nloop > 20) break;
       }
