@@ -1,7 +1,16 @@
 import daqrc
 
 class lydaqControl(daqrc.daqControl):
-    
+    ## Builder
+    def builder_setHeader(self,rtype,rval,mask):
+        l=[]
+        l.append(rtype)
+        l.append(rval)
+        l.append(mask)
+        param={}
+        param["header"]=l
+        return self.processCommand("SETHEADER","BUILDER",param)
+    ##MDCC
     def mdcc_Status(self):
         return self.processCommand("STATUS","MDCCSERVER",None)
 
@@ -65,3 +74,34 @@ class lydaqControl(daqrc.daqControl):
     def mdcc_resetTdc(self):
         mdcc_setResetTdcBit(0)
         return  mdcc_setResetTdcBit(1)
+
+    def mdcc_setBeamOn(self,value):
+        param={}
+        param["nclock"]=value
+        return self.processCommand("BEAMON","MDCCSERVER",param)
+
+    def mdcc_setHardReset(self,value):
+        param={}
+        param["value"]=value
+        return self.processCommand("SETHARDRESET","MDCCSERVER",param)
+
+    def mdcc_setSpillRegister(self,value):
+        param={}
+        param["value"]=value
+        return self.processCommand("SETSPILLREGISTER","MDCCSERVER",param)
+
+    def mdcc_setExternal(self,value):
+        param={}
+        param["value"]=value
+        return self.processCommand("SETEXTERNAL","MDCCSERVER",param)
+    
+    def mdcc_setCalibRegister(self,value):
+        param={}
+        param["value"]=value
+        return self.processCommand("SETCALIBREGISTER","MDCCSERVER",param)
+
+    def mdcc_setTriggerDelays(self,delay,busy):
+        param={}
+        param["delay"] = delay
+        param["busy"] = busy
+        return self.processCommand("SETTRIGEXT","MDCCSERVER",param)
