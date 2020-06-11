@@ -1,11 +1,12 @@
 import lydaqrc
 import time
-
+import MongoJob as mg
 class febRC(lydaqrc.lydaqControl):
     
     #daq
     def daq_initialise(self,reset=0):
         m={}
+        r={}
         s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
         r["MDCCSERVER"] = s
         
@@ -21,6 +22,65 @@ class febRC(lydaqrc.lydaqControl):
             s=json.loads(x.sendTransition("INITIALISE", m))
             r["TDCSERVER_%d" % x.appInstance]=s
             
+        return json.dumps(r)
+
+    def daq_configure(self):
+        m={}
+        r={}
+        for (x in self.appMap["TDCSERVER"]):
+            s=json.loads(x.sendTransition("CONFIGURE", m))
+            r["TDCSERVER_%d" % x.appInstance]=s
+        return json.dumps(r)
+
+    
+    def daq_stop(self):
+        m={}
+        r={}
+        s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
+        r["MDCCSERVER"] = s
+
+        for (x in self.appMap["TDCSERVER"]):
+            s=json.loads(x.sendTransition("STOP", m))
+            r["TDCSERVER_%d" % x.appInstance]=s
+
+        for (x in self.appMap["BUILDER"]):
+            s=json.loads(x.sendTransition("STOP", m))
+            r["BUILDER_%d" % x.appInstance]=s
+
+        return json.dumps(r)
+
+    def daq_destroy(self):
+        m={}
+        r={}
+        for (x in self.appMap["TDCSERVER"]):
+            s=json.loads(x.sendTransition("DESTROY", m))
+            r["TDCSERVER_%d" % x.appInstance]=s
+
+        return json.dumps(r)
+
+    def daq_start(self,run,location="UNKNOWN",comment="Not set"):
+        nrun=run
+        if (run==0):
+            smg=mg.instance()
+            nrun=smg.getRun(location,comment)
+        r={}
+        m={}
+        m['run']=nrun
+        for (x in self.appMap["BUILDER"]):
+            s=json.loads(x.sendTransition("START", m))
+            r["BUILDER_%d" % x.appInstance]=s
+
+        m={}
+        for (x in self.appMap["TDCSERVER"]):
+            s=json.loads(x.sendTransition("START", m))
+            r["TDCSERVER_%d" % x.appInstance]=s
+
+        s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("RESET", m))
+        s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("ECALRESUME", m))
+        r["MDCCSERVER"] = s
+
+        return json.dumps(r)
+        
     def SourceStatus(self):
         rep={}
         for ( k,v in self.appMap.items):
