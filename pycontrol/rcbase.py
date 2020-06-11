@@ -30,7 +30,7 @@ class FSMAccess:
         """
         self.host = vhost
         self.port = vport
-        self.url = "http://%s:%d" % (vhost,vport)
+        self.url = "http://%s:%d" % (vhost, vport)
         self.getInfo()
         self.appType = 'UNKNOWN'
         self.appInstance = 0
@@ -45,7 +45,7 @@ class FSMAccess:
         :return: url answer
         """
         print "Access to %s " % url
-        
+
         req = urllib2.Request(url)
         try:
             r1 = urllib2.urlopen(req)
@@ -120,20 +120,20 @@ class FSMAccess:
             self.fUrl, name, json.dumps(content))
         rep = self.executeRequest(luri)
         return rep
-    
-    def printInfos(self,vverb):
+
+    def printInfos(self, vverb):
         if (vverb):
-            print "\n FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"],self.url,self.procInfos["PID"],self.procInfos["PREFIX"])
+            print "\n FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
             # print COMMAND and TRANSITION
-            for  k,v in self.procInfos.items():
+            for k, v in self.procInfos.items():
                 if (k == 'ALLOWED' or k == 'CMD' or k == 'FSM'):
                     s = " %s \t" % k
                     for x in v:
-                        s = s + x['name'] + " ";
-                    print(s);
-            print "\n BaseApplication %s _ %d" % (self.infos["name"],self.infos["instance"])
+                        s = s + x['name'] + " "
+                    print(s)
+            print "\n BaseApplication %s _ %d" % (self.infos["name"], self.infos["instance"])
             print "Parameters"
-            for k,v in self.params.items():
-                print "\t",k,v
+            for k, v in self.params.items():
+                print "\t", k, v
         else:
-           print "FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"],self.url,self.procInfos["PID"],self.procInfos["PREFIX"]) 
+            print "FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
