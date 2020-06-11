@@ -10,7 +10,7 @@ class febRC(lydaqrc.lydaqControl):
         s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
         r["MDCCSERVER"] = s
         
-        for (x in self.appMap["BUILDER"]):
+        for x in self.appMap["BUILDER"]:
             s=json.loads(x.sendTransition("CONFIGURE", m))
             r["BUILDER_%d" % x.appInstance]=s
 
@@ -18,7 +18,7 @@ class febRC(lydaqrc.lydaqControl):
             self.mdcc_resetTdc()
             time.sleep(reset)
             
-        for (x in self.appMap["TDCSERVER"]):
+        for x in self.appMap["TDCSERVER"]:
             s=json.loads(x.sendTransition("INITIALISE", m))
             r["TDCSERVER_%d" % x.appInstance]=s
             
@@ -27,7 +27,7 @@ class febRC(lydaqrc.lydaqControl):
     def daq_configure(self):
         m={}
         r={}
-        for (x in self.appMap["TDCSERVER"]):
+        for x in self.appMap["TDCSERVER"]:
             s=json.loads(x.sendTransition("CONFIGURE", m))
             r["TDCSERVER_%d" % x.appInstance]=s
         return json.dumps(r)
@@ -39,11 +39,11 @@ class febRC(lydaqrc.lydaqControl):
         s=json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
         r["MDCCSERVER"] = s
 
-        for (x in self.appMap["TDCSERVER"]):
+        for x in self.appMap["TDCSERVER"]:
             s=json.loads(x.sendTransition("STOP", m))
             r["TDCSERVER_%d" % x.appInstance]=s
 
-        for (x in self.appMap["BUILDER"]):
+        for x in self.appMap["BUILDER"]:
             s=json.loads(x.sendTransition("STOP", m))
             r["BUILDER_%d" % x.appInstance]=s
 
@@ -52,7 +52,7 @@ class febRC(lydaqrc.lydaqControl):
     def daq_destroy(self):
         m={}
         r={}
-        for (x in self.appMap["TDCSERVER"]):
+        for x in self.appMap["TDCSERVER"]:
             s=json.loads(x.sendTransition("DESTROY", m))
             r["TDCSERVER_%d" % x.appInstance]=s
 
@@ -66,12 +66,12 @@ class febRC(lydaqrc.lydaqControl):
         r={}
         m={}
         m['run']=nrun
-        for (x in self.appMap["BUILDER"]):
+        for x in self.appMap["BUILDER"]:
             s=json.loads(x.sendTransition("START", m))
             r["BUILDER_%d" % x.appInstance]=s
 
         m={}
-        for (x in self.appMap["TDCSERVER"]):
+        for x in self.appMap["TDCSERVER"]:
             s=json.loads(x.sendTransition("START", m))
             r["TDCSERVER_%d" % x.appInstance]=s
 
@@ -83,10 +83,10 @@ class febRC(lydaqrc.lydaqControl):
         
     def SourceStatus(self):
         rep={}
-        for ( k,v in self.appMap.items):
+        for  k,v in self.appMap.items:
             if (k != "TDCSERVER"):
                 continue
-            for (s in v):
+            for s in v:
                 mr=json.loads(s.sendCommand("STATUS",None))
                 if (mr['status']!="FAILED"):
                     rep["%s_%d" % (s.host,s.infos['instance'])]=mr["answer"]["TDCSTATUS"]
@@ -183,8 +183,8 @@ class febRC(lydaqrc.lydaqControl):
         self.mdcc_CalibOn(1)
         self.mdcc_setCalibCount(ntrg)
         self.mdcc_Status()
-        int thrange = (thmax - thmin + 1) / step;
-        for (vth in range(0,thrange+1)):
+        thrange = (thmax - thmin + 1) / step;
+        for vth in range(0,thrange+1):
             self.mdcc_Pause();
             self.setVthTime(thmax - vth * step);
             time.sleep(0.5)
@@ -192,7 +192,7 @@ class febRC(lydaqrc.lydaqControl):
 
             #Check Last built event
             sr = json.loads(self.BuilderStatus())
-            int firstEvent = sr["event"]
+            firstEvent = sr["event"]
 
             #Resume Calibration
             self.mdcc_ReloadCalibCount()
@@ -200,8 +200,8 @@ class febRC(lydaqrc.lydaqControl):
             self.mdcc_Status()
 
             # Wait for ntrg events capture
-            int lastEvent = firstEvent
-            int nloop = 0
+            lastEvent = firstEvent
+            nloop = 0
             while (lastEvent < (firstEvent + ntrg - 20)):
                 sr = json.loads(self.BuilderStatus());
                 lastEvent = sr["event"]
@@ -211,7 +211,7 @@ class febRC(lydaqrc.lydaqControl):
                 if (nloop > 20):
                     break
       
-            r["TH_%d" %] = lastEvent - firstEvent + 1;
+            r["TH_%d" % (thmax-vth*step)] = lastEvent - firstEvent + 1;
 
             # End Point
             self.mdcc_CalibOn(0)
@@ -225,8 +225,8 @@ class febRC(lydaqrc.lydaqControl):
         r["run"]=run
         if (ch==255):
             print "Run Scurve on all channel together"
-            int mask = 0
-            for (int i in firmware):
+            mask = 0
+            for i in firmware:
                 mask = mask | (1 << i)
             self.setTdcMask(mask, asic)
             r["S_%d" %ch] = json.loads(self.febSCurve(nevmax, spillon, spilloff, beg, las, step))
@@ -234,8 +234,8 @@ class febRC(lydaqrc.lydaqControl):
             return json.dumps(r)
         if (ch==1023):
             print "Run Scurve on all channel one by one"
-            int mask = 0
-            for (int i in firmware):
+            mask = 0
+            for i in firmware:
                 print "SCurve for channel %d " % i
                 mask = mask | (1 << i)
                 self.setTdcMask(mask, asic)
@@ -243,7 +243,7 @@ class febRC(lydaqrc.lydaqControl):
             self.daq_stop();
             return json.dumps(r)
         print "Run Scurve on  channel %d " % ch
-        int mask = 0
+        mask = 0
         mask = mask | (1 << i)
         self.setTdcMask(mask, asic)
         r["S_%d" %ch] = json.loads(self.febSCurve(nevmax, spillon, spilloff, beg, las, step))

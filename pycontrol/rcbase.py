@@ -30,7 +30,7 @@ class FSMAccess:
         """
         self.host = vhost
         self.port = vport
-        self.url = "http://${host}:${port}"
+        self.url = "http://%s:%d" % (vhost,vport)
         self.getInfo()
         self.appType = 'UNKNOWN'
         self.appInstance = 0
@@ -44,6 +44,8 @@ class FSMAccess:
         :param surl: The url
         :return: url answer
         """
+        print "Access to %s " % url
+        
         req = urllib2.Request(url)
         try:
             r1 = urllib2.urlopen(req)
@@ -58,15 +60,16 @@ class FSMAccess:
 
         sr = self.executeRequest(self.url)
         self.procInfos = json.loads(sr)
-        self.pid = procInfos['PID']
-        self.prefix = procInfos['PREFIX']
-        self.fUrl = "http://%s:%d/%s" % (host, port, prefix)
-        self.state = procInfos['STATE']
+        self.pid = self.procInfos['PID']
+        self.prefix = self.procInfos['PREFIX']
+        self.fUrl = "http://%s:%d/%s" % (self.host, self.port, self.prefix)
+        self.state = self.procInfos['STATE']
 
     def getInfo(self):
         self.getProcInfo()
-        if (self.pid < 0) return
-        if (self.isBaseApplication(procInfos)):
+        if (self.pid < 0):
+            return
+        if (self.isBaseApplication(self.procInfos)):
             sinf = self.sendCommand('INFO', None)
             infos = json.loads(sinf)['answer']['INFO']
             self.appType = infos['name']
@@ -75,20 +78,20 @@ class FSMAccess:
             self.params = json.loads(spar)['answer']['PARAMETER']
 
     def isBaseApplication(self, m):
-        bool base = False
+        base = False
         for key, value in m.items():
             if (key == 'CMD'):
-        for (x in value):
-            if (x['name'] == 'GETPARAM'):
-                base = True
+                for x in value:
+                    if (x['name'] == 'GETPARAM'):
+                        base = True
         return base
 
     def sendCommand(self, name, content):
         self.getProcInfo()
-        bool isValid = False
-        for (key, value in procInfos.items()):
+        isValid = False
+        for key, value in self.procInfos.items():
             if (key == 'CMD'):
-                for (x in value):
+                for x in value:
                     if (x['name'] == name):
                         isValid = True
         if (not isValid):
@@ -96,7 +99,7 @@ class FSMAccess:
 
         luri = "%s/CMD?name=%s" % (self.fUrl, name)
         if (content != None):
-            for (key, value in content.items()):
+            for key, value in content.items():
                 luri = luri + "&%s=%s" % (key, value)
 
         rep = self.executeRequest(luri)
@@ -104,13 +107,14 @@ class FSMAccess:
 
     def sendTransition(self, name, content):
         self.getProcInfo()
-        bool isValid = False
-        for (key, value in procInfos.items()):
+        isValid = False
+        for key, value in self.procInfos.items():
             if (key == 'ALLOWED'):
-                for (x in value):
+                for x in value:
                     if (x['name'] == name):
                         isValid = True
-        if (not isValid) return '{"answer":"invalid","status":"FAILED"}'
+        if (not isValid):
+            return '{"answer":"invalid","status":"FAILED"}'
 
         luri = "%s/CMD?command=%s&content=%s" % (
             self.fUrl, name, json.dumps(content))
@@ -118,18 +122,18 @@ class FSMAccess:
         return rep
     
     def printInfos(self,vverb):
-        if (vverbose):
+        if (vverb):
             print "\n FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"],self.url,self.procInfos["PID"],self.procInfos["PREFIX"])
             # print COMMAND and TRANSITION
-            for ( k,v in self.procInfos.items()):
-                if (k == 'ALLOWED' || k == 'CMD' || k == 'FSM'):
+            for  k,v in self.procInfos.items():
+                if (k == 'ALLOWED' or k == 'CMD' or k == 'FSM'):
                     s = " %s \t" % k
-                    for (x in v):
+                    for x in v:
                         s = s + x['name'] + " ";
                     print(s);
             print "\n BaseApplication %s _ %d" % (self.infos["name"],self.infos["instance"])
             print "Parameters"
-            for (k,v in self.params.items()):
+            for k,v in self.params.items():
                 print "\t",k,v
         else:
            print "FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"],self.url,self.procInfos["PID"],self.procInfos["PREFIX"]) 

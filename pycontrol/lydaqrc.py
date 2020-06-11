@@ -10,10 +10,10 @@ class lydaqControl(daqrc.daqControl):
     ### Status
     def BuilderStatus(self):
         rep={}
-        for ( k,v in self.appMap.items):
+        for  k,v in self.appMap.items:
             if (k != "BUILDER"):
                 continue
-            for (s in v):
+            for s in v:
                 r={}
                 r['run']=-1;r['event']=-1;r['url']=s.host
                 mr=json.loads(s.sendCommand("STATUS",None))
