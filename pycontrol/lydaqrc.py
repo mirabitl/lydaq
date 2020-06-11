@@ -1,6 +1,39 @@
 import daqrc
-
+import time
 class lydaqControl(daqrc.daqControl):
+    
+    def Connect(self):
+        self.parseMongo()
+        self.discover()
+        
+
+    ### Status
+    def BuilderStatus(self):
+        rep={}
+        for ( k,v in self.appMap.items):
+            if (k != "BUILDER"):
+                continue
+            for (s in v):
+                r={}
+                r['run']=-1;r['event']=-1;r['url']=s.host
+                mr=json.loads(s.sendCommand("STATUS",None))
+                if (mr['status']!="FAILED"):
+                    r["run"] = mr["answer"]["answer"]["run"]
+                    r["event"] = mr["answer"]["answer"]["event"]
+                    r["builder"] = mr["answer"]["answer"]["difs"]
+                    r["built"] = mr["answer"]["answer"]["build"]
+                    r["total"] = mr["answer"]["answer"]["total"]
+                    r["compressed"] = mr["answer"]["answer"]["compressed"]
+                    r["time"] = time.time()
+                    rep["%s_%d" % (s.host,s.infos['instance'])]=r
+                else:
+                    rep["%s_%d" % (s.host,s.infos['instance'])]=mr
+
+        return json.dumps(rep)
+    
+    def TriggerStatus(self):
+        mr=json.loads(self.mdcc_Status())
+        return json.dumps(mr["answer"])
     ## Builder
     def builder_setHeader(self,rtype,rval,mask):
         l=[]

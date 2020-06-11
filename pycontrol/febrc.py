@@ -1,25 +1,49 @@
 import lydaqrc
+import time
 
 class febRC(lydaqrc.lydaqControl):
     
-    def Connect(self):
-        self.parseMongo()
-        self.discover()
-        
-    def BuilderStatus(self):
+    
+    def SourceStatus(self):
         rep={}
         for ( k,v in self.appMap.items):
-            if (k != "BUILDER"):
+            if (k != "TDCSERVER"):
                 continue
             for (s in v):
-                r={}
-                r['run']=-1;r['event']=-1;r['url']=s.host
                 mr=json.loads(s.sendCommand("STATUS",None))
                 if (mr['status']!="FAILED"):
-                    r["run"] = mr["answer"]["answer"]["run"]
-                    r["event"] = mr["answer"]["answer"]["event"]
-                    r["builder"] = mr["answer"]["answer"]["difs"]
-                    r["built"] = mr["answer"]["answer"]["build"]
-                    r["total"] = mr["answer"]["answer"]["total"]
-                    r["compressed"] = mr["answer"]["answer"]["compressed"]
-                    r["time"] = DateTime.now().millisecondsSinceEpoch / 1000;
+                    rep["%s_%d" % (s.host,s.infos['instance'])]=mr["answer"]["TDCSTATUS"]
+                else:
+                    rep["%s_%d" % (s.host,s.infos['instance'])]=mr
+
+                rep["%s_%d" % (s.host,s.infos['instance'])]=r
+        return json.dumps(rep)
+
+
+    def set6BDac(self,dac):
+        param={}
+        param["value"]=dac
+        return self.processCommand("SET6BDAC", "TDCSERVER", param)
+
+    def cal6BDac(self,mask,shift):
+        param={}
+        param["shift"]=shift
+        param["mask"]=int(mask,16)
+        return self.processCommand("CAL6BDAC", "TDCSERVER", param)
+
+    def setVthTime(self,Threshold):
+        param={}
+        param["value"]=Threshold
+        return self.processCommand("SETVTHTIME", "TDCSERVER", param)
+    
+    def setTdcMode(self,mode):
+        param={}
+        param["value"]=mode
+        return self.processCommand("SETMODE", "TDCSERVER", param)
+        
+    def setTdcDelays(self,active,dead):
+        param={}
+        param["value"]=active
+        r={}
+        r["active"]=json.loads( self.processCommand("SETDELAY", "TDCSERVER", param))
+        
