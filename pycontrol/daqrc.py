@@ -22,7 +22,7 @@ class daqControl:
         self.appMap={}
         mh = self._mgConfig['HOSTS'];
         for  key,value in mh.items():
-            print "Host found %s" % key
+            #print "Host found %s" % key
             fsm = rcbase.FSMAccess(key, 9999);
             self.jobcontrols.append(fsm)
     
@@ -54,6 +54,12 @@ class daqControl:
                             self.appMap[bapp.infos['name']].append(bapp) 
     
     def updateInfo(self,printout,vverbose):
+        if (printout):
+            print """
+        \t \t *****************************    
+        \t \t ** Application information **
+        \t \t *****************************
+        """
         if (len(self.appMap)==0):
             print "No Application Map found. Please Connect first or create process"
         for k,v in self.appMap.items():

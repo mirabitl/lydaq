@@ -1,7 +1,7 @@
 import lydaqrc
 import time
 import MongoJob as mg
-
+import json
 
 class febRC(lydaqrc.lydaqControl):
 
@@ -85,18 +85,18 @@ class febRC(lydaqrc.lydaqControl):
 
     def SourceStatus(self,verbose=False):
         rep = {}
-        for k, v in self.appMap.items:
+        for k, v in self.appMap.items():
             if (k != "TDCSERVER"):
                 continue
             for s in v:
-                mr = json.loads(s.sendCommand("STATUS", None))
+                mr = json.loads(s.sendCommand("STATUS", {}))
                 if (mr['status'] != "FAILED"):
                     rep["%s_%d" % (s.host, s.infos['instance'])
                         ] = mr["answer"]["TDCSTATUS"]
                 else:
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
 
-                rep["%s_%d" % (s.host, s.infos['instance'])] = r
+                    #rep["%s_%d" % (s.host, s.infos['instance'])] = r
         if (not verbose):
             return json.dumps(rep)
         # Verbose Printout
@@ -153,7 +153,7 @@ class febRC(lydaqrc.lydaqControl):
         if (len(self.appMap["TDCSERVER"]) <= instance):
             return '{"answer":"InvalidInstance","status":"FAILED"}'
 
-        tdc = appMap["TDCSERVER"][instance]
+        tdc = self.appMap["TDCSERVER"][instance]
         n = (1 << channel)
         param = {}
         param["value"] = "%x" % n
@@ -181,7 +181,7 @@ class febRC(lydaqrc.lydaqControl):
         if (len(self.appMap["TDCSERVER"]) <= instance):
             return '{"answer":"InvalidInstance","status":"FAILED"}'
 
-        tdc = appMap["TDCSERVER"][instance]
+        tdc = self.appMap["TDCSERVER"][instance]
         param = {}
         param["value"] = mask
         r = {}

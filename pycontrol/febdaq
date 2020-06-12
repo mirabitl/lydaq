@@ -79,6 +79,8 @@ grp_action.add_argument('--feb-settdcdelays', action='store_true',
                         help='change the PETIROC mode before starting the run with --active=1-255, --dead=1-255 ')
 grp_action.add_argument('--feb-lutcalib', action='store_true',
                         help='Calibrate --tdc=i --channel=k  is the total number of channels')
+grp_action.add_argument('--feb-lutmask', action='store_true',
+                        help='Set the LUT mask --tdc=i --mask=Hexadecimal mask')
 grp_action.add_argument('--feb-lutdump', action='store_true',
                         help='Dump lut --tdc=i --channel=k ')
 #grp_action.add_argument('--histo-draw', action='store_true',
@@ -133,8 +135,6 @@ parser.add_argument('--directory', action='store', type=str,
                     dest='directory', default=None, help='shm publisher directory')
 parser.add_argument('--vth', action='store', type=int,
                     default=None, dest='vth', help='set the vth for chips')
-parser.add_argument('--mask', action='store', type=int,
-                    default=None, dest='mask', help='set the mask for chips')
 parser.add_argument('--gain', action='store', type=int,
                     default=None, dest='gain', help='set the gain for chips')
 
@@ -178,6 +178,8 @@ parser.add_argument('-v', '--verbose', action='store_true',dest='verbose',
 parser.add_argument('--comment', action='store', default=None,
                     dest='comment', help=' Comment for start run')
 
+parser.add_argument('--mask', action='store', dest='mask',
+                    default=None, help='Hexadecimal string mask')
 
 account=os.getenv("MGDBLOGIN","NONE")
 if (account == "NONE"):
@@ -261,7 +263,7 @@ elif(results.daq_evbstatus):
         print sr
     exit(0)
 elif(results.daq_downloaddb):
-    r_cmd = 'downloadDB'
+    lcgi={}
     if (results.dbstate != None):
         lcgi['state'] = results.dbstate
     else:
@@ -270,50 +272,55 @@ elif(results.daq_downloaddb):
     version=0
     if (results.dbversion != None):
         version = results.dbversion
-    fdc.daq_downloaddb(results.dbstate,version)
-    exit(0)
-
-### DIF
-
-elif(results.dif_setgain):
-    r_cmd = 'SETGAIN'
-    if (results.gain == None):
-        print 'Please specify the gain --gain=value'
-        exit(0)
-    fdc.dif_setgain(results.gain)
-    exit(0)
-elif(results.dif_setthreshold):
-    r_cmd = 'SETTHRESHOLD'
-    if (results.B0 == None):
-        print 'Please specify the B0 --B0=value'
-        exit(0)
-    if (results.B1 == None):
-        print 'Please specify the B1 --B1=value'
-        exit(0)
-    if (results.B2 == None):
-        print 'Please specify the B2 --B2=value'
-        exit(0)
-    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
-    exit(0)
-elif(results.dif_ctrlreg):
-    r_cmd = 'setControlRegister'
-    lct = 0
-    if (results.ctrlreg != None):
-        lct = int(results.ctrlreg, 16)
-    else:
-        print 'Please specify the value --ctrlreg=0X######'
-        exit(0)
-    fdc.dif_ctrlreg(results.ctrlreg)
+    lcgi['version']=version
+    name="TDCSERVER"
+    if (results.name != None):
+        name = results.name
+    print fdc.processCommand("DOWNLOADDB",name,lcgi)
     exit(0)
 
 
 ### FEB
 
 elif(results.feb_resettdc):
-    r_cmd = 'tdcstatus'
-    sr = fdc.feb_resettdc()
+    sr = fdc.mdcc_resetTdc()
     print sr
     exit(0)
+elif(results.feb_lutcalib):
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    for i in range(0,results.channel):
+        fdc.tdcLUTCalib(results.tdc,i)
+    exit(0)
+elif(results.feb_lutmask):
+    
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+
+    if (results.mask == None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    fdc.tdcLUTMask(results.tdc,results.mask)
+    exit(0)
+
+
+elif(results.feb_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+
+    fdc.feb_lut_draw(results.tdc, results.channel)
+    exit(0)
+
 elif(results.feb_setvth):
     r_cmd = 'SETVTH'
     if (results.vth == None):
@@ -321,17 +328,6 @@ elif(results.feb_setvth):
         exit(0)
     fdc.feb_setvthtime(results.vth)
     exit(0)
-elif(results.feb_setmask):
-    r_cmd = 'SETMASK'
-    if (results.mask == None):
-        print 'Please specify the vth --mask=value'
-        exit(0)
-    asic = 255
-    if (results.asic != None):
-        asic = results.asic
-    fdc.feb_setmask(results.mask, asic)
-    exit(0)
-
 elif(results.feb_settdcmode):
     r_cmd = 'SETTDCMODE'
     if (results.value == None):
@@ -383,26 +379,6 @@ elif(results.feb_scurve):
     val = raw_input()
 
     fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
-    exit(0)
-elif(results.feb_lutcalib):
-    r_cmd = 'lutcalib'
-    if (results.tdc == None):
-        print 'Please specify the tdc process --tdc=#'
-        exit(0)
-    if (results.channel == None):
-        print 'Please specify the channel --channel=#'
-        exit(0)
-    fdc.feb_lut_calib(results.tdc, results.channel)
-    exit(0)
-elif(results.feb_lutdraw):
-    r_cmd = 'lutdraw'
-    if (results.tdc == None):
-        print 'Please specify the tdc process --tdc=#'
-        exit(0)
-    if (results.channel == None):
-        print 'Please specify the channel --channel=#'
-        exit(0)
-    fdc.feb_lut_draw(results.tdc, results.channel)
     exit(0)
 elif(results.histo_draw):
     r_cmd = 'lutdraw'

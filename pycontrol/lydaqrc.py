@@ -13,7 +13,7 @@ class lydaqControl(daqrc.daqControl):
 
     def BuilderStatus(self, verbose=False):
         rep = {}
-        for k, v in self.appMap.items:
+        for k, v in self.appMap.items():
             if (k != "BUILDER"):
                 continue
             for s in v:
@@ -21,7 +21,7 @@ class lydaqControl(daqrc.daqControl):
                 r['run'] = -1
                 r['event'] = -1
                 r['url'] = s.host
-                mr = json.loads(s.sendCommand("STATUS", None))
+                mr = json.loads(s.sendCommand("STATUS", {}))
                 if (mr['status'] != "FAILED"):
                     r["run"] = mr["answer"]["answer"]["run"]
                     r["event"] = mr["answer"]["answer"]["event"]
@@ -40,7 +40,7 @@ class lydaqControl(daqrc.daqControl):
         \t \t ** Builder information **
         \t \t *************************
         """
-        rep = json.loads(sr)
+        #rep = json.loads(sr)
         for k, v in rep.items():
             print k
             for xk, xv in v.items():
@@ -67,19 +67,19 @@ class lydaqControl(daqrc.daqControl):
     # MDCC
 
     def mdcc_Status(self):
-        return self.processCommand("STATUS", "MDCCSERVER", None)
+        return self.processCommand("STATUS", "MDCCSERVER", {})
 
     def mdcc_Pause(self):
-        return self.processCommand("PAUSE", "MDCCSERVER", None)
+        return self.processCommand("PAUSE", "MDCCSERVER", {})
 
     def mdcc_Resume(self):
-        return self.processCommand("RESUME", "MDCCSERVER", None)
+        return self.processCommand("RESUME", "MDCCSERVER", {})
 
     def mdcc_EcalPause(self):
-        return self.processCommand("ECALPAUSE", "MDCCSERVER", None)
+        return self.processCommand("ECALPAUSE", "MDCCSERVER", {})
 
     def mdcc_EcalResume(self):
-        return self.processCommand("ECALRESUME", "MDCCSERVER", None)
+        return self.processCommand("ECALRESUME", "MDCCSERVER", {})
 
     def mdcc_CalibOn(self, value):
         param = {}
@@ -87,10 +87,10 @@ class lydaqControl(daqrc.daqControl):
         return self.processCommand("CALIBON", "MDCCSERVER", param)
 
     def mdcc_CalibOff(self):
-        return self.processCommand("CALIBOFF", "MDCCSERVER", None)
+        return self.processCommand("CALIBOFF", "MDCCSERVER", {})
 
     def mdcc_ReloadCalibCount(self):
-        return self.processCommand("RELOADCALIB", "MDCCSERVER", None)
+        return self.processCommand("RELOADCALIB", "MDCCSERVER", {})
 
     def mdcc_setCalibCount(self, value):
         param = {}
@@ -98,7 +98,7 @@ class lydaqControl(daqrc.daqControl):
         return self.processCommand("SETCALIBCOUNT", "MDCCSERVER", param)
 
     def mdcc_Reset(self):
-        return self.processCommand("RESET", "MDCCSERVER", None)
+        return self.processCommand("RESET", "MDCCSERVER", {})
 
     def mdcc_ReadRegister(self, address):
         param = {}
@@ -127,8 +127,8 @@ class lydaqControl(daqrc.daqControl):
         return self.processCommand("RESETTDC", "MDCCSERVER", param)
 
     def mdcc_resetTdc(self):
-        mdcc_setResetTdcBit(0)
-        return mdcc_setResetTdcBit(1)
+        self.mdcc_setResetTdcBit(0)
+        return self.mdcc_setResetTdcBit(1)
 
     def mdcc_setBeamOn(self, value):
         param = {}
