@@ -101,14 +101,10 @@ grp_action.add_argument('--ecal-resume', action='store_true',
 grp_action.add_argument('--trig-spillon', action='store_true',
                         help=' set spill nclock on with --clock=nc (20ns)')
 grp_action.add_argument('--trig-spilloff', action='store_true',
-                        help=' set spill nclock off with --clock=nc (20ns) ')
-grp_action.add_argument('--trig-beam', action='store_true',
-                        help=' set beam length to nclock with --clock=nc (20ns) ')
-grp_action.add_argument('--trig-spillregister', action='store_true',
-                        help=' set the value of the spill register (FEB CMS) (32/64 for beamtest or cosmic) --value=xx ')
-grp_action.add_argument('--trig-calibon', action='store_true',
-                        help=' set the value of the calibon register (FEB calibration) --value=xx ')
-grp_action.add_argument('--trig-calibcount', action='store_true',
+                         if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)nt('--trig-calibcount', action='store_true',
                         help=' set the value of the calibcount (FEB calibration) register --value=xx ')
 grp_action.add_argument('--trig-rearm', action='store_true',
                         help=' reload calib (FEB calibration)  ')
@@ -178,7 +174,7 @@ parser.add_argument('--asic', action='store', type=int,
                     dest='asic', default=None, help='asic header of Petiroc')
 parser.add_argument('--feb', action='store', type=int,
                     dest='feb', default=None, help='FEB id')
-parser.add_argument('-v', '--verbose', action='store_true',
+parser.add_argument('-v', '--verbose', action='store_true',dest='verbose',
                     default=False, help='Raw Json output')
 
 parser.add_argument('--comment', action='store', default=None,
@@ -192,7 +188,7 @@ if (account == "NONE"):
 
 config=os.getenv("DAQMONGO","NONE")
 if (config == "NONE"):
-    print "The ENV varaible name:version mut be set"
+    print "The ENV varaible DAQMONGO=name:version must be set"
     exit(0)
 
 fdc=febrc.febRC(account,config)
@@ -203,4 +199,1705 @@ if len(sys.argv)==1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 results = parser.parse_args()
+
+# analyse the command
+lcgi = {}
+r_cmd = None
+
+if(results.app_info):
+    fdc.updateInfo(True,results.verbose)
+    exit(0)
+## JOBCONTROL
+elif(results.jc_create):
+    fdc.jc_initialise()
+    exit(0)
+elif(results.jc_kill):
+    fdc.jc_kill()
+    exit(0)
+elif(results.jc_start):
+    fdc.jc_start()
+    exit(0)
+elif(results.jc_destroy):
+    fdc.jc_destroy()
+    exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print sr
+    exit(0)
+elif(results.jc_status):
+    sr = fdc.jc_status()
+    exit(0)
+elif(results.jc_info):
+    fdc.updateInfo(True,results.verbose)
+    exit(0)
+
+### DAQ
+elif(results.daq_initialise):
+    fdc.daq_initialise()
+    exit(0)
+elif(results.daq_configure):
+    fdc.daq_configure()
+    exit(0)
+elif(results.daq_status):
+    fdc.BuilderStatus(True)
+    fdc.SourceStatus(True)
+    exit(0)
+elif(results.daq_tdcstatus):
+    sr = fdc.SourceStatus(results.verbose)
+    if (not results.verbose):
+        print sr
+    exit(0)
+elif(results.daq_startrun):
+    if (results.comment != None):
+        fdc.daq_start(results.comment)
+    else:
+        fdc.daq_start()
+    exit(0)
+elif(results.daq_stoprun):
+    fdc.daq_stop()
+    exit(0)
+elif(results.daq_destroy):
+    fdc.daq_destroy()
+    exit(0)
+
+elif(results.daq_evbstatus):
+    sr = fdc.BuilderStatus()
+    if (not results.verbose):
+        print sr
+    exit(0)
+elif(results.daq_downloaddb):
+    r_cmd = 'downloadDB'
+    if (results.dbstate != None):
+        lcgi['state'] = results.dbstate
+    else:
+        print 'Please specify the state --dbstate=STATE'
+        exit(0)
+    version=0
+    if (results.dbversion != None):
+        version = results.dbversion
+    fdc.daq_downloaddb(results.dbstate,version)
+    exit(0)
+
+### DIF
+
+elif(results.dif_setgain):
+    r_cmd = 'SETGAIN'
+    if (results.gain == None):
+        print 'Please specify the gain --gain=value'
+        exit(0)
+    fdc.dif_setgain(results.gain)
+    exit(0)
+elif(results.dif_setthreshold):
+    r_cmd = 'SETTHRESHOLD'
+    if (results.B0 == None):
+        print 'Please specify the B0 --B0=value'
+        exit(0)
+    if (results.B1 == None):
+        print 'Please specify the B1 --B1=value'
+        exit(0)
+    if (results.B2 == None):
+        print 'Please specify the B2 --B2=value'
+        exit(0)
+    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
+    exit(0)
+elif(results.dif_ctrlreg):
+    r_cmd = 'setControlRegister'
+    lct = 0
+    if (results.ctrlreg != None):
+        lct = int(results.ctrlreg, 16)
+    else:
+        print 'Please specify the value --ctrlreg=0X######'
+        exit(0)
+    fdc.dif_ctrlreg(results.ctrlreg)
+    exit(0)
+
+
+### FEB
+
+elif(results.feb_resettdc):
+    r_cmd = 'tdcstatus'
+    sr = fdc.feb_resettdc()
+    print sr
+    exit(0)
+elif(results.feb_setvth):
+    r_cmd = 'SETVTH'
+    if (results.vth == None):
+        print 'Please specify the vth --vth=value'
+        exit(0)
+    fdc.feb_setvthtime(results.vth)
+    exit(0)
+elif(results.feb_setmask):
+    r_cmd = 'SETMASK'
+    if (results.mask == None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    asic = 255
+    if (results.asic != None):
+        asic = results.asic
+    fdc.feb_setmask(results.mask, asic)
+    exit(0)
+
+elif(results.feb_settdcmode):
+    r_cmd = 'SETTDCMODE'
+    if (results.value == None):
+        print 'Please specify the mode --value=XX'
+        exit(0)
+    fdc.feb_settdcmode(results.value)
+    exit(0)
+
+elif(results.feb_settdcdelays):
+    r_cmd = 'SETTDCDELAYS'
+    if (results.active == None):
+        print 'Please specify the active time --active=XX'
+        exit(0)
+    if (results.dead == None):
+        print 'Please specify the dead time --dead=XX'
+        exit(0)
+    fdc.feb_settdcdelays(results.active, results.dead)
+    exit(0)
+
+elif(results.feb_calibdac):
+    r_cmd = 'calibdac'
+    fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
+    exit(0)
+elif(results.feb_scurve):
+    r_cmd = 'scurve'
+    first = 300
+    last = 600
+    chan = 255
+    step = 2
+    spillon = 200
+    spilloff = 1000
+    mask = 255
+    if (results.first != None):
+        first = results.first
+    if (results.last != None):
+        last = results.last
+    if (results.channel != None):
+        chan = results.channel
+    if (results.step != None):
+        step = results.step
+    if (results.spillon != None):
+        spillon = results.spillon
+    if (results.spilloff != None):
+        spilloff = results.spilloff
+    if (results.mask != None):
+        mask = results.mask
+
+    print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
+    val = raw_input()
+
+    fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
+    exit(0)
+elif(results.feb_lutcalib):
+    r_cmd = 'lutcalib'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_calib(results.tdc, results.channel)
+    exit(0)
+elif(results.feb_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
+    exit(0)
+
+
+### MDCC
+
+elif(results.trig_status):
+    r_cmd = 'triggerStatus'
+    res=fdc.trig_status()
+    print res
+    exit(0)
+
+elif(results.trig_beam):
+    r_cmd = 'triggerBeam'
+    if (results.clock != None):
+        fdc.trig_beam(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spillon):
+    r_cmd = 'triggerSpillOn'
+    if (results.clock != None):
+        fdc.trig_spillon(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spilloff):
+    r_cmd = 'triggerSpillOff'
+    if (results.clock != None):
+        fdc.trig_spilloff(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+elif(results.trig_spillregister):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_spillregister(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_setregister):
+    r_cmd = 'triggerSetRegister'
+    if (results.value == None):
+        print 'Please specify the value --value=xx'
+        exit(0)
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_setregister(results.address, results.value)
+    print sr
+    exit(0)
+elif(results.trig_getregister):
+    r_cmd = 'triggerGetRegister'
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_getregister(results.address)
+    print sr
+    exit(0)
+elif(results.trig_tdcreset):
+    r_cmd = 'trigResetTdc'
+    sr = fdc.trig_tdcreset()
+    print sr
+    exit(0)
+elif(results.trig_calibon):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibon(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibcount):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibcount(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_rearm):
+    r_cmd = 'triggerSpillRegister'
+
+    fdc.trig_reloadcalib()
+    exit(0)
+elif(results.trig_hardreset):
+    r_cmd = 'triggerhardReset'
+
+    fdc.trig_hardreset()
+
+    exit(0)
+
+elif(results.ecal_pause):
+    r_cmd = 'pauseEcal'
+    fdc.ecal_pause()
+    exit(0)
+
+elif(results.ecal_resume):
+    r_cmd = 'resumeEcal'
+    fdc.ecal_resume()
+    exit(0)
+
+elif(results.trig_reset):
+    r_cmd = 'resetTrigger'
+    fdc.trig_reset()
+    exit(0)
+elif(results.trig_pause):
+    r_cmd = 'pause'
+    fdc.trig_pause()
+    exit(0)
+elif(results.trig_resume):
+    r_cmd = 'resume'
+    fdc.trig_resume()
+    exit(0)
+
+### SLOW CONTROL
+
+elif(results.slc_create):
+    r_cmd = 'createSlowControl'
+    fdc.slow_create()
+    exit(0)
+
+elif(results.slc_initialise):
+    r_cmd = 'initialise'
+    fdc.slow_discover()
+    exit(0)
+elif(results.slc_configure):
+    r_cmd = 'configure'
+    fdc.slow_configure()
+    exit(0)
+elif(results.slc_start):
+    r_cmd = 'start'
+    fdc.slow_start()
+    exit(0)
+elif(results.slc_stop):
+    r_cmd = 'stop'
+    fdc.slow_stop()
+    exit(0)
+elif(results.slc_lvon):
+    r_cmd = 'LVON'
+    sr = fdc.slow_lvon()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_lvoff):
+    r_cmd = 'LVOFF'
+    sr = fdc.slow_lvoff()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+elif(results.slc_lvstatus):
+    r_cmd = 'LVStatus'
+    sr = fdc.slow_lvstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_hvstatus):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvstatus(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvon):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvon(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvoff):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvoff(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+
+elif(results.slc_ptstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('PTSTATUS', sr)
+    exit(0)
+elif(results.slc_humstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_humstatus()
+    if (results.verbose):
+        print sr
+    else:
+       # analyse the command
+lcgi = {}
+r_cmd = None
+if (results.daq_create):
+    r_cmd = 'createDaq'
+    fdc.daq_create()
+    exit(0)
+elif(results.available):
+    r_cmd = 'available'
+    fdc.daq_list()
+    exit(0)
+elif(results.app_info):
+    r_cmd = 'available'
+    if (results.name != None):
+        fdc.daq_info(results.name)
+    else:
+        print 'Please specify the name --name=name'
+    exit(0)
+## JOBCONTROL
+elif(results.jc_create):
+    r_cmd = 'createJobControl'
+    fdc.jc_create()
+    exit(0)
+elif(results.jc_kill):
+    r_cmd = 'jobKillAll'
+    fdc.jc_kill()
+    exit(0)
+elif(results.jc_start):
+    r_cmd = 'jobStartAll'
+    fdc.jc_start()
+    exit(0)
+elif(results.jc_destroy):
+    r_cmd = 'jobDestroy'
+    fdc.jc_destroy()
+    exit(0)
+elif(results.jc_restart):
+    lcgi.clear()
+    if (results.host == None):
+        print "set the host "
+        exit(0)
+    if (results.jobname == None):
+        print "set the jobname "
+        exit(0)
+    if (results.jobpid == None):
+        print "set the jobpid "
+        exit(0)
+    fdc.jc_restart(results.host, results.jobname, results.jobpid)
+    r_cmd = 'jobReStart'
+    exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print sr
+    exit(0)
+elif(results.jc_status):
+    if (results.name != None):
+        sr = fdc.jc_status(results.name)
+        exit(0)
+    else:
+        sr = fdc.jc_status()
+    exit(0)
+elif(results.jc_info):
+    if (results.host != None):
+        if (results.name != None):
+            sr = fdc.jc_info(results.host,results.name)
+            exit(0)
+        else:
+            sr = fdc.jc_info(results.host)
+
+        exit(0)
+    else:
+        print "Host name missing"
+    exit(0)
+
+### DAQ
+
+elif(results.daq_state):
+    r_cmd = 'state'
+    fdc.daq_state()
+    exit(0)
+elif(results.daq_discover):
+    r_cmd = 'Discover'
+    fdc.daq_discover()
+    exit(0)
+elif(results.daq_setparameters):
+    r_cmd = 'setParameters'
+    fdc.daq_setparameters()
+    exit(0)
+elif(results.daq_getparameters):
+    r_cmd = 'getParameters'
+    fdc.daq_getparameters()
+    exit(0)
+elif(results.daq_forceState):
+    r_cmd = 'forceState'
+    if (results.fstate != None):
+        fdc.daq_forceState(results.fstate)
+    else:
+        print 'Please specify the state --state=STATE'
+    exit(0)
+elif(results.daq_services):
+    r_cmd = 'prepareServices'
+    fdc.daq_services()
+    exit(0)
+elif(results.daq_initialise):
+    r_cmd = 'initialise'
+    fdc.daq_initialise()
+    exit(0)
+elif(results.daq_configure):
+    r_cmd = 'configure'
+    fdc.daq_configure()
+    exit(0)
+elif(results.daq_difstatus):
+    r_cmd = 'status'
+    sr = fdc.daq_difstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_tdcstatus):
+    r_cmd = 'tdcstatus'
+    sr = fdc.daq_tdcstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_startrun):
+    r_cmd = 'start'
+    if (results.comment != None):
+        fdc.daq_start(results.comment)
+    else:
+        fdc.daq_start()
+    exit(0)
+
+elif(results.daq_stoprun):
+    r_cmd = 'stop'
+    fdc.trig_pause()
+    fdc.daq_stop()
+    exit(0)
+elif(results.daq_destroy):
+    r_cmd = 'destroy'
+    fdc.daq_destroy()
+    exit(0)
+elif(results.daq_dbstatus):
+    r_cmd = 'dbStatus'
+    sr = fdc.daq_dbstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_evbstatus):
+    r_cmd = 'shmStatus'
+    sr = fdc.daq_evbstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_downloaddb):
+    r_cmd = 'downloadDB'
+    if (results.dbstate != None):
+        lcgi['state'] = results.dbstate
+    else:
+        print 'Please specify the state --dbstate=STATE'
+        exit(0)
+    version=0
+    if (results.dbversion != None):
+        version = results.dbversion
+    fdc.daq_downloaddb(results.dbstate,version)
+    exit(0)
+
+### DIF
+
+elif(results.dif_setgain):
+    r_cmd = 'SETGAIN'
+    if (results.gain == None):
+        print 'Please specify the gain --gain=value'
+        exit(0)
+    fdc.dif_setgain(results.gain)
+    exit(0)
+elif(results.dif_setthreshold):
+    r_cmd = 'SETTHRESHOLD'
+    if (results.B0 == None):
+        print 'Please specify the B0 --B0=value'
+        exit(0)
+    if (results.B1 == None):
+        print 'Please specify the B1 --B1=value'
+        exit(0)
+    if (results.B2 == None):
+        print 'Please specify the B2 --B2=value'
+        exit(0)
+    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
+    exit(0)
+elif(results.dif_ctrlreg):
+    r_cmd = 'setControlRegister'
+    lct = 0
+    if (results.ctrlreg != None):
+        lct = int(results.ctrlreg, 16)
+    else:
+        print 'Please specify the value --ctrlreg=0X######'
+        exit(0)
+    fdc.dif_ctrlreg(results.ctrlreg)
+    exit(0)
+
+
+### FEB
+
+elif(results.feb_resettdc):
+    r_cmd = 'tdcstatus'
+    sr = fdc.feb_resettdc()
+    print sr
+    exit(0)
+elif(results.feb_setvth):
+    r_cmd = 'SETVTH'
+    if (results.vth == None):
+        print 'Please specify the vth --vth=value'
+        exit(0)
+    fdc.feb_setvthtime(results.vth)
+    exit(0)
+elif(results.feb_setmask):
+    r_cmd = 'SETMASK'
+    if (results.mask == None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    asic = 255
+    if (results.asic != None):
+        asic = results.asic
+    fdc.feb_setmask(results.mask, asic)
+    exit(0)
+
+elif(results.feb_settdcmode):
+    r_cmd = 'SETTDCMODE'
+    if (results.value == None):
+        print 'Please specify the mode --value=XX'
+        exit(0)
+    fdc.feb_settdcmode(results.value)
+    exit(0)
+
+elif(results.feb_settdcdelays):
+    r_cmd = 'SETTDCDELAYS'
+    if (results.active == None):
+        print 'Please specify the active time --active=XX'
+        exit(0)
+    if (results.dead == None):
+        print 'Please specify the dead time --dead=XX'
+        exit(0)
+    fdc.feb_settdcdelays(results.active, results.dead)
+    exit(0)
+
+elif(results.feb_calibdac):
+    r_cmd = 'calibdac'
+    fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
+    exit(0)
+elif(results.feb_scurve):
+    r_cmd = 'scurve'
+    first = 300
+    last = 600
+    chan = 255
+    step = 2
+    spillon = 200
+    spilloff = 1000
+    mask = 255
+    if (results.first != None):
+        first = results.first
+    if (results.last != None):
+        last = results.last
+    if (results.channel != None):
+        chan = results.channel
+    if (results.step != None):
+        step = results.step
+    if (results.spillon != None):
+        spillon = results.spillon
+    if (results.spilloff != None):
+        spilloff = results.spilloff
+    if (results.mask != None):
+        mask = results.mask
+
+    print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
+    val = raw_input()
+
+    fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
+    exit(0)
+elif(results.feb_lutcalib):
+    r_cmd = 'lutcalib'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_calib(results.tdc, results.channel)
+    exit(0)
+elif(results.feb_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
+    exit(0)
+
+
+### MDCC
+
+elif(results.trig_status):
+    r_cmd = 'triggerStatus'
+    res=fdc.trig_status()
+    print res
+    exit(0)
+
+elif(results.trig_beam):
+    r_cmd = 'triggerBeam'
+    if (results.clock != None):
+        fdc.trig_beam(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spillon):
+    r_cmd = 'triggerSpillOn'
+    if (results.clock != None):
+        fdc.trig_spillon(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spilloff):
+    r_cmd = 'triggerSpillOff'
+    if (results.clock != None):
+        fdc.trig_spilloff(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+elif(results.trig_spillregister):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_spillregister(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_setregister):
+    r_cmd = 'triggerSetRegister'
+    if (results.value == None):
+        print 'Please specify the value --value=xx'
+        exit(0)
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_setregister(results.address, results.value)
+    print sr
+    exit(0)
+elif(results.trig_getregister):
+    r_cmd = 'triggerGetRegister'
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_getregister(results.address)
+    print sr
+    exit(0)
+elif(results.trig_tdcreset):
+    r_cmd = 'trigResetTdc'
+    sr = fdc.trig_tdcreset()
+    print sr
+    exit(0)
+elif(results.trig_calibon):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibon(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibcount):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibcount(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_rearm):
+    r_cmd = 'triggerSpillRegister'
+
+    fdc.trig_reloadcalib()
+    exit(0)
+elif(results.trig_hardreset):
+    r_cmd = 'triggerhardReset'
+
+    fdc.trig_hardreset()
+
+    exit(0)
+
+elif(results.ecal_pause):
+    r_cmd = 'pauseEcal'
+    fdc.ecal_pause()
+    exit(0)
+
+elif(results.ecal_resume):
+    r_cmd = 'resumeEcal'
+    fdc.ecal_resume()
+    exit(0)
+
+elif(results.trig_reset):
+    r_cmd = 'resetTrigger'
+    fdc.trig_reset()
+    exit(0)
+elif(results.trig_pause):
+    r_cmd = 'pause'
+    fdc.trig_pause()
+    exit(0)
+elif(results.trig_resume):
+    r_cmd = 'resume'
+    fdc.trig_resume()
+    exit(0)
+
+### SLOW CONTROL
+
+elif(results.slc_create):
+    r_cmd = 'createSlowControl'
+    fdc.slow_create()
+    exit(0)
+
+elif(results.slc_initialise):
+    r_cmd = 'initialise'
+    fdc.slow_discover()
+    exit(0)
+elif(results.slc_configure):
+    r_cmd = 'configure'
+    fdc.slow_configure()
+    exit(0)
+elif(results.slc_start):
+    r_cmd = 'start'
+    fdc.slow_start()
+    exit(0)
+elif(results.slc_stop):
+    r_cmd = 'stop'
+    fdc.slow_stop()
+    exit(0)
+elif(results.slc_lvon):
+    r_cmd = 'LVON'
+    sr = fdc.slow_lvon()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_lvoff):
+    r_cmd = 'LVOFF'
+    sr = fdc.slow_lvoff()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+elif(results.slc_lvstatus):
+    r_cmd = 'LVStatus'
+    sr = fdc.slow_lvstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_hvstatus):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvstatus(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvon):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvon(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvoff):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvoff(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+
+elif(results.slc_ptstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('PTSTATUS', sr)
+    exit(0)
+elif(results.slc_humstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_humstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('HUMSTATUS', sr)
+    exit(0)
+
+elif(results.slc_ptcor):
+    r_cmd = 'PT'
+    sr = fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('PTCOR', sr, results)
+    exit(0)
+
+elif(results.slc_vset):
+    r_cmd = 'setVoltage'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.voltage == None):
+        print 'Please specify the voltage --voltage=V'
+        exit(0)
+    sr = fdc.slow_vset(results.first, results.last, results.voltage)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+elif(results.slc_iset):
+    r_cmd = 'setCurrent'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.current == None):
+        print 'Please specify the current --current=V'
+        exit(0)
+    sr = fdc.slow_iset(results.first, results.last, results.current)
+    if (results.verbose):
+      # analyse the command
+lcgi = {}
+r_cmd = None
+if (results.daq_create):
+    r_cmd = 'createDaq'
+    fdc.daq_create()
+    exit(0)
+elif(results.available):
+    r_cmd = 'available'
+    fdc.daq_list()
+    exit(0)
+elif(results.app_info):
+    r_cmd = 'available'
+    if (results.name != None):
+        fdc.daq_info(results.name)
+    else:
+        print 'Please specify the name --name=name'
+    exit(0)
+## JOBCONTROL
+elif(results.jc_create):
+    r_cmd = 'createJobControl'
+    fdc.jc_create()
+    exit(0)
+elif(results.jc_kill):
+    r_cmd = 'jobKillAll'
+    fdc.jc_kill()
+    exit(0)
+elif(results.jc_start):
+    r_cmd = 'jobStartAll'
+    fdc.jc_start()
+    exit(0)
+elif(results.jc_destroy):
+    r_cmd = 'jobDestroy'
+    fdc.jc_destroy()
+    exit(0)
+elif(results.jc_restart):
+    lcgi.clear()
+    if (results.host == None):
+        print "set the host "
+        exit(0)
+    if (results.jobname == None):
+        print "set the jobname "
+        exit(0)
+    if (results.jobpid == None):
+        print "set the jobpid "
+        exit(0)
+    fdc.jc_restart(results.host, results.jobname, results.jobpid)
+    r_cmd = 'jobReStart'
+    exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print sr
+    exit(0)
+elif(results.jc_status):
+    if (results.name != None):
+        sr = fdc.jc_status(results.name)
+        exit(0)
+    else:
+        sr = fdc.jc_status()
+    exit(0)
+elif(results.jc_info):
+    if (results.host != None):
+        if (results.name != None):
+            sr = fdc.jc_info(results.host,results.name)
+            exit(0)
+        else:
+            sr = fdc.jc_info(results.host)
+
+        exit(0)
+    else:
+        print "Host name missing"
+    exit(0)
+
+### DAQ
+
+elif(results.daq_state):
+    r_cmd = 'state'
+    fdc.daq_state()
+    exit(0)
+elif(results.daq_discover):
+    r_cmd = 'Discover'
+    fdc.daq_discover()
+    exit(0)
+elif(results.daq_setparameters):
+    r_cmd = 'setParameters'
+    fdc.daq_setparameters()
+    exit(0)
+elif(results.daq_getparameters):
+    r_cmd = 'getParameters'
+    fdc.daq_getparameters()
+    exit(0)
+elif(results.daq_forceState):
+    r_cmd = 'forceState'
+    if (results.fstate != None):
+        fdc.daq_forceState(results.fstate)
+    else:
+        print 'Please specify the state --state=STATE'
+    exit(0)
+elif(results.daq_services):
+    r_cmd = 'prepareServices'
+    fdc.daq_services()
+    exit(0)
+elif(results.daq_initialise):
+    r_cmd = 'initialise'
+    fdc.daq_initialise()
+    exit(0)
+elif(results.daq_configure):
+    r_cmd = 'configure'
+    fdc.daq_configure()
+    exit(0)
+elif(results.daq_difstatus):
+    r_cmd = 'status'
+    sr = fdc.daq_difstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_tdcstatus):
+    r_cmd = 'tdcstatus'
+    sr = fdc.daq_tdcstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_startrun):
+    r_cmd = 'start'
+    if (results.comment != None):
+        fdc.daq_start(results.comment)
+    else:
+        fdc.daq_start()
+    exit(0)
+
+elif(results.daq_stoprun):
+    r_cmd = 'stop'
+    fdc.trig_pause()
+    fdc.daq_stop()
+    exit(0)
+elif(results.daq_destroy):
+    r_cmd = 'destroy'
+    fdc.daq_destroy()
+    exit(0)
+elif(results.daq_dbstatus):
+    r_cmd = 'dbStatus'
+    sr = fdc.daq_dbstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_evbstatus):
+    r_cmd = 'shmStatus'
+    sr = fdc.daq_evbstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.daq_downloaddb):
+    r_cmd = 'downloadDB'
+    if (results.dbstate != None):
+        lcgi['state'] = results.dbstate
+    else:
+        print 'Please specify the state --dbstate=STATE'
+        exit(0)
+    version=0
+    if (results.dbversion != None):
+        version = results.dbversion
+    fdc.daq_downloaddb(results.dbstate,version)
+    exit(0)
+
+### DIF
+
+elif(results.dif_setgain):
+    r_cmd = 'SETGAIN'
+    if (results.gain == None):
+        print 'Please specify the gain --gain=value'
+        exit(0)
+    fdc.dif_setgain(results.gain)
+    exit(0)
+elif(results.dif_setthreshold):
+    r_cmd = 'SETTHRESHOLD'
+    if (results.B0 == None):
+        print 'Please specify the B0 --B0=value'
+        exit(0)
+    if (results.B1 == None):
+        print 'Please specify the B1 --B1=value'
+        exit(0)
+    if (results.B2 == None):
+        print 'Please specify the B2 --B2=value'
+        exit(0)
+    fdc.dif_setthreshold(results.B0, results.B1, results.B2)
+    exit(0)
+elif(results.dif_ctrlreg):
+    r_cmd = 'setControlRegister'
+    lct = 0
+    if (results.ctrlreg != None):
+        lct = int(results.ctrlreg, 16)
+    else:
+        print 'Please specify the value --ctrlreg=0X######'
+        exit(0)
+    fdc.dif_ctrlreg(results.ctrlreg)
+    exit(0)
+
+
+### FEB
+
+elif(results.feb_resettdc):
+    r_cmd = 'tdcstatus'
+    sr = fdc.feb_resettdc()
+    print sr
+    exit(0)
+elif(results.feb_setvth):
+    r_cmd = 'SETVTH'
+    if (results.vth == None):
+        print 'Please specify the vth --vth=value'
+        exit(0)
+    fdc.feb_setvthtime(results.vth)
+    exit(0)
+elif(results.feb_setmask):
+    r_cmd = 'SETMASK'
+    if (results.mask == None):
+        print 'Please specify the vth --mask=value'
+        exit(0)
+    asic = 255
+    if (results.asic != None):
+        asic = results.asic
+    fdc.feb_setmask(results.mask, asic)
+    exit(0)
+
+elif(results.feb_settdcmode):
+    r_cmd = 'SETTDCMODE'
+    if (results.value == None):
+        print 'Please specify the mode --value=XX'
+        exit(0)
+    fdc.feb_settdcmode(results.value)
+    exit(0)
+
+elif(results.feb_settdcdelays):
+    r_cmd = 'SETTDCDELAYS'
+    if (results.active == None):
+        print 'Please specify the active time --active=XX'
+        exit(0)
+    if (results.dead == None):
+        print 'Please specify the dead time --dead=XX'
+        exit(0)
+    fdc.feb_settdcdelays(results.active, results.dead)
+    exit(0)
+
+elif(results.feb_calibdac):
+    r_cmd = 'calibdac'
+    fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
+    exit(0)
+elif(results.feb_scurve):
+    r_cmd = 'scurve'
+    first = 300
+    last = 600
+    chan = 255
+    step = 2
+    spillon = 200
+    spilloff = 1000
+    mask = 255
+    if (results.first != None):
+        first = results.first
+    if (results.last != None):
+        last = results.last
+    if (results.channel != None):
+        chan = results.channel
+    if (results.step != None):
+        step = results.step
+    if (results.spillon != None):
+        spillon = results.spillon
+    if (results.spilloff != None):
+        spilloff = results.spilloff
+    if (results.mask != None):
+        mask = results.mask
+
+    print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
+    val = raw_input()
+
+    fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
+    exit(0)
+elif(results.feb_lutcalib):
+    r_cmd = 'lutcalib'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_calib(results.tdc, results.channel)
+    exit(0)
+elif(results.feb_lutdraw):
+    r_cmd = 'lutdraw'
+    if (results.tdc == None):
+        print 'Please specify the tdc process --tdc=#'
+        exit(0)
+    if (results.channel == None):
+        print 'Please specify the channel --channel=#'
+        exit(0)
+    fdc.feb_lut_draw(results.tdc, results.channel)
+    exit(0)
+elif(results.histo_draw):
+    r_cmd = 'lutdraw'
+    if (results.name == None):
+        print 'Please specify the histo name --name=#'
+        exit(0)
+    fdc.histo_draw(results.name)
+    exit(0)
+
+
+### MDCC
+
+elif(results.trig_status):
+    r_cmd = 'triggerStatus'
+    res=fdc.trig_status()
+    print res
+    exit(0)
+
+elif(results.trig_beam):
+    r_cmd = 'triggerBeam'
+    if (results.clock != None):
+        fdc.trig_beam(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spillon):
+    r_cmd = 'triggerSpillOn'
+    if (results.clock != None):
+        fdc.trig_spillon(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+
+elif(results.trig_spilloff):
+    r_cmd = 'triggerSpillOff'
+    if (results.clock != None):
+        fdc.trig_spilloff(results.clock)
+    else:
+        print 'Please specify the number of clock --clock=xx'
+    exit(0)
+
+elif(results.trig_spillregister):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_spillregister(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_setregister):
+    r_cmd = 'triggerSetRegister'
+    if (results.value == None):
+        print 'Please specify the value --value=xx'
+        exit(0)
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_setregister(results.address, results.value)
+    print sr
+    exit(0)
+elif(results.trig_getregister):
+    r_cmd = 'triggerGetRegister'
+    if (results.address == None):
+        print 'Please specify the address --address=xx'
+        exit(0)
+    sr = fdc.trig_getregister(results.address)
+    print sr
+    exit(0)
+elif(results.trig_tdcreset):
+    r_cmd = 'trigResetTdc'
+    sr = fdc.trig_tdcreset()
+    print sr
+    exit(0)
+elif(results.trig_calibon):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibon(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibcount):
+    r_cmd = 'triggerSpillRegister'
+    if (results.value != None):
+        fdc.trig_calibcount(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_rearm):
+    r_cmd = 'triggerSpillRegister'
+
+    fdc.trig_reloadcalib()
+    exit(0)
+elif(results.trig_hardreset):
+    r_cmd = 'triggerhardReset'
+
+    fdc.trig_hardreset()
+
+    exit(0)
+
+elif(results.ecal_pause):
+    r_cmd = 'pauseEcal'
+    fdc.ecal_pause()
+    exit(0)
+
+elif(results.ecal_resume):
+    r_cmd = 'resumeEcal'
+    fdc.ecal_resume()
+    exit(0)
+
+elif(results.trig_reset):
+    r_cmd = 'resetTrigger'
+    fdc.trig_reset()
+    exit(0)
+elif(results.trig_pause):
+    r_cmd = 'pause'
+    fdc.trig_pause()
+    exit(0)
+elif(results.trig_resume):
+    r_cmd = 'resume'
+    fdc.trig_resume()
+    exit(0)
+
+### SLOW CONTROL
+
+elif(results.slc_create):
+    r_cmd = 'createSlowControl'
+    fdc.slow_create()
+    exit(0)
+
+elif(results.slc_initialise):
+    r_cmd = 'initialise'
+    fdc.slow_discover()
+    exit(0)
+elif(results.slc_configure):
+    r_cmd = 'configure'
+    fdc.slow_configure()
+    exit(0)
+elif(results.slc_start):
+    r_cmd = 'start'
+    fdc.slow_start()
+    exit(0)
+elif(results.slc_stop):
+    r_cmd = 'stop'
+    fdc.slow_stop()
+    exit(0)
+elif(results.slc_lvon):
+    r_cmd = 'LVON'
+    sr = fdc.slow_lvon()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_lvoff):
+    r_cmd = 'LVOFF'
+    sr = fdc.slow_lvoff()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+elif(results.slc_lvstatus):
+    r_cmd = 'LVStatus'
+    sr = fdc.slow_lvstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('LVSTATUS', sr)
+    exit(0)
+
+elif(results.slc_hvstatus):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvstatus(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvon):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvon(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+elif(results.slc_hvoff):
+    r_cmd = 'hvStatus'
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    sr = fdc.slow_hvoff(results.first, results.last)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn(r_cmd, sr)
+    exit(0)
+
+elif(results.slc_ptstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('PTSTATUS', sr)
+    exit(0)
+elif(results.slc_humstatus):
+    r_cmd = 'PT'
+    sr = fdc.slow_humstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('HUMSTATUS', sr)
+    exit(0)
+
+elif(results.slc_ptcor):
+    r_cmd = 'PT'
+    sr = fdc.slow_ptstatus()
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('PTCOR', sr, results)
+    exit(0)
+
+elif(results.slc_vset):
+    r_cmd = 'setVoltage'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.voltage == None):
+        print 'Please specify the voltage --voltage=V'
+        exit(0)
+    sr = fdc.slow_vset(results.first, results.last, results.voltage)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+elif(results.slc_iset):
+    r_cmd = 'setCurrent'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.current == None):
+        print 'Please specify the current --current=V'
+        exit(0)
+    sr = fdc.slow_iset(results.first, results.last, results.current)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+
+elif(results.slc_rampup):
+    r_cmd = 'setVoltage'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.ramp == None):
+        print 'Please specify the ramp --ramp=V'
+        exit(0)
+    fdc.slow_rampup(results.first, results.last, results.ramp)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+ (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.ramp == None):
+        print 'Please specify the ramp --ramp=V'
+        exit(0)
+    fdc.slow_rampup(results.first, results.last, results.ramp)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+
+elif(results.slc_vset):
+    r_cmd = 'setVoltage'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.voltage == None):
+        print 'Please specify the voltage --voltage=V'
+        exit(0)
+    sr = fdc.slow_vset(results.first, results.last, results.voltage)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+elif(results.slc_iset):
+    r_cmd = 'setCurrent'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.current == None):
+        print 'Please specify the current --current=V'
+        exit(0)
+    sr = fdc.slow_iset(results.first, results.last, results.current)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
+
+elif(results.slc_rampup):
+    r_cmd = 'setVoltage'
+    if (fdc.slowhost == None or fdc.slowport == None):
+      print "No FSLOW application exiting"
+      exit(0)
+    if (results.first == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.last == None):
+        print 'Please specify the channels --first=# --last=#'
+        exit(0)
+    if (results.ramp == None):
+        print 'Please specify the ramp --ramp=V'
+        exit(0)
+    fdc.slow_rampup(results.first, results.last, results.ramp)
+    if (results.verbose):
+        print sr
+    else:
+        dqc.parseReturn('hvStatus', sr)
+    exit(0)
 

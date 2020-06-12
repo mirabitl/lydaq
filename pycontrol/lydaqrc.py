@@ -1,3 +1,4 @@
+import json
 import daqrc
 import time
 
@@ -10,7 +11,7 @@ class lydaqControl(daqrc.daqControl):
 
     # Status
 
-    def BuilderStatus(self):
+    def BuilderStatus(self, verbose=False):
         rep = {}
         for k, v in self.appMap.items:
             if (k != "BUILDER"):
@@ -32,8 +33,23 @@ class lydaqControl(daqrc.daqControl):
                     rep["%s_%d" % (s.host, s.infos['instance'])] = r
                 else:
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
-
-        return json.dumps(rep)
+        if (not verbose):
+            return json.dumps(rep)
+        print """
+        \t \t *************************    
+        \t \t ** Builder information **
+        \t \t *************************
+        """
+        rep = json.loads(sr)
+        for k, v in rep.items():
+            print k
+            for xk, xv in v.items():
+                    if (xk != "builder"):
+                        print "\t", xk, xv
+                    else:
+                        if (xv != None):
+                            for y in xv:
+                                print "\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received'])
 
     def TriggerStatus(self):
         mr = json.loads(self.mdcc_Status())

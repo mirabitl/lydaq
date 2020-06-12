@@ -83,7 +83,7 @@ class febRC(lydaqrc.lydaqControl):
 
         return json.dumps(r)
 
-    def SourceStatus(self):
+    def SourceStatus(self,verbose=False):
         rep = {}
         for k, v in self.appMap.items:
             if (k != "TDCSERVER"):
@@ -97,7 +97,19 @@ class febRC(lydaqrc.lydaqControl):
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
 
                 rep["%s_%d" % (s.host, s.infos['instance'])] = r
-        return json.dumps(rep)
+        if (not verbose):
+            return json.dumps(rep)
+        # Verbose Printout
+        print """
+        \t \t ******************************    
+        \t \t ** Data sources information **
+        \t \t ******************************
+        """
+        for k,v in rep.items():
+            print k
+            if (v != None)
+                for x in v:
+                    print "\t \t",x 
 
     # FEBV1 specific
 
