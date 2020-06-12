@@ -2,6 +2,7 @@ import lydaqrc
 import time
 import MongoJob as mg
 import json
+import os
 
 class febRC(lydaqrc.lydaqControl):
 
@@ -60,14 +61,19 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def daq_start(self, run, location="UNKNOWN", comment="Not set"):
+
+        if (location=="UNKNOWN"):
+            location=os.getenv("DAQSETUP", "UNKNOWN")
         nrun = run
         if (run == 0):
             smg = mg.instance()
-            nrun = smg.getRun(location, comment)
+            jnrun = smg.getRun(location, comment)
         r = {}
         m = {}
-        m['run'] = nrun
+        #print "EVENT BUILDER",jnrun['run']
+        m['run'] = jnrun['run']
         for x in self.appMap["BUILDER"]:
+            print "Sending Start to vent builder"
             s = json.loads(x.sendTransition("START", m))
             r["BUILDER_%d" % x.appInstance] = s
 
@@ -168,7 +174,7 @@ class febRC(lydaqrc.lydaqControl):
         if (len(self.appMap["TDCSERVER"]) <= instance):
             return '{"answer":"InvalidInstance","status":"FAILED"}'
 
-        tdc = appMap["TDCSERVER"][instance]
+        tdc = self.appMap["TDCSERVER"][instance]
         param = {}
         param["value"] = channel
         r = {}
@@ -203,13 +209,17 @@ class febRC(lydaqrc.lydaqControl):
         for vth in range(0, thrange+1):
             self.mdcc_Pause()
             self.setVthTime(thmax - vth * step)
-            time.sleep(0.5)
+            time.sleep(0.2)
             self.builder_setHeader(2, thmax - vth * step, 0xFF)
 
             # Check Last built event
             sr = json.loads(self.BuilderStatus())
-            firstEvent = sr["event"]
 
+            firstEvent = 0
+            for k,v in sr.items():
+      	        if (v["event"]>firstEvent):
+                    firstEvent=v["event"]
+            #print sr,firstEvent
             # Resume Calibration
             self.mdcc_ReloadCalibCount()
             self.mdcc_Resume()
@@ -220,9 +230,13 @@ class febRC(lydaqrc.lydaqControl):
             nloop = 0
             while (lastEvent < (firstEvent + ntrg - 20)):
                 sr = json.loads(self.BuilderStatus())
-                lastEvent = sr["event"]
-                print " %d First %d  Last %d Step %d" (thmax-vth*step, firstEvent, lastEvent, step)
-                time.sleep(0.4)
+                lastEvent = 0
+                for k,v in sr.items():
+      	            if (v["event"]>lastEvent):
+                        lastEvent=v["event"]
+
+                print " %d First %d  Last %d Step %d" % (thmax-vth*step, firstEvent, lastEvent, step)
+                time.sleep(0.2)
                 nloop = nloop+1
                 if (nloop > 20):
                     break
@@ -237,7 +251,9 @@ class febRC(lydaqrc.lydaqControl):
     def runScurve(self, run, ch, spillon, spilloff, beg, las, step=2, asic=255, Comment="PR2 Calibration", Location="UNKNOWN", nevmax=50):
         firmware = [3, 4, 5, 6, 7, 8, 9, 10, 11,
                     12, 20, 21, 22, 23, 24, 26, 28, 30]
-        self.daq_start(run, location=Location, comment=Comment)
+
+        comment=Comment+" Mode %d ON %d Off %d TH min %d max %d Step %d" % (ch, spillon, spilloff, beg, las, step)
+        self.daq_start(run, location=Location, comment=comment)
         r = {}
         r["run"] = run
         if (ch == 255):
@@ -246,7 +262,7 @@ class febRC(lydaqrc.lydaqControl):
             for i in firmware:
                 mask = mask | (1 << i)
             self.setTdcMask(mask, asic)
-            r["S_%d" % ch] = json.loads(self.febSCurve(
+            r["S_%d" % ch] = json.loads(self.febScurve(
                 nevmax, spillon, spilloff, beg, las, step))
             self.daq_stop()
             return json.dumps(r)
@@ -257,7 +273,7 @@ class febRC(lydaqrc.lydaqControl):
                 print "SCurve for channel %d " % i
                 mask = mask | (1 << i)
                 self.setTdcMask(mask, asic)
-                r["S_%d" % ch] = json.loads(self.febSCurve(
+                r["S_%d" % ch] = json.loads(self.febScurve(
                     nevmax, spillon, spilloff, beg, las, step))
             self.daq_stop()
             return json.dumps(r)
@@ -265,7 +281,7 @@ class febRC(lydaqrc.lydaqControl):
         mask = 0
         mask = mask | (1 << i)
         self.setTdcMask(mask, asic)
-        r["S_%d" % ch] = json.loads(self.febSCurve(
+        r["S_%d" % ch] = json.loads(self.febScurve(
             nevmax, spillon, spilloff, beg, las, step))
         self.daq_stop()
         return json.dumps(r)

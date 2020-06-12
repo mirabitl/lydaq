@@ -144,10 +144,16 @@ parser.add_argument('--tdc', action='store', type=int,
 parser.add_argument('--channel', action='store', type=int,
                     default=None, dest='channel', help='set the channel number')
 
-parser.add_argument('--spillon', action='store', type=float,
+parser.add_argument('--spillon', action='store', type=int,
                     default=None, dest='spillon', help='spill on')
-parser.add_argument('--spilloff', action='store', type=float,
-                    default=None, dest='spilloff', help='spilloff')
+parser.add_argument('--spilloff', action='store', type=int,
+                    default=None, dest='spilloff', help='spill off')
+parser.add_argument('--step', action='store', type=int,
+                    default=None, dest='step', help='Scurve step')
+parser.add_argument('--first', action='store', type=int,
+                    default=None, dest='first', help='Scurve low vth')
+parser.add_argument('--last', action='store', type=int,
+                    default=None, dest='last', help='Scurve high vth')
 
 # Job
 parser.add_argument('--lines', action='store', type=int, default=None,
@@ -238,6 +244,7 @@ elif(results.daq_configure):
 elif(results.daq_status):
     fdc.BuilderStatus(True)
     fdc.SourceStatus(True)
+    fdc.TriggerStatus(True)
     exit(0)
 elif(results.daq_tdcstatus):
     sr = fdc.SourceStatus(results.verbose)
@@ -309,7 +316,7 @@ elif(results.feb_lutmask):
     exit(0)
 
 
-elif(results.feb_lutdraw):
+elif(results.feb_lutdump):
     r_cmd = 'lutdraw'
     if (results.tdc == None):
         print 'Please specify the tdc process --tdc=#'
@@ -318,7 +325,7 @@ elif(results.feb_lutdraw):
         print 'Please specify the channel --channel=#'
         exit(0)
 
-    fdc.feb_lut_draw(results.tdc, results.channel)
+    print fdc.tdcLUTDump(results.tdc, results.channel)
     exit(0)
 
 elif(results.feb_setvth):
@@ -326,14 +333,14 @@ elif(results.feb_setvth):
     if (results.vth == None):
         print 'Please specify the vth --vth=value'
         exit(0)
-    fdc.feb_setvthtime(results.vth)
+    fdc.setVthTime(results.vth)
     exit(0)
 elif(results.feb_settdcmode):
     r_cmd = 'SETTDCMODE'
     if (results.value == None):
         print 'Please specify the mode --value=XX'
         exit(0)
-    fdc.feb_settdcmode(results.value)
+    fdc.setTdcMode(results.value)
     exit(0)
 
 elif(results.feb_settdcdelays):
@@ -344,13 +351,9 @@ elif(results.feb_settdcdelays):
     if (results.dead == None):
         print 'Please specify the dead time --dead=XX'
         exit(0)
-    fdc.feb_settdcdelays(results.active, results.dead)
+    fdc.setTdcDelays(results.active, results.dead)
     exit(0)
 
-elif(results.feb_calibdac):
-    r_cmd = 'calibdac'
-    fdc.feb_calibdac(200, 15, 15, 61, 4294967295)
-    exit(0)
 elif(results.feb_scurve):
     r_cmd = 'scurve'
     first = 300
@@ -372,20 +375,17 @@ elif(results.feb_scurve):
         spillon = results.spillon
     if (results.spilloff != None):
         spilloff = results.spilloff
-    if (results.mask != None):
-        mask = results.mask
 
     print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
     val = raw_input()
 
-    fdc.feb_fullscurve(chan, spillon, spilloff, first, last, step, mask)
+    fdc.runScurve(0,chan, spillon, spilloff, first, last, step=step, asic=mask)
     exit(0)
 elif(results.histo_draw):
-    r_cmd = 'lutdraw'
     if (results.name == None):
         print 'Please specify the histo name --name=#'
         exit(0)
-    fdc.histo_draw(results.name)
+    #fdc.histo_draw(results.name)
     exit(0)
 
 

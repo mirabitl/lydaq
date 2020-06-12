@@ -51,9 +51,18 @@ class lydaqControl(daqrc.daqControl):
                             for y in xv:
                                 print "\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received'])
 
-    def TriggerStatus(self):
+    def TriggerStatus(self,verbose=False):
         mr = json.loads(self.mdcc_Status())
-        return json.dumps(mr["answer"])
+        if (not verbose):
+            return json.dumps(mr["MDCCSERVER_0"]["answer"])
+        else:
+            print """
+            \t \t *************************    
+            \t \t ** Trigger information **
+            \t \t *************************
+            """
+            for k,v in mr["MDCCSERVER_0"]["answer"]["COUNTERS"].items():
+                print "\t \t ",k,v
     # Builder
 
     def builder_setHeader(self, rtype, rval, mask):
