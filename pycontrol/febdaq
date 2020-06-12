@@ -108,8 +108,6 @@ grp_action.add_argument('--trig-calibcount', action='store_true',
                         help=' set the value of the calibcount (FEB calibration) register --value=xx ')
 grp_action.add_argument('--trig-rearm', action='store_true',
                         help=' reload calib (FEB calibration)  ')
-grp_action.add_argument('--trig-hardreset', action='store_true',
-                        help=' send a hard reset to mezzanines ')
 grp_action.add_argument('--trig-setregister', action='store_true',
                         help=' set the value of the MDCC register --value=xx --address=yy')
 grp_action.add_argument('--trig-getregister', action='store_true',
@@ -392,114 +390,91 @@ elif(results.histo_draw):
 ### MDCC
 
 elif(results.trig_status):
-    r_cmd = 'triggerStatus'
-    res=fdc.trig_status()
-    print res
+    res=fdc.TriggerStatus(results.verbose)
     exit(0)
 
 elif(results.trig_beam):
-    r_cmd = 'triggerBeam'
     if (results.clock != None):
-        fdc.trig_beam(results.clock)
+        fdc.mdcc_setBeamOn(results.clock)
     else:
         print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 
 elif(results.trig_spillon):
-    r_cmd = 'triggerSpillOn'
     if (results.clock != None):
-        fdc.trig_spillon(results.clock)
+        fdc.mdcc_setSpillOn(results.clock)
     else:
         print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 
 elif(results.trig_spilloff):
-    r_cmd = 'triggerSpillOff'
     if (results.clock != None):
-        fdc.trig_spilloff(results.clock)
+        fdc.mdcc_setSpillOff(results.clock)
     else:
         print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 elif(results.trig_spillregister):
-    r_cmd = 'triggerSpillRegister'
     if (results.value != None):
-        fdc.trig_spillregister(results.value)
+        fdc.mdcc_setSpillRegister(results.value)
     else:
         print 'Please specify the value --value=xx'
     exit(0)
 elif(results.trig_setregister):
-    r_cmd = 'triggerSetRegister'
+
     if (results.value == None):
         print 'Please specify the value --value=xx'
         exit(0)
     if (results.address == None):
         print 'Please specify the address --address=xx'
         exit(0)
-    sr = fdc.trig_setregister(results.address, results.value)
+    sr = fdc.mdcc_WriteRegister(results.address, results.value)
     print sr
     exit(0)
 elif(results.trig_getregister):
-    r_cmd = 'triggerGetRegister'
     if (results.address == None):
         print 'Please specify the address --address=xx'
         exit(0)
-    sr = fdc.trig_getregister(results.address)
+    sr = fdc.mdcc_ReadRegister(results.address)
     print sr
     exit(0)
 elif(results.trig_tdcreset):
-    r_cmd = 'trigResetTdc'
-    sr = fdc.trig_tdcreset()
+    sr = fdc.mdcc_resetTdc()
     print sr
     exit(0)
 elif(results.trig_calibon):
-    r_cmd = 'triggerSpillRegister'
+
     if (results.value != None):
-        fdc.trig_calibon(results.value)
+        fdc.mdcc_CalibOn(results.value)
     else:
         print 'Please specify the value --value=xx'
     exit(0)
 elif(results.trig_calibcount):
-    r_cmd = 'triggerSpillRegister'
     if (results.value != None):
-        fdc.trig_calibcount(results.value)
+        fdc.mdcc_setCalibCount(results.value)
     else:
         print 'Please specify the value --value=xx'
     exit(0)
 elif(results.trig_rearm):
-    r_cmd = 'triggerSpillRegister'
-
-    fdc.trig_reloadcalib()
+    fdc.mdcc_reloadCalibCount()
     exit(0)
-elif(results.trig_hardreset):
-    r_cmd = 'triggerhardReset'
-
-    fdc.trig_hardreset()
-
-    exit(0)
-
 elif(results.ecal_pause):
-    r_cmd = 'pauseEcal'
-    fdc.ecal_pause()
+    fdc.mdcc_EcalPause()
     exit(0)
 
 elif(results.ecal_resume):
-    r_cmd = 'resumeEcal'
-    fdc.ecal_resume()
+    fdc.mdcc_EcalResume()
     exit(0)
 
 elif(results.trig_reset):
-    r_cmd = 'resetTrigger'
-    fdc.trig_reset()
+    fdc.mdcc_Reset()
     exit(0)
 elif(results.trig_pause):
-    r_cmd = 'pause'
-    fdc.trig_pause()
+    fdc.mdcc_Pause()
     exit(0)
 elif(results.trig_resume):
-    r_cmd = 'resume'
-    fdc.trig_resume()
+    fdc.mdcc_Resume()
     exit(0)
 
