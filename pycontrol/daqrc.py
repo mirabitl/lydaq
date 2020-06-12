@@ -32,9 +32,9 @@ class daqControl:
                 print "Failed request %s exiting" % x.url
                 exit(0)
       
-            s = x.sendCommand("STATUS",None)
+            s = x.sendCommand("STATUS",{})
             m = json.loads(s)
-
+            #print s
             if (not 'JOBS' in m['answer']):
                 print "%s has NO Jobs : %s" % (x.url,s)
             else:
@@ -44,7 +44,7 @@ class daqControl:
                             print pcs
                             continue
           
-                        bapp = FSMaccess(pcs['HOST'], int(pcs['PORT']))
+                        bapp = rcbase.FSMAccess(pcs['HOST'], int(pcs['PORT']))
                         bapp.getInfo();
                         if (not bapp.infos['name'] in self.appMap):
                             l=[]
@@ -78,6 +78,7 @@ class daqControl:
             print "No jobcontrols found. Please Connect first"
             exit(0)
         for x in self.jobcontrols:
+            print "Calling",Transition,par
             ans=x.sendTransition(Transition,par)
             rep["%s" % x.host] = json.loads(ans)
         return json.dumps(rep)
@@ -96,15 +97,16 @@ class daqControl:
     def jc_initialise(self):
         par={}
         par['mongo']=self.config
-        return this.jc_transition("INITIALISE",par)
+        print "Initialising",par
+        return self.jc_transition("INITIALISE",par)
     def jc_start(self):
-        return this.jc_transition("START",None)
+        return self.jc_transition("START",{})
     def jc_kill(self):
-        return this.jc_transition("KILL",None)
+        return self.jc_transition("KILL",{})
     def jc_destroy(self):
-        return this.jc_transition("DESTROY",None)
+        return self.jc_transition("DESTROY",{})
     def jc_status(self):
-        return this.jc_command("STATUS",None)
+        return self.jc_command("STATUS",{})
     def jc_appcreate(self):
-        return this.jc_command("APPCREATE",None)
+        return self.jc_command("APPCREATE",{})
     

@@ -10,7 +10,10 @@ from copy import deepcopy
 import base64
 import time
 import requests
-
+try:
+    from urllib.parse import urlparse
+except ImportError:
+     from urlparse import urlparse
 # Sock support
 sockport = None
 sp = os.getenv("SOCKPORT", "Not Found")
@@ -44,8 +47,7 @@ class FSMAccess:
         :param surl: The url
         :return: url answer
         """
-        print "Access to %s " % url
-
+        #print "Access to %s " % url
         req = urllib2.Request(url)
         try:
             r1 = urllib2.urlopen(req)
@@ -56,6 +58,83 @@ class FSMAccess:
 
         return r1.read()
 
+    def executeFSM(self,host,port,prefix,cmd,params):
+        """
+        Access to the FSM of a zdaq::baseApplication
+   
+        :param host: Host name
+        :param port: Application port
+        :param prefix: Prefix of the application , ie, http:://host:port/prefix/.....
+        :param cmd: Transition
+        :param params: Value of the content tag
+   
+        :return: url answer
+        """
+        if (params!=None):
+            myurl = "http://"+host+ ":%d" % (port)
+            lq={}
+       
+            lq["content"]=json.dumps(params,sort_keys=True)
+
+            lq["command"]=cmd           
+            lqs=urllib.urlencode(lq)
+            saction = '/%s/FSM?%s' % (prefix,lqs)
+            myurl=myurl+saction
+            #print myurl
+            req=urllib2.Request(myurl)
+
+            r1=urllib2.urlopen(req)
+
+            return r1.read()
+        else:
+            return '{"STATE"="FAILED","STATUS"="No Params given"}'
+        
+
+    def executeCMD(self,host,port,prefix,cmd,params):
+        """
+        Access to the CoMmanDs of a zdaq::baseApplication
+        
+        :param host: Host name
+        :param port: Application port
+        :param prefix: Prefix of the application , ie, http:://host:port/prefix/.....
+        :param cmd: Command name
+        :param params: CGI additional parameters
+        :return: url answer
+        """
+
+        if (params!=None and cmd!=None):
+            myurl = "http://"+host+ ":%d" % (port)
+
+            lq={}
+            lq["name"]=cmd
+            for x,y in params.iteritems():
+                lq[x]=y
+            lqs=urllib.urlencode(lq)
+            saction = '/%s/CMD?%s' % (prefix,lqs)
+            myurl=myurl+saction
+
+            req=urllib2.Request(myurl)
+            try:
+                r1=urllib2.urlopen(req)
+            except URLError, e:
+                p_rep={}
+                p_rep["STATE"]="DEAD"
+                return json.dumps(p_rep,sort_keys=True)
+            else:
+                return r1.read()
+
+        else:
+            myurl = "http://"+host+ ":%d/%s/" % (port,prefix)
+            req=urllib2.Request(myurl)
+            try:
+                r1=urllib2.urlopen(req)
+            except URLError, e:
+                p_rep={}
+                p_rep["STATE"]="DEAD"
+                return json.dumps(p_rep,sort_keys=True)
+            else:
+                return r1.read()
+    
     def getProcInfo(self):
 
         sr = self.executeRequest(self.url)
@@ -70,12 +149,16 @@ class FSMAccess:
         if (self.pid < 0):
             return
         if (self.isBaseApplication(self.procInfos)):
-            sinf = self.sendCommand('INFO', None)
-            infos = json.loads(sinf)['answer']['INFO']
-            self.appType = infos['name']
-            self.appInstance = infos['instance']
-            spar = self.sendCommand('GETPARAM', None)
-            self.params = json.loads(spar)['answer']['PARAMETER']
+            sinf = self.sendCommand('INFO', {})
+            self.infos = json.loads(sinf)['answer']['INFO']
+            self.appType = self.infos['name']
+            self.appInstance = self.infos['instance']
+            spar = self.sendCommand('GETPARAM', {})
+            jpar=json.loads(spar)
+            if ('PARAMETER' in jpar['answer']):
+                self.params = json.loads(spar)['answer']['PARAMETER']
+            else:
+                self.params={}
 
     def isBaseApplication(self, m):
         base = False
@@ -96,17 +179,18 @@ class FSMAccess:
                         isValid = True
         if (not isValid):
             return '{"answer":"invalid","status":"FAILED"}'
+        
+        #luri = "%s/CMD?name=%s" % (self.fUrl, name)
+        #if (content != None):
+        #    for key, value in content.items():
+        #        luri = luri + "&%s=%s" % (key, value)
 
-        luri = "%s/CMD?name=%s" % (self.fUrl, name)
-        if (content != None):
-            for key, value in content.items():
-                luri = luri + "&%s=%s" % (key, value)
-
-        rep = self.executeRequest(luri)
-        return rep
-
+        #rep = self.executeRequest(luri)
+        #return rep
+        return self.executeCMD(self.host,self.port,self.prefix,name,content)
     def sendTransition(self, name, content):
         self.getProcInfo()
+        #print "Send Transition",self.procInfos
         isValid = False
         for key, value in self.procInfos.items():
             if (key == 'ALLOWED'):
@@ -116,24 +200,27 @@ class FSMAccess:
         if (not isValid):
             return '{"answer":"invalid","status":"FAILED"}'
 
-        luri = "%s/CMD?command=%s&content=%s" % (
-            self.fUrl, name, json.dumps(content))
-        rep = self.executeRequest(luri)
-        return rep
+        #luri = "%s/FSM?command=%s&content=%s" % (
+        #    self.fUrl, name, json.dumps(content))
+        #rep = self.executeRequest(luri)
+        #return rep
+        return self.executeFSM(self.host,self.port,self.prefix,name,content)
 
     def printInfos(self, vverb):
         if (vverb):
-            print "\n FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
+            #print "PROCINFO ",self.procInfos
+            print "\n FSM is %s on %s, PID %d Service %s" % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
             # print COMMAND and TRANSITION
             for k, v in self.procInfos.items():
                 if (k == 'ALLOWED' or k == 'CMD' or k == 'FSM'):
-                    s = " %s \t" % k
+                    s = " \t %s \t" % k
                     for x in v:
                         s = s + x['name'] + " "
                     print(s)
             print "\n BaseApplication %s _ %d" % (self.infos["name"], self.infos["instance"])
-            print "Parameters"
+            print "\t Parameters"
             for k, v in self.params.items():
-                print "\t", k, v
+                print "\t \t", k, v
         else:
-            print "FSM is %s on %s, PID %s Service %s" (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
+            print "FSM is %s on %s, PID %d Service %s"  % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
+            

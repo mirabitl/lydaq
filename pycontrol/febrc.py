@@ -107,7 +107,7 @@ class febRC(lydaqrc.lydaqControl):
         """
         for k,v in rep.items():
             print k
-            if (v != None)
+            if (v != None):
                 for x in v:
                     print "\t \t",x 
 
