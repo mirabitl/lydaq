@@ -762,3 +762,12 @@ void lydaq::WiznetManager::readShm(std::string host, uint32_t port)
   }
   _jControl[host] = jl;
 }
+
+void lydaq::WiznetManager::ScurveStep(int thmin,int thmax,int step)
+{
+  
+}
+void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
+{
+
+}

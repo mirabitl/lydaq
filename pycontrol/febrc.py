@@ -4,6 +4,7 @@ import MongoJob as mg
 import json
 import os
 
+
 class febRC(lydaqrc.lydaqControl):
 
     # daq
@@ -62,15 +63,15 @@ class febRC(lydaqrc.lydaqControl):
 
     def daq_start(self, run, location="UNKNOWN", comment="Not set"):
 
-        if (location=="UNKNOWN"):
-            location=os.getenv("DAQSETUP", "UNKNOWN")
+        if (location == "UNKNOWN"):
+            location = os.getenv("DAQSETUP", "UNKNOWN")
         nrun = run
         if (run == 0):
             smg = mg.instance()
             jnrun = smg.getRun(location, comment)
         r = {}
         m = {}
-        #print "EVENT BUILDER",jnrun['run']
+        # print "EVENT BUILDER",jnrun['run']
         m['run'] = jnrun['run']
         for x in self.appMap["BUILDER"]:
             print "Sending Start to vent builder"
@@ -89,7 +90,7 @@ class febRC(lydaqrc.lydaqControl):
 
         return json.dumps(r)
 
-    def SourceStatus(self,verbose=False):
+    def SourceStatus(self, verbose=False):
         rep = {}
         for k, v in self.appMap.items():
             if (k != "TDCSERVER"):
@@ -111,11 +112,11 @@ class febRC(lydaqrc.lydaqControl):
         \t \t ** Data sources information **
         \t \t ******************************
         """
-        for k,v in rep.items():
+        for k, v in rep.items():
             print k
             if (v != None):
                 for x in v:
-                    print "\t \t",x 
+                    print "\t \t", x
 
     # FEBV1 specific
 
@@ -216,10 +217,10 @@ class febRC(lydaqrc.lydaqControl):
             sr = json.loads(self.BuilderStatus())
 
             firstEvent = 0
-            for k,v in sr.items():
-      	        if (v["event"]>firstEvent):
-                    firstEvent=v["event"]
-            #print sr,firstEvent
+            for k, v in sr.items():
+                if (v["event"] > firstEvent):
+                    firstEvent = v["event"]
+            # print sr,firstEvent
             # Resume Calibration
             self.mdcc_ReloadCalibCount()
             self.mdcc_Resume()
@@ -231,9 +232,9 @@ class febRC(lydaqrc.lydaqControl):
             while (lastEvent < (firstEvent + ntrg - 20)):
                 sr = json.loads(self.BuilderStatus())
                 lastEvent = 0
-                for k,v in sr.items():
-      	            if (v["event"]>lastEvent):
-                        lastEvent=v["event"]
+                for k, v in sr.items():
+                    if (v["event"] > lastEvent):
+                        lastEvent = v["event"]
 
                 print " %d First %d  Last %d Step %d" % (thmax-vth*step, firstEvent, lastEvent, step)
                 time.sleep(0.2)
@@ -252,7 +253,9 @@ class febRC(lydaqrc.lydaqControl):
         firmware = [3, 4, 5, 6, 7, 8, 9, 10, 11,
                     12, 20, 21, 22, 23, 24, 26, 28, 30]
 
-        comment=Comment+" Mode %d ON %d Off %d TH min %d max %d Step %d" % (ch, spillon, spilloff, beg, las, step)
+        comment = Comment + \
+            " Mode %d ON %d Off %d TH min %d max %d Step %d" % (
+                ch, spillon, spilloff, beg, las, step)
         self.daq_start(run, location=Location, comment=comment)
         r = {}
         r["run"] = run
