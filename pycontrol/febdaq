@@ -38,7 +38,7 @@ grp_action.add_argument('--jc-info', action='store_true',
 grp_action.add_argument('--jc-appcreate', action='store_true',
                         help='Create all ZDAQ app on all hosts')
 
-#DAQ preparation
+# DAQ preparation
 # Running
 grp_action.add_argument('--daq-initialise', action='store_true',
                         help='Initialise DAQ, data source discovery and Builder final configuration')
@@ -62,7 +62,7 @@ grp_action.add_argument('--daq-downloaddb', action='store_true',
                         help='download the dbstate specified in --dbstate=state --version=num')
 
 
-#FEBV1 actions
+# FEBV1 actions
 grp_action.add_argument('--feb-resettdc', action='store_true',
                         help=' Send Reset to all FEB TDC')
 grp_action.add_argument('--feb-calibdac', action='store_true',
@@ -83,7 +83,7 @@ grp_action.add_argument('--feb-lutmask', action='store_true',
                         help='Set the LUT mask --tdc=i --mask=Hexadecimal mask')
 grp_action.add_argument('--feb-lutdump', action='store_true',
                         help='Dump lut --tdc=i --channel=k ')
-#grp_action.add_argument('--histo-draw', action='store_true',
+# grp_action.add_argument('--histo-draw', action='store_true',
 #                        help='Draw histo --name=histo ')
 
 
@@ -114,9 +114,6 @@ grp_action.add_argument('--trig-getregister', action='store_true',
                         help=' get the value of the MDCC register  --address=yy')
 grp_action.add_argument('--trig-tdcreset', action='store_true',
                         help=' hard reset of TDC (FEB) counters')
-
-
-
 
 
 # Arguments
@@ -176,7 +173,7 @@ parser.add_argument('--asic', action='store', type=int,
                     dest='asic', default=None, help='asic header of Petiroc')
 parser.add_argument('--feb', action='store', type=int,
                     dest='feb', default=None, help='FEB id')
-parser.add_argument('-v', '--verbose', action='store_true',dest='verbose',
+parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
                     default=False, help='Raw Json output')
 
 parser.add_argument('--comment', action='store', default=None,
@@ -185,21 +182,21 @@ parser.add_argument('--comment', action='store', default=None,
 parser.add_argument('--mask', action='store', dest='mask',
                     default=None, help='Hexadecimal string mask')
 
-account=os.getenv("MGDBLOGIN","NONE")
+account = os.getenv("MGDBLOGIN", "NONE")
 if (account == "NONE"):
     print "The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set"
     exit(0)
 
-config=os.getenv("DAQMONGO","NONE")
+config = os.getenv("DAQMONGO", "NONE")
 if (config == "NONE"):
     print "The ENV varaible DAQMONGO=name:version must be set"
     exit(0)
 
-fdc=febrc.febRC(account,config)
+fdc = febrc.febRC(account, config)
 fdc.Connect()
-#fdc.updateInfo(True,True)
+# fdc.updateInfo(True,True)
 
-if len(sys.argv)==1:
+if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 results = parser.parse_args()
@@ -229,10 +226,10 @@ elif(results.jc_status):
     print sr
     exit(0)
 elif(results.jc_info):
-    fdc.updateInfo(True,results.verbose)
+    fdc.updateInfo(True, results.verbose)
     exit(0)
 
-### DAQ
+# DAQ
 elif(results.daq_initialise):
     fdc.daq_initialise()
     exit(0)
@@ -268,24 +265,24 @@ elif(results.daq_evbstatus):
         print sr
     exit(0)
 elif(results.daq_downloaddb):
-    lcgi={}
+    lcgi = {}
     if (results.dbstate != None):
         lcgi['state'] = results.dbstate
     else:
         print 'Please specify the state --dbstate=STATE'
         exit(0)
-    version=0
+    version = 0
     if (results.dbversion != None):
         version = results.dbversion
-    lcgi['version']=version
-    name="TDCSERVER"
+    lcgi['version'] = version
+    name = "TDCSERVER"
     if (results.name != None):
         name = results.name
-    print fdc.processCommand("DOWNLOADDB",name,lcgi)
+    print fdc.processCommand("DOWNLOADDB", name, lcgi)
     exit(0)
 
 
-### FEB
+# FEB
 
 elif(results.feb_resettdc):
     sr = fdc.mdcc_resetTdc()
@@ -298,11 +295,11 @@ elif(results.feb_lutcalib):
     if (results.channel == None):
         print 'Please specify the channel --channel=#'
         exit(0)
-    for i in range(0,results.channel):
-        fdc.tdcLUTCalib(results.tdc,i)
+    for i in range(0, results.channel):
+        fdc.tdcLUTCalib(results.tdc, i)
     exit(0)
 elif(results.feb_lutmask):
-    
+
     if (results.tdc == None):
         print 'Please specify the tdc process --tdc=#'
         exit(0)
@@ -310,7 +307,7 @@ elif(results.feb_lutmask):
     if (results.mask == None):
         print 'Please specify the vth --mask=value'
         exit(0)
-    fdc.tdcLUTMask(results.tdc,results.mask)
+    fdc.tdcLUTMask(results.tdc, results.mask)
     exit(0)
 
 
@@ -377,20 +374,21 @@ elif(results.feb_scurve):
     print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
     val = raw_input()
 
-    fdc.runScurve(0,chan, spillon, spilloff, first, last, step=step, asic=mask)
+    fdc.runScurve(0, chan, spillon, spilloff,
+                  first, last, step=step, asic=mask)
     exit(0)
 elif(results.histo_draw):
     if (results.name == None):
         print 'Please specify the histo name --name=#'
         exit(0)
-    #fdc.histo_draw(results.name)
+    # fdc.histo_draw(results.name)
     exit(0)
 
 
-### MDCC
+# MDCC
 
 elif(results.trig_status):
-    res=fdc.TriggerStatus(results.verbose)
+    res = fdc.TriggerStatus(results.verbose)
     exit(0)
 
 elif(results.trig_beam):
@@ -477,4 +475,3 @@ elif(results.trig_pause):
 elif(results.trig_resume):
     fdc.mdcc_Resume()
     exit(0)
-

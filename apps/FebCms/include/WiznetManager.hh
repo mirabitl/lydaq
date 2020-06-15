@@ -112,6 +112,9 @@ public:
   inline void setControlSize(int32_t s){_controlSize=s;}
   /// controlData
   inline uint8_t* getControlData(){return _controlData;}
+  /// Scurve
+  void ScurveStep(int thmin,int thmax,int step);
+  void Scurve(int mode,int thmin,int thmax,int step);
 
 private:
   lydaq::TdcConfigAccess *_tca;
