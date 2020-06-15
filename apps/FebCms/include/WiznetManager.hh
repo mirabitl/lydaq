@@ -11,6 +11,7 @@
 #include <zlib.h>
 #include <iostream>
 #include "ReadoutLogger.hh"
+#include "fsmwebCaller.hh"
 
 /*!
 * \file WiznetManager.hh
@@ -76,6 +77,9 @@ public:
   void c_setCalibrationMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setMeasurementMask(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
+  /// PR2 SCurve
+  void c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response);
+
   /// FEB register access
   void writeAddress(std::string host, uint32_t port, uint16_t addr, uint16_t val);
 
@@ -113,9 +117,10 @@ public:
   /// controlData
   inline uint8_t* getControlData(){return _controlData;}
   /// Scurve
-  void ScurveStep(int thmin,int thmax,int step);
+  void ScurveStep(fsmwebCaller* m,fsmwebCaller* b,int thmin,int thmax,int step);
   void Scurve(int mode,int thmin,int thmax,int step);
-
+  fsmwebCaller* findMDCC(std::string name);
+  
 private:
   lydaq::TdcConfigAccess *_tca;
   lydaq::WiznetInterface *_wiznet;

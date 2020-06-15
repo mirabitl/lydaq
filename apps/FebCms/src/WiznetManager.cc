@@ -14,7 +14,6 @@ using namespace lytdc;
 #include <arpa/inet.h>
 #include <boost/format.hpp>
 
-#include "fsmwebCaller.hh"
 
 using namespace zdaq;
 using namespace lydaq;
@@ -55,6 +54,7 @@ lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("CALIBSTATUS", boost::bind(&lydaq::WiznetManager::c_getCalibrationStatus, this, _1, _2));
   _fsm->addCommand("CALIBMASK", boost::bind(&lydaq::WiznetManager::c_setCalibrationMask, this, _1, _2));
   _fsm->addCommand("TESTMASK", boost::bind(&lydaq::WiznetManager::c_setMeasurementMask, this, _1, _2));
+  _fsm->addCommand("SCURVE", boost::bind(&lydaq::WiznetManager::c_scurve, this, _1, _2));
 
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
 
@@ -259,6 +259,19 @@ void lydaq::WiznetManager::c_downloadDB(Mongoose::Request &request, Mongoose::Js
   LOG4CXX_INFO(_logFeb, "DownloadDB called  for " << dbstate);
 
   response["DBSTATE"] = dbstate;
+}
+
+void lydaq::WiznetManager::c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  uint32_t first = atol(request.get("first", "420").c_str());
+  uint32_t last = atol(request.get("last", "520").c_str());
+  uint32_t step = atol(request.get("step", "2").c_str());
+  uint32_t mode = atol(request.get("channel", "255").c_str());
+  //  LOG4CXX_INFO(_logFeb, " SetOneVthTime called with vth " << vth << " feb " << feb << " asic " << asic);
+  this->Scurve(mode,first,last,step);
+  response["SCURVE"] ="DONE";
 }
 
 void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
@@ -763,11 +776,124 @@ void lydaq::WiznetManager::readShm(std::string host, uint32_t port)
   _jControl[host] = jl;
 }
 
-void lydaq::WiznetManager::ScurveStep(int thmin,int thmax,int step)
-{
-  
-}
-void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
+void lydaq::WiznetManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
+  int ncon=2000,ncoff=100,ntrg=50;
+  mdcc->sendCommand("PAUSE");
+  Json::Value p;
+  p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
+  p.clear();p["nclock"]=ncoff;  mdcc->sendCommand("SPILLOFF",p);
+  printf("Clock On %d Off %d \n",ncon, ncoff);
+  p.clear();p["value"]=4;  mdcc->sendCommand("SETSPILLREGISTER",p);
+  mdcc->sendCommand("CALIBON");
+  p.clear();p["nclock"]=ntrg;  mdcc->sendCommand("SETCALIBCOUNT",p);
+  int thrange=(thmax-thmin+1)/step;
+  for (int vth=0;vth<=thrange;vth++)
+    {
+      mdcc->sendCommand("PAUSE");
+      this->setVthTime(thmax-vth*step);
+      p.clear();
+      Json::Value h;
+      h.append(2);h.append(thmax-vth*step);
+      p["header"]=h;builder->sendCommand("SETHEADER",p);
+      int firstEvent=0;
+      for (auto x : _vTdc)
+	if (x->event()>firstEvent) firstEvent=x->event();
+      mdcc->sendCommand("RELOADCALIB");
+      mdcc->sendCommand("RESUME");
+      int nloop=0,lastEvent=firstEvent;
+      while (lastEvent < (firstEvent + ntrg - 20))
+	{
+	  ::usleep(100000);
+	  for (auto x : _vTdc)
+	    if (x->event()>lastEvent) lastEvent=x->event();
+	  nloop++;if (nloop > 20)  break;
+	}
+      printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
+      mdcc->sendCommand("PAUSE");
+    }
+
+}
+
+void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
+{
+  fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
+  fsmwebCaller* builder=findMDCC("BUILDER");
+  if (mdcc==NULL) return;
+  if (builder==NULL) return;
+  int firmware[]={3, 4, 5, 6, 7, 8, 9, 10, 11,
+		   12, 20, 21, 22, 23, 24, 26, 28, 30};
+  int mask=0;
+  if (mode==255)
+    {
+
+      for (int i=0;i<18;i++) mask|=(1<<firmware[i]);
+      this->setMask(mask,0xFF);
+      this->ScurveStep(mdcc,builder,thmin,thmax,step);
+      return;
+      
+    }
+  if (mode==1023)
+    {
+      int mask=0;
+      for (int i=0;i<18;i++)
+	{
+	  mask=(1<<firmware[i]);
+	  this->setMask(mask,0xFF);
+	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+	}
+      return;
+    }
+  mask=(1<<mode);
+  this->setMask(mask,0xFF);
+  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+
+  
+}
+
+fsmwebCaller* lydaq::WiznetManager::findMDCC(std::string appname)
+{
+  Json::Value cjs=this->configuration()["HOSTS"];
+  //  std::cout<<cjs<<std::endl;
+  std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
+  // Loop on hosts
+  for (auto host:lhosts)
+    {
+      //std::cout<<" Host "<<host<<" found"<<std::endl;
+      // Loop on processes
+      const Json::Value cjsources=this->configuration()["HOSTS"][host];
+      //std::cout<<cjsources<<std::endl;
+      for (Json::ValueConstIterator it = cjsources.begin(); it != cjsources.end(); ++it)
+	{
+	  const Json::Value& process = *it;
+	  std::string p_name=process["NAME"].asString();
+	  Json::Value p_param=Json::Value::null;
+	  if (process.isMember("PARAMETER")) p_param=process["PARAMETER"];
+	  // Loop on environenemntal variable
+	  uint32_t port=0;
+	  const Json::Value& cenv=process["ENV"];
+	  for (Json::ValueConstIterator iev = cenv.begin(); iev != cenv.end(); ++iev)
+	    {
+	      std::string envp=(*iev).asString();
+	      //      std::cout<<"Env found "<<envp.substr(0,7)<<std::endl;
+	      //std::cout<<"Env found "<<envp.substr(8,envp.length()-7)<<std::endl;
+	      if (envp.substr(0,7).compare("WEBPORT")==0)
+		{
+		  port=atol(envp.substr(8,envp.length()-7).c_str());
+		  break;
+		}
+	    }
+	  if (port==0) continue;
+	  if (p_name.compare(appname)==0)
+	    {
+	      
+	      return  new fsmwebCaller(host,port); 
+	    }
+	}
+
+    }
+  
+  return NULL;
+  
 }
