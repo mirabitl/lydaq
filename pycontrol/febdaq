@@ -234,7 +234,11 @@ elif(results.jc_info):
 
 ### DAQ
 elif(results.daq_initialise):
-    fdc.daq_initialise()
+    delay=0
+    if (results.dead!=None):
+        fdc.daq_initialise(results.dead)
+    else:
+        fdc.daq_initialise()
     exit(0)
 elif(results.daq_configure):
     fdc.daq_configure()

@@ -19,7 +19,7 @@ class febRC(lydaqrc.lydaqControl):
 
         if (reset != 0):
             self.mdcc_resetTdc()
-            time.sleep(reset)
+            time.sleep(reset/1000.)
 
         for x in self.appMap["TDCSERVER"]:
             s = json.loads(x.sendTransition("INITIALISE", m))
