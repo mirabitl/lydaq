@@ -56,7 +56,7 @@ void lydaq::TdcConfigAccess::parseMongoDb(std::string state,uint32_t version)
   scmd<<"/bin/bash -c 'mgroc --download --state="<<state<<" --version="<<version<<"'";
   system(scmd.str().c_str());
   std::stringstream sname;
-  sname<<"/dev/shm/"<<state<<"_"<<version<<".json";
+  sname<<"/dev/shm/mgroc/"<<state<<"_"<<version<<".json";
   Json::Reader reader;
   std::ifstream ifs(sname.str().c_str(), std::ifstream::in);
   //      Json::Value _jall;
@@ -72,10 +72,11 @@ void lydaq::TdcConfigAccess::parseMongoDb(std::string state,uint32_t version)
   for (Json::ValueConstIterator ita = asics.begin(); ita != asics.end(); ++ita)
     {
       const Json::Value &asic = *ita;
-      uint32_t ipadr = asic["dif"].asUInt();
+      std::string sipadr=asic["address"].asString();
+      uint32_t ipadr = convertIP(sipadr);
       uint8_t header = asic["num"].asUInt();
       lydaq::PR2 prs;
-      prs.setJson(asic);
+      prs.setJson(asic["slc"]);
       uint64_t eid = ((uint64_t) ipadr) << 32 | header;
       _asicMap.insert(std::pair<uint64_t, lydaq::PR2>(eid, prs));
     }

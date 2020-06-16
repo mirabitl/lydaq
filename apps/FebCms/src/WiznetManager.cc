@@ -335,9 +335,12 @@ void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
   // Initialise the network
   std::vector<uint32_t> vint;
   vint.clear();
+  for (auto y: diflist)
+    std::cout<<y.first<<" "<<y.second<<std::endl;
   for (auto x : _tca->asicMap())
   {
     uint32_t eip = ((x.first) >> 32) & 0XFFFFFFFF;
+    std::cout<<"key "<<x.first<<" eip "<<eip<<std::endl;
     std::map<uint32_t, std::string>::iterator idif = diflist.find(eip);
     if (idif == diflist.end())
       continue;

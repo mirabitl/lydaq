@@ -252,6 +252,8 @@ class febRC(lydaqrc.lydaqControl):
     def runScurve(self, run, ch, spillon, spilloff, beg, las, step=2, asic=255, Comment="PR2 Calibration", Location="UNKNOWN", nevmax=50):
         firmware = [3, 4, 5, 6, 7, 8, 9, 10, 11,
                     12, 20, 21, 22, 23, 24, 26, 28, 30]
+        firmware = [0,2, 4, 5, 6, 8, 10, 12,14,16,18,20,22,24,26,28,30]
+
 
         comment = Comment + \
             " Mode %d ON %d Off %d TH min %d max %d Step %d" % (
@@ -282,7 +284,7 @@ class febRC(lydaqrc.lydaqControl):
             return json.dumps(r)
         print "Run Scurve on  channel %d " % ch
         mask = 0
-        mask = mask | (1 << i)
+        mask = mask | (1 << ch)
         self.setTdcMask(mask, asic)
         r["S_%d" % ch] = json.loads(self.febScurve(
             nevmax, spillon, spilloff, beg, las, step))
