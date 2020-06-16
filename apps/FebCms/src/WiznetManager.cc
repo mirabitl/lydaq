@@ -816,7 +816,7 @@ void lydaq::WiznetManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
       printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
       mdcc->sendCommand("PAUSE");
     }
-
+  mdcc->sendCommand("CALIBOFF");
 }
 
 void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
@@ -825,13 +825,17 @@ void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
   fsmwebCaller* builder=findMDCC("BUILDER");
   if (mdcc==NULL) return;
   if (builder==NULL) return;
-  int firmware[]={3, 4, 5, 6, 7, 8, 9, 10, 11,
-		   12, 20, 21, 22, 23, 24, 26, 28, 30};
+  int firmware[]={0,2,4,5,
+		  6,8,10,12,
+		  14,16,18,20,
+		  22,24,26,28,
+		  30};
+
   int mask=0;
   if (mode==255)
     {
 
-      for (int i=0;i<18;i++) mask|=(1<<firmware[i]);
+      for (int i=0;i<17;i++) mask|=(1<<firmware[i]);
       this->setMask(mask,0xFF);
       this->ScurveStep(mdcc,builder,thmin,thmax,step);
       return;
@@ -840,9 +844,10 @@ void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
   if (mode==1023)
     {
       int mask=0;
-      for (int i=0;i<18;i++)
+      for (int i=0;i<17;i++)
 	{
 	  mask=(1<<firmware[i]);
+	  std::cout<<"Step PR2 "<<i<<" channel "<<firmware[i]<<std::endl;
 	  this->setMask(mask,0xFF);
 	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
 	}

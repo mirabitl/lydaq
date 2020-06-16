@@ -246,6 +246,7 @@ class febRC(lydaqrc.lydaqControl):
 
             # End Point
             self.mdcc_CalibOn(0)
+            self.mdcc_CalibOff()
             self.mdcc_Pause()
         return json.dumps(r)
 

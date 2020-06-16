@@ -100,12 +100,17 @@ grp_action.add_argument('--ecal-pause', action='store_true',
                         help=' (Obsolete) Ecal soft veto')
 grp_action.add_argument('--ecal-resume', action='store_true',
                         help=' (Obsolete) release Ecal soft veto')
+grp_action.add_argument('--trig-spillregister', action='store_true',
+                        help=' set spill register  with --value=nc ')
 grp_action.add_argument('--trig-spillon', action='store_true',
                         help=' set spill nclock on with --clock=nc (20ns)')
 grp_action.add_argument('--trig-spilloff', action='store_true',
                         help=' set spill nclock off with --clock=nc (20ns)')
 grp_action.add_argument('--trig-calibcount', action='store_true',
                         help=' set the value of the calibcount (FEB calibration) register --value=xx ')
+grp_action.add_argument('--trig-beam', action='store_true',
+                        help=' reload calib (FEB calibration)  ')
+
 grp_action.add_argument('--trig-rearm', action='store_true',
                         help=' reload calib (FEB calibration)  ')
 grp_action.add_argument('--trig-setregister', action='store_true',
@@ -182,6 +187,13 @@ parser.add_argument('--comment', action='store', default=None,
 parser.add_argument('--mask', action='store', dest='mask',
                     default=None, help='Hexadecimal string mask')
 
+parser.add_argument('-M', '--Method', action='store', dest='method',
+                    default=None, help='Command name')
+parser.add_argument('-A', '--Application', action='store', dest='application',
+                    default=None, help='Application name')
+parser.add_argument('-P', '--Parameter', action='store', dest='parameter',
+                    default=None, help='parameter set')
+
 account = os.getenv("MGDBLOGIN", "NONE")
 if (account == "NONE"):
     print "The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set"
@@ -252,9 +264,9 @@ elif(results.daq_tdcstatus):
     exit(0)
 elif(results.daq_startrun):
     if (results.comment != None):
-        fdc.daq_start(results.comment)
+        fdc.daq_start(0,comment=results.comment)
     else:
-        fdc.daq_start()
+        fdc.daq_start(0)
     exit(0)
 elif(results.daq_stoprun):
     fdc.daq_stop()
@@ -381,12 +393,6 @@ elif(results.feb_scurve):
     fdc.runScurve(0, chan, spillon, spilloff,
                   first, last, step=step, asic=mask)
     exit(0)
-elif(results.histo_draw):
-    if (results.name == None):
-        print 'Please specify the histo name --name=#'
-        exit(0)
-    # fdc.histo_draw(results.name)
-    exit(0)
 
 
 # MDCC
@@ -446,19 +452,6 @@ elif(results.trig_tdcreset):
     sr = fdc.mdcc_resetTdc()
     print sr
     exit(0)
-elif(results.trig_calibon):
-
-    if (results.value != None):
-        fdc.mdcc_CalibOn(results.value)
-    else:
-        print 'Please specify the value --value=xx'
-    exit(0)
-elif(results.trig_calibcount):
-    if (results.value != None):
-        fdc.mdcc_setCalibCount(results.value)
-    else:
-        print 'Please specify the value --value=xx'
-    exit(0)
 elif(results.trig_rearm):
     fdc.mdcc_reloadCalibCount()
     exit(0)
@@ -478,4 +471,21 @@ elif(results.trig_pause):
     exit(0)
 elif(results.trig_resume):
     fdc.mdcc_Resume()
+    exit(0)
+elif (results.method!=None):
+    param=json.loads(results.parameter)
+    fdc.processCommand(results.method,results.application,param)
+    exit(0)
+elif(results.trig_calibon):
+
+    if (results.value != None):
+        fdc.mdcc_CalibOn(results.value)
+    else:
+        print 'Please specify the value --value=xx'
+    exit(0)
+elif(results.trig_calibcount):
+    if (results.value != None):
+        fdc.mdcc_setCalibCount(results.value)
+    else:
+        print 'Please specify the value --value=xx'
     exit(0)

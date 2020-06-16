@@ -80,8 +80,8 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.LVHisto.clicked.connect(self.on_LVHmodel_changed)
         
     def connectActions(self):
-        self.buttonBox.accepted.connect(exit)
-        self.buttonBox.rejected.connect(exit)
+        #self.buttonBox.accepted.connect(exit)
+        #self.buttonBox.rejected.connect(exit)
         self.tabWidget.currentChanged.connect(self.onChange)
         # Configuration
         self.PBConfiguration.clicked.connect(self.action_PBConfiguration)
@@ -340,7 +340,7 @@ class FdaqDialog(QtGui.QDialog, daqui.Ui_Dialog):
         self.state=l
         self.LADAQState.setText(l)
     def action_daq_download(self):
-        r1=self.daq.daq_downloaddb(str(self.LEDBState.text()))
+        r1=self.daq.daq_downloaddb(str(self.LEDBState.text()),0)
         print r1
         sr=json.loads(r1)
         self.LADAQStatus.setText(sr["status"])
