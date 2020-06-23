@@ -1,11 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import socks
 import socket
-import httplib
-import urllib
-import urllib2
-from urllib2 import URLError, HTTPError
 import json
 from copy import deepcopy
 import base64
@@ -19,7 +15,7 @@ import MongoRoc as mg
 # create the default access
 
 _wdd=mg.instance()
-#print "COUCOU"
+#print("COUCOU")
 parser = argparse.ArgumentParser()
 
 # configure all the actions
@@ -54,16 +50,16 @@ if (results.upload_config):
     version=1
     comment="No comment given"
     if (results.name == None):
-        print 'Please specify the name --name=name'
+        print('Please specify the name --name=name')
         exit(0)
     if (results.file == None):
-        print 'Please specify the file --file=ver'
+        print('Please specify the file --file=ver')
     if (results.version != None):
        version=results.version
-       #print version
+       #print(version)
     if (results.comment != None):
        comment=results.comment
-       #print comment
+       #print(comment)
     _wdd.uploadConfig(results.name,results.file,comment,version)
     exit(0)
 
@@ -74,18 +70,18 @@ if (results.download):
     r_cmd = 'download'
     if (results.state != None):
         if (results.version == None):
-            print 'Please specify the version --version=ver'
+            print('Please specify the version --version=ver')
             exit(0)
         _wdd.download(results.state,results.version,True)
         exit(0)
     if (results.name != None):
         if (results.version == None):
-            print 'Please specify the version --version=ver'
+            print('Please specify the version --version=ver')
             exit(0)
         _wdd.downloadConfig(results.name,results.version)
         exit(0)
     else:
-        print " Specify either --name for configuration or --state for ASICs"
+        print(" Specify either --name for configuration or --state for ASICs")
         exit(0)
 if (results.states):
     r_cmd = 'states'

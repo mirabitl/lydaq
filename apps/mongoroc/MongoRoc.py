@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import os
 from pymongo import MongoClient
 import json
@@ -16,7 +16,7 @@ def IP2Int(ip):
     :param IP: the IP address
     :return: the encoded integer 
     """
-    o = map(int, ip.split('.'))
+    o = list(map(int, ip.split('.')))
     res = (16777216 * o[3]) + (65536 * o[2]) + (256 * o[1]) + o[0]
     return res
 
@@ -83,7 +83,7 @@ class MongoRoc:
             asic["num"]=i+1
             asic["slc"]=self.initPR2(i+1,asictype)
             asic["_id"]=None
-            print asic["dif"],asic["num"],asic["_id"]," is added"
+            print(asic["dif"],asic["num"],asic["_id"]," is added")
             self.asiclist.append(asic)
             
     def addDIF(self,difid,nasic,address="USB"):
@@ -111,7 +111,7 @@ class MongoRoc:
             asic["num"]=i+1
             asic["slc"]=self.initHR2(i+1,128)
             asic["_id"]=None
-            print asic["address"],asic["dif"],asic["num"],asic["_id"]," is added"
+            print(asic["address"],asic["dif"],asic["num"],asic["_id"]," is added")
             self.asiclist.append(asic)
 
     
@@ -134,7 +134,7 @@ class MongoRoc:
             self.bson_id.append(sf["asics"][i]["_id"])
         self.state["asics"]=self.bson_id
         resstate=self.db.states.insert_one(self.state)
-        print resstate
+        print(resstate)
         
     def uploadNewState(self,comment="NEW"):
         """
@@ -155,7 +155,7 @@ class MongoRoc:
         self.state["asics"]=self.bson_id
         self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
-        print resstate
+        print(resstate)
     def uploadFromOracle(self,asiclist,statename,version,comment="NEW"):
         """
         Migration method to update an ASIC list created with OracleAccess class to the DB
@@ -186,7 +186,7 @@ class MongoRoc:
         self.state["asics"]=self.bson_id
         self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
-        print resstate
+        print(resstate)
     def uploadConfig(self,name,fname,comment,version=1):
         """
         jobcontrol configuration upload
@@ -200,7 +200,7 @@ class MongoRoc:
         s["comment"]=comment
         s["version"]=version
         resconf=self.db.configurations.insert_one(s)
-        print resconf
+        print(resconf)
     def states(self):
         """
         List all states in the DB
@@ -210,9 +210,9 @@ class MongoRoc:
             if (not ("name" in x)):
                 continue
             if ("comment" in x):
-                print x["name"],x["version"],x["comment"]
+                print(x["name"],x["version"],x["comment"])
             else:
-                print x["name"],x["version"] 
+                print(x["name"],x["version"] )
     def configurations(self):
         """
         List all jobcontrol configurations in the db 
@@ -222,7 +222,7 @@ class MongoRoc:
         res=self.db.configurations.find({})
         for x in res:
             if ("comment" in x):
-                print time.ctime(x["time"]),x["version"],x["name"],x["comment"]
+                print(time.ctime(x["time"]),x["version"],x["name"],x["comment"])
 
     def downloadConfig(self,cname,version):
         """
@@ -235,7 +235,7 @@ class MongoRoc:
         """
         res=self.db.configurations.find({'name':cname,'version':version})
         for x in res:
-            print x["name"],x["version"],x["comment"]
+            print(x["name"],x["version"],x["comment"])
             #var=raw_input()
             slc=x["content"]
             os.system("mkdir -p /dev/shm/mgroc")
@@ -256,11 +256,11 @@ class MongoRoc:
         os.system("mkdir -p /dev/shm/mgroc")
         fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
         if os.path.isfile(fname) and toFileOnly:
-            print '%s already download, Exiting' % fname
+            print('%s already download, Exiting' % fname)
             return None
         res=self.db.states.find({'name':statename,'version':version})
         for x in res:
-            print x["name"],x["version"],len(x["asics"])," asics"
+            print(x["name"],x["version"],len(x["asics"])," asics")
             self.state["name"]=x["name"]
             self.state["version"]=x["version"]
             #var=raw_input()
@@ -271,25 +271,25 @@ class MongoRoc:
             self.asiclist=[]
             #for y in x["asics"]:
             #    resa=self.db.asics.find_one({'_id':y})
-            #print x["asics"]
+            #print(x["asics"])
             resl=self.db.asics.find({'_id': {'$in': x["asics"]}})
             
             for resa in resl:
                 self.asiclist.append(resa)
-                #print resa
+                #print(resa)
                 s={}
                 s["slc"]=resa["slc"]
                 s["num"]=resa["num"]
                 s["dif"]=resa["dif"]
                 if ( "address" in resa):
                     s["address"]=resa["address"]
-                #print res["dif"]
+                #print(res["dif"])
                 slc["asics"].append(s)
 
             #os.system("mkdir -p /dev/shm/mgroc")
             #fname="/dev/shm/mgroc/%s_%s.json" % (statename,version)
             #if os.path.isfile(fname):
-            #    print '%s already download' % fname
+            #    print('%s already download' % fname)
             #else:
             f=open(fname,"w+")
             #f.write(json.dumps(slc,indent=2, sort_keys=True))
@@ -305,7 +305,7 @@ class MongoRoc:
         :param version: Asic type (PR2 or PR2B)
         :return: the dictionary
         """
-	#print "***** init HR2"
+	#print("***** init HR2")
         _jasic={}
         _jasic["header"]=num
         _jasic["EN10bDac"] = 1
@@ -413,7 +413,7 @@ class MongoRoc:
         for x in res:
             last=x["version"]
         if (last==0):
-            print " No state ",statename,"found"
+            print(" No state ",statename,"found")
             return
         # First append modified ASICS
         for i in range(len(self.asiclist)):
@@ -424,14 +424,14 @@ class MongoRoc:
             self.asiclist[i]["_id"]=result.inserted_id
         self.bson_id=[]
         for  a in self.asiclist:
-            print a
-            print a["_id"]
+            print(a)
+            print(a["_id"])
             self.bson_id.append(a["_id"])
         self.state["asics"]=self.bson_id
         self.state["version"]=last+1
         self.state["comment"]=comment
         resstate=self.db.states.insert_one(self.state)
-        print resstate,self.state["version"],self.state["name"]
+        print(resstate,self.state["version"],self.state["name"])
         
 
     def addAsic(self, dif_num, header,version="PR2"):
@@ -442,7 +442,7 @@ class MongoRoc:
         :param header: ASIC number
         :param version: PR2 for 2A , PR2B for 2B
         """
-        print "force ASIC"
+        print("force ASIC")
 
         thePR2 = self.initPR2(dif_num, header,version)
         self.asiclist.append(thePR2)
@@ -465,8 +465,8 @@ class MongoRoc:
             try:
                 a["slc"]["latch"]=Latch
                 a["_id"]=None
-            except Exception, e:
-                print e.getMessage()
+            except Exception as e:
+                print(e.getMessage())
 
     def PR2_ChangeVthTime(self, VthTime, idif=0, iasic=0):
         """
@@ -484,8 +484,8 @@ class MongoRoc:
             try:
                 a["slc"]["VthTime"]=VthTime
                 a["_id"]=None
-            except Exception, e:
-                print e.getMessage()
+            except Exception as e:
+                print(e.getMessage())
 
 
     def PR2_ChangeDacDelay(self, delay, idif=0, iasic=0):
@@ -505,8 +505,8 @@ class MongoRoc:
             try:
                 a["slc"]["DacDelay"]=delay
                 a["_id"]=None
-            except Exception, e:
-                print e.getMessage()
+            except Exception as e:
+                print(e.getMessage())
 
     def PR2_ChangeAllEnabled(self, idif=0, iasic=0):
         """
@@ -545,9 +545,30 @@ class MongoRoc:
 
                 a["_id"]=None
 
-            except Exception, e:
-                print e.getMessage()
+            except Exception as e:
+                print(e.getMessage())
 
+    def PR2_ChangeInputDac(self, idif, iasic, ich, dac):
+        """
+        Change the InputDAC valu of specified  asics, modified asics are tagged for upload
+        
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        :param ich: The channel number
+        :param dac: The DAC value
+        """
+        
+
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            try:
+                a["slc"]["InputDac"][ich]=dac
+                a["_id"]=None
+            except Exception as e:
+                print(e)
     def PR2_Change6BDac(self, idif, iasic, ich, dac):
         """
         Change the 6BDAC valu of specified  asics, modified asics are tagged for upload
@@ -567,8 +588,8 @@ class MongoRoc:
             try:
                 a["slc"]["6bDac"][ich]=dac
                 a["_id"]=None
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
     def PR2_Correct6BDac(self, idif, iasic, cor):
         """
         Correct the 6BDAC value of specified  asics, modified asics are tagged for upload
@@ -584,14 +605,14 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             try:
-                print a["slc"]["6bDac"]
+                print(a["slc"]["6bDac"])
                 for ich in range(32):
-                    print " Dac changed", idif, iasic, ich, cor[ich]
+                    print(" Dac changed", idif, iasic, ich, cor[ich])
                     a["slc"]["6bDac"][ich] = a["slc"]["6bDac"][ich]+cor[ich]
-                print a["slc"]["6bDac"]
+                print(a["slc"]["6bDac"])
                 a["_id"]=None
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
 
 
     def PR2_ChangeMask(self, idif, iasic, ich, mask):
@@ -613,8 +634,8 @@ class MongoRoc:
             try:
                 a["slc"]["MaskDiscriTime"][ich] = mask
                 a["_id"]=None
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 
 # HR2 access
     def initHR2(self,num,gain=128):
@@ -627,7 +648,7 @@ class MongoRoc:
         :return: the dictionary
         """
 
-	#print "***** init HR2"
+	#print("***** init HR2")
         _jasic={}
         _jasic["ENABLED"]=1
         _jasic["HEADER"]=num
@@ -818,7 +839,7 @@ class MongoRoc:
 
             a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
             a["_id"]=None
-            print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+            print(idif,iasic,ipad,a["slc"]["PAGAIN"][ipad])
 
     def HR2_SetGain(self,idif,iasic,ipad,vnew):
         """
@@ -839,7 +860,7 @@ class MongoRoc:
 
             a["slc"]["PAGAIN"][ipad]=vnew
             a["_id"]=None
-            print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+            print(idif,iasic,ipad,a["slc"]["PAGAIN"][ipad])
    
 
     def HR2_SetAsicGain(self,idif,iasic,vnew):
@@ -859,7 +880,7 @@ class MongoRoc:
             for ipad in range(0,64):
                 a["slc"]["PAGAIN"][ipad]=vnew
                 a["_id"]=None
-                print idif,iasic,ipad,a["slc"]["PAGAIN"][ipad]
+                print(idif,iasic,ipad,a["slc"]["PAGAIN"][ipad])
 
 
 
@@ -876,7 +897,7 @@ class MongoRoc:
         """
 
         scale=gain1*1./gain0
-        print " Rescale factor",scale
+        print(" Rescale factor",scale)
 
         for a in self.asiclist:
             if (idif != 0 and a["dif"] != idif):
@@ -978,7 +999,7 @@ class MongoRoc:
         :param iasic: asic number, if 0 all Asics are changed
 
         """
-        print M0,M1,M2,idif,iasic
+        print(M0,M1,M2,idif,iasic)
         im0n=int(M0,16)
         im1n=int(M1,16)
         im2n=int(M2,16)
@@ -1030,7 +1051,7 @@ def instance():
         pwd=userinfo.split("/")[1]
         host=hostinfo.split(":")[0]
         port=int(hostinfo.split(":")[1])
-        #print "MGROC::INSTANCE() ",host,port,dbname,user,pwd
+        #print("MGROC::INSTANCE() ",host,port,dbname,user,pwd)
         _wdd=MongoRoc(host,port,dbname,user,pwd)
         return _wdd
     else:
