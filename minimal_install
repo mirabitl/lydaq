@@ -1,0 +1,60 @@
+#!/bin/bash
+cd /opt/
+sudo chmod o+w /opt
+#########  DEBIAN LIBRARIES Needed
+
+sudo apt-get -y install git subversion scons cmake g++ openssh-server liblog4cxx-dev libboost-dev libboost-system-dev libboost-filesystem-dev  libboost-thread-dev swig python-dev libftdi-dev  libxerces-c-dev libaio1 uuid-dev libdbi-dev libxml2-dev  libjsoncpp-dev libsqlite3-dev   python-setuptools python-lxml dpkg-dev make binutils libldap2-dev python-dev libxml2-dev  libaio1libcurl4-gnutls-dev  libzmq3-dev python-socks curl wget python-requests python-pymongo python3-pip
+
+sudo pip3 install requests
+sudo pip3 install pysocks
+sudo pip3 install pymongo
+sudo pip3 install pyserial
+
+sudo cat /usr/bin/scons | sed -e "s,/usr/bin/python3,/usr/bin/python2,g" > /usr/bin/scons2
+sudo chmod +x /usr/bin/scons2
+
+mkdir -p /opt/dhcal/etc
+mkdir -p /opt/dhcal/bin
+mkdir -p /opt/dhcal/lib
+######### INSTALL ZDAQ and LYDAQ
+cd /opt
+if [ -d "/opt/zdaq" ]; then
+  cd /opt/zdaq
+  git pull
+else
+  git clone http://github.com/mirabitl/zdaq
+fi
+
+if [ -d "/opt/lydaq" ]; then
+  cd /opt/lydaq
+  git pull
+else
+  git clone http://github.com/mirabitl/lydaq
+fi
+export ZDAQROOT=/opt/zdaq
+export LYDAQROOT=/opt/lydaq
+
+#### Mongoose and ZMQ
+cd $ZDAQROOT/extras
+. mongoose.install 
+cd $ZDAQROOT/extras
+. zmq.install.buster
+#### CAEN
+cd $LYDAQROOT/drivers/utils/packages
+./install
+#### ZDAQ
+cd $ZDAQROOT
+scons2 -j4
+#### LYDAQ
+cd $LYDAQROOT
+scons2 install -j4
+/opt/lydaq/deploy.sh localhost
+sudo cp $ZDAQROOT/etc/difdim.cfg /etc
+sudo cp $ZDAQROOT/etc/ljc.conf /etc
+sudo cp $ZDAQROOT/etc/Log4cxxConfig.xml /etc
+sudo cp $ZDAQROOT/etc/mystartup.sh /etc/init.d/
+cp $LYDAQROOT/etc/* /opt/dhcal/etc
+cp $LYDAQROOT/etc/.pythonrc /opt/dhcal/etc
+sudo cp /opt/dhcal/etc/*.py /usr/lib/python2.7/dist-packages/
+sudo /etc/init.d/mystartup.sh start
+sudo chmod o-w /opt
