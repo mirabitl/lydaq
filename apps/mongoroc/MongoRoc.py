@@ -945,6 +945,27 @@ class MongoRoc:
         sm="0x%lx" % m
         self.HR2_ChangeMask(sm,sm,sm,idif,iasic)
         
+    def HR2_SetNewMask(self,list,idif=0,iasic=0):
+        """
+        Mask the channels specified in the list  for specified  asics, modified asics are tagged for upload
+        
+        :param list: List of channels to be masked
+        :param idif: DIF_ID, if 0 all DIFs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+
+        """
+
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            for ipad in list:
+                a["slc"]["MASK0"][ipad]=0
+                a["slc"]["MASK1"][ipad]=0
+                a["slc"]["MASK2"][ipad]=0
+            a["_id"]=None
+
     def HR2_ChangeMask(self,M0,M1,M2,idif=0,iasic=0):
         """
         Set the 3 masks  for specified  asics, modified asics are tagged for upload
