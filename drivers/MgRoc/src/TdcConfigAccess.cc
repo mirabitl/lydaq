@@ -14,7 +14,9 @@
 #include <boost/format.hpp>
 #include "fsmwebCaller.hh"
 //#include "WiznetMessageHandler.hh"
+#ifndef NOORACLE
 #include <ILCConfDB.h>
+#endif
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -178,6 +180,7 @@ void lydaq::TdcConfigAccess::dumpMap()
 }
 void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
 {
+#ifndef NOORACLE
   State *_state = NULL;
 #ifndef NO_DB
   Setup *theOracleSetup_ = NULL;
@@ -367,6 +370,9 @@ void lydaq::TdcConfigAccess::parseDb(std::string stateName, std::string mode)
   if (_state != NULL)
     delete _state;
   _state = NULL;
+#endif
+#else
+        LOG4CXX_FATAL(_logLdaq," Oracle drivers not installed (ILCConfDB) exiting");
 #endif
 }
 void lydaq::TdcConfigAccess::dumpToShm(std::string path)

@@ -14,8 +14,9 @@
 #include <sstream>
 #include <arpa/inet.h>
 #include <boost/format.hpp>
+#ifndef NOORACLE
 #include <ILCConfDB.h>
-
+#endif
 
 using namespace lydaq;
 lydaq::HR2ConfigAccess::HR2ConfigAccess()
@@ -183,6 +184,7 @@ void lydaq::HR2ConfigAccess::dumpMap()
 }
 void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
 {
+#ifndef NOORACLE
   State* _state=NULL;
 #ifndef NO_DB
   Setup* theOracleSetup_=NULL;
@@ -407,6 +409,8 @@ void lydaq::HR2ConfigAccess::parseDb(std::string stateName,std::string mode)
     delete _state;
   _state=NULL;
 #endif
-
+#else
+        LOG4CXX_FATAL(_logLdaq," Oracle drivers not installed (ILCConfDB) exiting");
+#endif
 
 }

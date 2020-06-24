@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 os.system("mkdir -p /var/log/pi")
 os.system("rm /var/log/pi/ftdi_devices")
@@ -13,7 +13,7 @@ for x in lines:
   continue
  if (ff[0] == 'Bus'):
    if (len(info)!=0):
-       print info
+       print(info)
        devices.append(info)
    info=[]
    info.append(ff[1])
@@ -21,30 +21,31 @@ for x in lines:
    info.append(ff[5])
  if ((ff[0] == 'iSerial') and (len(ff)>2)):  
    info.append(ff[2])
-   print "info ",info
+   print("info ",info)
 if (len(info)!=0):
     devices.append(info)
 
-f=os.open("/var/log/pi/ftdi_devices",os.O_RDWR|os.O_CREAT)
+f=open("/var/log/pi/ftdi_devices","w")
+#os.O_RDWR|os.O_CREAT)
 for y in devices:
-    print "Device found =>"
-    print y
-    print "len", len(y)
+    print("Device found =>")
+    print(y)
+    print("len", len(y))
     if (len(y)>3):
-      print y[0]
-      print y[1]
-      print y[2]   
-      print y[3]
+      print(y[0])
+      print(y[1])
+      print(y[2]   )
+      print(y[3])
       bus=y[0]
       dev=y[1].split(":")[0]
       vend="0x"+y[2].split(":")[0]
       prod="0x"+y[2].split(":")[1]
       ser=y[3]
       command="sudo chmod 666 /dev/bus/usb/"+bus+"/"+dev
-      print command
-      print vend,prod,ser
+      print(command)
+      print(vend,prod,ser)
       os.system(command)
     
-      os.write(f,"%s %s %s\n" % (vend,prod,ser) )
+      f.write("%s %s %s\n" % (vend,prod,ser) )
 
-os.close(f)
+f.close()

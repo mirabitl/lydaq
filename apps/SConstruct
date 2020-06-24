@@ -1,15 +1,14 @@
 import os
 Arm=os.uname()[4]=='armv7l'
-
+Use_ROOT=os.path.isdir("/opt/dhcal/root")
+Use_Oracle=os.path.isdir("/opt/ILCConfDB")
+Use_LCIO=os.path.isdir("/opt/dhcal/lcio")
 
 if (Arm):
     plist=['Builder/SConscript',
            'Bmp/SConscript',
            'FebInj/SConscript',
            'GPIO/SConscript',
-           'ConfigurationDB/SConscript',
-           'Control/SConscript',
-	   'Dif/SConscript',
            'DIF/SConscript',
            'PMR/SConscript',
            'FebCms/SConscript',
@@ -21,25 +20,32 @@ if (Arm):
            'Zup/SConscript',
            'Wiener/SConscript'
     ]
+    if (Use_Oracle):
+        plist.append('ConfigurationDB/SConscript')
+        plist.append('Control/SConscript')
+	plist.append('Dif/SConscript')
+
     plist.append('hih8000/SConscript')
     SConscript('Gric/SConscript')
     SConscript(plist)
 else:
+    plist=['Builder/SConscript',
+           'Caen/SConscript',
+           'PMR/SConscript',
+           'DIF/SConscript',
+           'FebCms/SConscript',
+           'Genesys/SConscript',
+           'Mdcc/SConscript',
+           'MdccEcal/SConscript',
+           'monitoring/SConscript',
+           'N1470/SConscript',
+           'Sdcc/SConscript',
+           'Zup/SConscript',
+           'Wiener/SConscript']
+    if (Use_Oracle):
+        plist.append('ConfigurationDB/SConscript')
+        plist.append('Control/SConscript')
+	plist.append('Dif/SConscript')
+
     SConscript('Gric/SConscript')
-    SConscript(['Builder/SConscript',
-                'Caen/SConscript',
-                'ConfigurationDB/SConscript',
-                'Control/SConscript',
-		'Dif/SConscript',
-                'PMR/SConscript',
-                'DIF/SConscript',
-                'FebCms/SConscript',
-                'Genesys/SConscript',
-                'Mdcc/SConscript',
-                'MdccEcal/SConscript',
-                'monitoring/SConscript',
-                'N1470/SConscript',
-                'Sdcc/SConscript',
-                'Zup/SConscript',
-                'Wiener/SConscript'
-    ])
+    SConscript(plist)

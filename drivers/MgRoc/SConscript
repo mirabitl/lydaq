@@ -42,6 +42,7 @@ fgcc=os.popen("gcc --version | grep ^gcc | sed 's/^.* //g'")
 kl=fgcc.readline().split(".")
 
 NOOCCI=(int(kl[0])>4)
+Use_Oracle=os.path.isdir("/opt/ILCConfDB")
 
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'
@@ -62,6 +63,11 @@ INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/
 CPPFLAGS=["-pthread","-O4","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
 if (Arm or NOOCCI):
     CPPFLAGS.append("-DNO_DB")
+
+if (not Use_Oracle):
+    CPPFLAGS.append("-DNOORACLE")
+    
+
 LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','zdaq','z','log4cxx']
 
 
