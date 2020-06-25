@@ -133,6 +133,7 @@ class MongoRoc:
         for  i in range(len(sf["asics"])):
             self.bson_id.append(sf["asics"][i]["_id"])
         self.state["asics"]=self.bson_id
+        self.state["comment"]="Upload from %s" % fname
         resstate=self.db.states.insert_one(self.state)
         print(resstate)
         
