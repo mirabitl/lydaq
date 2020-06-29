@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
-from __future__ import absolute_import
-from __future__ import print_function
+#!/usr/bin/env python
 import os
 import socks
 import socket
-import six.moves.http_client
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
-from six.moves.urllib.error import URLError, HTTPError
+import httplib
+import urllib
+import urllib2
+from urllib2 import URLError, HTTPError
 import json
 from copy import deepcopy
 import base64
@@ -16,8 +14,6 @@ import argparse
 import requests
 import febrc
 import sys
-from six.moves import range
-from six.moves import input
 
 parser = argparse.ArgumentParser()
 
@@ -200,12 +196,12 @@ parser.add_argument('-P', '--Parameter', action='store', dest='parameter',
 
 account = os.getenv("MGDBLOGIN", "NONE")
 if (account == "NONE"):
-    print("The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set")
+    print "The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set"
     exit(0)
 
 config = os.getenv("DAQMONGO", "NONE")
 if (config == "NONE"):
-    print("The ENV varaible DAQMONGO=name:version must be set")
+    print "The ENV varaible DAQMONGO=name:version must be set"
     exit(0)
 
 fdc = febrc.febRC(account, config)
@@ -235,11 +231,11 @@ elif(results.jc_destroy):
     exit(0)
 elif(results.jc_appcreate):
     sr = fdc.jc_appcreate()
-    print(sr)
+    print sr
     exit(0)
 elif(results.jc_status):
     sr = fdc.jc_status()
-    print(sr)
+    print sr
     exit(0)
 elif(results.jc_info):
     fdc.updateInfo(True, results.verbose)
@@ -264,7 +260,7 @@ elif(results.daq_status):
 elif(results.daq_tdcstatus):
     sr = fdc.SourceStatus(results.verbose)
     if (not results.verbose):
-        print(sr)
+        print sr
     exit(0)
 elif(results.daq_startrun):
     if (results.comment != None):
@@ -282,14 +278,14 @@ elif(results.daq_destroy):
 elif(results.daq_evbstatus):
     sr = fdc.BuilderStatus()
     if (not results.verbose):
-        print(sr)
+        print sr
     exit(0)
 elif(results.daq_downloaddb):
     lcgi = {}
     if (results.dbstate != None):
         lcgi['state'] = results.dbstate
     else:
-        print('Please specify the state --dbstate=STATE')
+        print 'Please specify the state --dbstate=STATE'
         exit(0)
     version = 0
     if (results.dbversion != None):
@@ -298,7 +294,7 @@ elif(results.daq_downloaddb):
     name = "TDCSERVER"
     if (results.name != None):
         name = results.name
-    print(fdc.processCommand("DOWNLOADDB", name, lcgi))
+    print fdc.processCommand("DOWNLOADDB", name, lcgi)
     exit(0)
 
 
@@ -306,14 +302,14 @@ elif(results.daq_downloaddb):
 
 elif(results.feb_resettdc):
     sr = fdc.mdcc_resetTdc()
-    print(sr)
+    print sr
     exit(0)
 elif(results.feb_lutcalib):
     if (results.tdc == None):
-        print('Please specify the tdc process --tdc=#')
+        print 'Please specify the tdc process --tdc=#'
         exit(0)
     if (results.channel == None):
-        print('Please specify the channel --channel=#')
+        print 'Please specify the channel --channel=#'
         exit(0)
     for i in range(0, results.channel):
         fdc.tdcLUTCalib(results.tdc, i)
@@ -321,11 +317,11 @@ elif(results.feb_lutcalib):
 elif(results.feb_lutmask):
 
     if (results.tdc == None):
-        print('Please specify the tdc process --tdc=#')
+        print 'Please specify the tdc process --tdc=#'
         exit(0)
 
     if (results.mask == None):
-        print('Please specify the vth --mask=value')
+        print 'Please specify the vth --mask=value'
         exit(0)
     fdc.tdcLUTMask(results.tdc, results.mask)
     exit(0)
@@ -334,26 +330,26 @@ elif(results.feb_lutmask):
 elif(results.feb_lutdump):
     r_cmd = 'lutdraw'
     if (results.tdc == None):
-        print('Please specify the tdc process --tdc=#')
+        print 'Please specify the tdc process --tdc=#'
         exit(0)
     if (results.channel == None):
-        print('Please specify the channel --channel=#')
+        print 'Please specify the channel --channel=#'
         exit(0)
 
-    print(fdc.tdcLUTDump(results.tdc, results.channel))
+    print fdc.tdcLUTDump(results.tdc, results.channel)
     exit(0)
 
 elif(results.feb_setvth):
     r_cmd = 'SETVTH'
     if (results.vth == None):
-        print('Please specify the vth --vth=value')
+        print 'Please specify the vth --vth=value'
         exit(0)
     fdc.setVthTime(results.vth)
     exit(0)
 elif(results.feb_settdcmode):
     r_cmd = 'SETTDCMODE'
     if (results.value == None):
-        print('Please specify the mode --value=XX')
+        print 'Please specify the mode --value=XX'
         exit(0)
     fdc.setTdcMode(results.value)
     exit(0)
@@ -361,10 +357,10 @@ elif(results.feb_settdcmode):
 elif(results.feb_settdcdelays):
     r_cmd = 'SETTDCDELAYS'
     if (results.active == None):
-        print('Please specify the active time --active=XX')
+        print 'Please specify the active time --active=XX'
         exit(0)
     if (results.dead == None):
-        print('Please specify the dead time --dead=XX')
+        print 'Please specify the dead time --dead=XX'
         exit(0)
     fdc.setTdcDelays(results.active, results.dead)
     exit(0)
@@ -391,8 +387,8 @@ elif(results.feb_scurve):
     if (results.spilloff != None):
         spilloff = results.spilloff
 
-    print("Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask))
-    val = input()
+    print "Mode %d from %d to %d with step %d Spill On %d Off %d ASIC mask %d" % (chan, first, last, step, spillon, spilloff, mask)
+    val = raw_input()
 
     fdc.runScurve(0, chan, spillon, spilloff,
                   first, last, step=step, asic=mask)
@@ -409,7 +405,7 @@ elif(results.trig_beam):
     if (results.clock != None):
         fdc.mdcc_setBeamOn(results.clock)
     else:
-        print('Please specify the number of clock --clock=xx')
+        print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 
@@ -417,7 +413,7 @@ elif(results.trig_spillon):
     if (results.clock != None):
         fdc.mdcc_setSpillOn(results.clock)
     else:
-        print('Please specify the number of clock --clock=xx')
+        print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 
@@ -425,36 +421,36 @@ elif(results.trig_spilloff):
     if (results.clock != None):
         fdc.mdcc_setSpillOff(results.clock)
     else:
-        print('Please specify the number of clock --clock=xx')
+        print 'Please specify the number of clock --clock=xx'
     exit(0)
 
 elif(results.trig_spillregister):
     if (results.value != None):
         fdc.mdcc_setSpillRegister(results.value)
     else:
-        print('Please specify the value --value=xx')
+        print 'Please specify the value --value=xx'
     exit(0)
 elif(results.trig_setregister):
 
     if (results.value == None):
-        print('Please specify the value --value=xx')
+        print 'Please specify the value --value=xx'
         exit(0)
     if (results.address == None):
-        print('Please specify the address --address=xx')
+        print 'Please specify the address --address=xx'
         exit(0)
     sr = fdc.mdcc_WriteRegister(results.address, results.value)
-    print(sr)
+    print sr
     exit(0)
 elif(results.trig_getregister):
     if (results.address == None):
-        print('Please specify the address --address=xx')
+        print 'Please specify the address --address=xx'
         exit(0)
     sr = fdc.mdcc_ReadRegister(results.address)
-    print(sr)
+    print sr
     exit(0)
 elif(results.trig_tdcreset):
     sr = fdc.mdcc_resetTdc()
-    print(sr)
+    print sr
     exit(0)
 elif(results.trig_rearm):
     fdc.mdcc_reloadCalibCount()
@@ -485,11 +481,11 @@ elif(results.trig_calibon):
     if (results.value != None):
         fdc.mdcc_CalibOn(results.value)
     else:
-        print('Please specify the value --value=xx')
+        print 'Please specify the value --value=xx'
     exit(0)
 elif(results.trig_calibcount):
     if (results.value != None):
         fdc.mdcc_setCalibCount(results.value)
     else:
-        print('Please specify the value --value=xx')
+        print 'Please specify the value --value=xx'
     exit(0)

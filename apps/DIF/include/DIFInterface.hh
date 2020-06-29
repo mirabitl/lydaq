@@ -5,7 +5,7 @@
 
 #include <string.h>
 #include<stdio.h>
-#include "zmPusher.hh"
+#include "zmSender.hh"
 #include "DIFReadout.hh"
 #include "DIFReadoutConstant.hh"
 using namespace std;
@@ -30,9 +30,9 @@ class DIFInterface
 public:
   DIFInterface(FtdiDeviceInfo *ftd);
   ~DIFInterface();
-  void setTransport(zdaq::zmPusher* p);
+  void setTransport(zdaq::zmSender* p);
   // initialise
-  void initialise(zdaq::zmPusher* p=NULL);
+  void initialise(zdaq::zmSender* p=NULL);
   // configure
   //void difConfigure(uint32_t ctrl);
   void difConfigure(uint32_t ctrlreg,uint32_t p2pa=0x4e,uint32_t pa2pd=0x3e6,uint32_t pd2daq=0x4e,uint32_t daq2dr=0x4e,uint32_t d2ar=0x4e);
@@ -78,7 +78,7 @@ private:
   DIFDbInfo* _dbdif;
   uint32_t _data[32768];
 
-  zdaq::zmPusher* _dsData;
+  zdaq::zmSender* _dsData;
   uint32_t _detid;
   bool _running,_readoutStarted,_readoutCompleted;
 };

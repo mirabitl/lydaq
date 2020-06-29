@@ -14,7 +14,7 @@ lydaq::DIFInterface::DIFInterface(FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREAT
   _readoutStarted=false;
   _readoutCompleted=true;
 }
-void lydaq::DIFInterface::setTransport(zdaq::zmPusher* p)
+void lydaq::DIFInterface::setTransport(zdaq::zmSender* p)
 {
 _dsData=p;
 printf("DSDATA is %x\n",_dsData);
@@ -303,7 +303,7 @@ void lydaq::DIFInterface::configure(uint32_t ctrlreg,uint32_t l1,uint32_t l2,uin
   this->publishState(s0.str());
   LOG4CXX_INFO(_logLdaq, "DIF   id ("<<_status->id << ") ="<<s0.str());
 }
-void lydaq::DIFInterface::initialise(zdaq::zmPusher* p)
+void lydaq::DIFInterface::initialise(zdaq::zmSender* p)
 {
   uint32_t difid=_ftd.id;
   //  create services
