@@ -92,6 +92,8 @@ uint32_t  lydaq::TdcConfigAccess::slcBytes(){return _slcBytes;}
 std::map<uint64_t,lydaq::PRSlow>&  lydaq::TdcConfigAccess::asicMap(){return _asicMap;}
 void  lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
 {
+std::cout<<"entering TDCConfigAccess.cxx  lydaq::TdcConfigAccess::prepareSlowControl"<<std::endl;
+
   // Initialise
   _slcBytes=0;
   uint64_t eid=((uint64_t) lydaq::TdcMessageHandler::convertIP(ipadr))<<32;
@@ -101,7 +103,7 @@ void  lydaq::TdcConfigAccess::prepareSlowControl(std::string ipadr)
       uint64_t eisearch= eid|ias;
       std::map<uint64_t,lydaq::PRSlow>::iterator im=_asicMap.find(eisearch);
       if (im==_asicMap.end()) continue;
-      printf("DIF %x ,Asic %d Found\n",eid>>32,ias); 
+      printf("DIF %lx ,Asic %d Found\n",eid>>32,ias); 
       im->second.prepare4Tdc(_slcAddr,_slcBuffer,_slcBytes);
       _slcBytes+=80;
     }
