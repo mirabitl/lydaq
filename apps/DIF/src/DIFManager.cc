@@ -137,6 +137,21 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
        LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" No publish tag found ");
        return;
     }
+
+  
+  for (auto x:_vDif)
+    {
+      LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<this->parameters()["publish"].asString());
+
+      zdaq::zmSender* push= new zdaq::zmSender(_context,x->detectorId(),x->status()->id);
+      push->autoDiscover(this->configuration(),"BUILDER","collectingPort");
+      push->collectorRegister();
+
+      x->initialise(push);
+
+    }
+
+  /*  
   for (auto x:_vDif)
     {
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Creating pusher to "<<this->parameters()["publish"].asString());
@@ -145,6 +160,7 @@ void lydaq::DIFManager::initialise(zdaq::fsmmessage* m)
       x->initialise(push);
 
     }
+  */
   // Listen All Gric sockets
 
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import json
 import daqrc
 import time
@@ -37,34 +35,34 @@ class lydaqControl(daqrc.daqControl):
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
         if (not verbose):
             return json.dumps(rep)
-        print("""
+        print """
         \t \t *************************    
         \t \t ** Builder information **
         \t \t *************************
-        """)
+        """
         #rep = json.loads(sr)
         for k, v in rep.items():
-            print(k)
+            print k
             for xk, xv in v.items():
                     if (xk != "builder"):
-                        print("\t", xk, xv)
+                        print "\t", xk, xv
                     else:
                         if (xv != None):
                             for y in xv:
-                                print("\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received']))
+                                print "\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received'])
 
     def TriggerStatus(self,verbose=False):
         mr = json.loads(self.mdcc_Status())
         if (not verbose):
             return json.dumps(mr["MDCCSERVER_0"]["answer"])
         else:
-            print("""
+            print """
             \t \t *************************    
             \t \t ** Trigger information **
             \t \t *************************
-            """)
+            """
             for k,v in mr["MDCCSERVER_0"]["answer"]["COUNTERS"].items():
-                print("\t \t ",k,v)
+                print "\t \t ",k,v
     # Builder
 
     def builder_setHeader(self, rtype, rval, mask):

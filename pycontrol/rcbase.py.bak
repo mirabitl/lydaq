@@ -1,22 +1,19 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import os
 import socks
 import socket
-import six.moves.http_client
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
-from six.moves.urllib.error import URLError, HTTPError
+import httplib
+import urllib
+import urllib2
+from urllib2 import URLError, HTTPError
 import json
 from copy import deepcopy
 import base64
 import time
 import requests
-import six
 try:
     from urllib.parse import urlparse
 except ImportError:
-     from six.moves.urllib.parse import urlparse
+     from urlparse import urlparse
 # Sock support
 sockport = None
 sp = os.getenv("SOCKPORT", "Not Found")
@@ -51,10 +48,10 @@ class FSMAccess:
         :return: url answer
         """
         #print "Access to %s " % url
-        req = six.moves.urllib.request.Request(url)
+        req = urllib2.Request(url)
         try:
-            r1 = six.moves.urllib.request.urlopen(req)
-        except URLError as e:
+            r1 = urllib2.urlopen(req)
+        except URLError, e:
             p_rep = {}
             p_rep["STATE"] = "DEAD"
             return json.dumps(p_rep, sort_keys=True)
@@ -80,13 +77,13 @@ class FSMAccess:
             lq["content"]=json.dumps(params,sort_keys=True)
 
             lq["command"]=cmd           
-            lqs=six.moves.urllib.parse.urlencode(lq)
+            lqs=urllib.urlencode(lq)
             saction = '/%s/FSM?%s' % (prefix,lqs)
             myurl=myurl+saction
             #print myurl
-            req=six.moves.urllib.request.Request(myurl)
+            req=urllib2.Request(myurl)
 
-            r1=six.moves.urllib.request.urlopen(req)
+            r1=urllib2.urlopen(req)
 
             return r1.read()
         else:
@@ -110,16 +107,16 @@ class FSMAccess:
 
             lq={}
             lq["name"]=cmd
-            for x,y in six.iteritems(params):
+            for x,y in params.iteritems():
                 lq[x]=y
-            lqs=six.moves.urllib.parse.urlencode(lq)
+            lqs=urllib.urlencode(lq)
             saction = '/%s/CMD?%s' % (prefix,lqs)
             myurl=myurl+saction
 
-            req=six.moves.urllib.request.Request(myurl)
+            req=urllib2.Request(myurl)
             try:
-                r1=six.moves.urllib.request.urlopen(req)
-            except URLError as e:
+                r1=urllib2.urlopen(req)
+            except URLError, e:
                 p_rep={}
                 p_rep["STATE"]="DEAD"
                 return json.dumps(p_rep,sort_keys=True)
@@ -128,10 +125,10 @@ class FSMAccess:
 
         else:
             myurl = "http://"+host+ ":%d/%s/" % (port,prefix)
-            req=six.moves.urllib.request.Request(myurl)
+            req=urllib2.Request(myurl)
             try:
-                r1=six.moves.urllib.request.urlopen(req)
-            except URLError as e:
+                r1=urllib2.urlopen(req)
+            except URLError, e:
                 p_rep={}
                 p_rep["STATE"]="DEAD"
                 return json.dumps(p_rep,sort_keys=True)
@@ -212,7 +209,7 @@ class FSMAccess:
     def printInfos(self, vverb):
         if (vverb):
             #print "PROCINFO ",self.procInfos
-            print("\n FSM is %s on %s, PID %d Service %s" % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"]))
+            print "\n FSM is %s on %s, PID %d Service %s" % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
             # print COMMAND and TRANSITION
             for k, v in self.procInfos.items():
                 if (k == 'ALLOWED' or k == 'CMD' or k == 'FSM'):
@@ -220,10 +217,10 @@ class FSMAccess:
                     for x in v:
                         s = s + x['name'] + " "
                     print(s)
-            print("\n BaseApplication %s _ %d" % (self.infos["name"], self.infos["instance"]))
-            print("\t Parameters")
+            print "\n BaseApplication %s _ %d" % (self.infos["name"], self.infos["instance"])
+            print "\t Parameters"
             for k, v in self.params.items():
-                print("\t \t", k, v)
+                print "\t \t", k, v
         else:
-            print("FSM is %s on %s, PID %d Service %s"  % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"]))
+            print "FSM is %s on %s, PID %d Service %s"  % (self.procInfos["STATE"], self.url, self.procInfos["PID"], self.procInfos["PREFIX"])
             

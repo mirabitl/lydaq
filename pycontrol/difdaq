@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+from __future__ import absolute_import
+from __future__ import print_function
+import os
+import socks
+import socket
+import six.moves.http_client
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+from six.moves.urllib.error import URLError, HTTPError
+import json
+from copy import deepcopy
+import base64
+import time
+import argparse
+import requests
+import difrc
+import sys
+from six.moves import range
+from six.moves import input
+
+parser = argparse.ArgumentParser()
+
+# configure all the actions
+grp_action = parser.add_mutually_exclusive_group()
+# JOB Control
+
+grp_action.add_argument('--jc-create', action='store_true',
+                        help='Loads configuration in all jobcontrol process ')
+grp_action.add_argument('--jc-kill', action='store_true',
+                        help='kill all running processes')
+grp_action.add_argument('--jc-destroy', action='store_true',
+                        help='delete all jobcontrol configuration')
+grp_action.add_argument('--jc-start', action='store_true',
+                        help='start all controled processes described in $DAQCONFIG jsonfile variable')
+grp_action.add_argument('--jc-restart', action='store_true',
+                        help='restart one job with --jobname=name --jobpid=pid --host=hostname')
+grp_action.add_argument('--jc-status', action='store_true',
+                        help='show the status all controled processes or of the process specified in --name=PROC')
+grp_action.add_argument('--jc-info', action='store_true',
+                        help='show the status all controled processesof the host specified in --host=Host')
+grp_action.add_argument('--jc-appcreate', action='store_true',
+                        help='Create all ZDAQ app on all hosts')
+
+# DAQ preparation
+# Running
+grp_action.add_argument('--daq-initialise', action='store_true',
+                        help='Initialise DAQ, data source discovery and Builder final configuration')
+grp_action.add_argument('--daq-configure', action='store_true',
+                        help=' Configure FDAQ, front end ASICs configuration')
+grp_action.add_argument('--daq-startrun', action='store_true',
+                        help=' start the run')
+grp_action.add_argument('--daq-stoprun', action='store_true',
+                        help=' stop the run')
+grp_action.add_argument('--daq-destroy', action='store_true',
+                        help='destroy the readout, back to the CREATED state')
+# Status
+grp_action.add_argument('--daq-status', action='store_true',
+                        help=' display DAQ status of all processes')
+grp_action.add_argument('--daq-difstatus', action='store_true',
+                        help=' display DAQ status of all FEBCMS TDC')
+grp_action.add_argument('--daq-evbstatus', action='store_true',
+                        help=' display event builder status')
+# Actions
+grp_action.add_argument('--daq-downloaddb', action='store_true',
+                        help='download the dbstate specified in --dbstate=state --version=num')
+
+
+# FEBV1 actions
+grp_action.add_argument('--dif-ctrlreg', action='store_true',
+                        help=' Send CTRLREG to DIFMANAGER --ctrlreg=ctrl')
+
+# Arguments
+parser.add_argument('--config', action='store', dest='config',
+                    default=None, help='json config file')
+parser.add_argument('--dbstate', action='store', default=None,
+                    dest='dbstate', help='set the dbstate')
+parser.add_argument('--dbversion', action='store', type=int,
+                    dest='dbversion', default=None, help='DB state version')
+
+parser.add_argument('--clock', action='store', type=int, default=None,
+                    dest='clock', help='set the number of 20 ns clock')
+parser.add_argument('--directory', action='store', type=str,
+                    dest='directory', default=None, help='shm publisher directory')
+parser.add_argument('--vth', action='store', type=int,
+                    default=None, dest='vth', help='set the vth for chips')
+parser.add_argument('--gain', action='store', type=int,
+                    default=None, dest='gain', help='set the gain for chips')
+
+parser.add_argument('--tdc', action='store', type=int,
+                    default=None, dest='tdc', help='set the tdc instance')
+# Job
+parser.add_argument('--lines', action='store', type=int, default=None,
+                    dest='lines', help='set the number of lines to be dump')
+parser.add_argument('--host', action='store', dest='host',
+                    default=None, help='host for log')
+parser.add_argument('--name', action='store', dest='name',
+                    default=None, help='application name')
+parser.add_argument('--jobname', action='store',
+                    dest='jobname', default=None, help='job name')
+parser.add_argument('--jobpid', action='store', type=int,
+                    dest='jobpid', default=None, help='job pid')
+parser.add_argument('--value', action='store', type=int,
+                    dest='value', default=None, help='value to pass')
+parser.add_argument('--address', action='store', type=int,
+                    dest='address', default=None, help='address to pass')
+parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
+                    default=False, help='Raw Json output')
+
+parser.add_argument('--comment', action='store', default=None,
+                    dest='comment', help=' Comment for start run')
+
+parser.add_argument('--ctrlreg', action='store', dest='ctrlreg',
+                    default=None, help='Hexadecimal string ctrlreg')
+
+parser.add_argument('-M', '--Method', action='store', dest='method',
+                    default=None, help='Command name')
+parser.add_argument('-A', '--Application', action='store', dest='application',
+                    default=None, help='Application name')
+parser.add_argument('-P', '--Parameter', action='store', dest='parameter',
+                    default=None, help='parameter set')
+
+account = os.getenv("MGDBLOGIN", "NONE")
+if (account == "NONE"):
+    print("The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set")
+    exit(0)
+
+config = os.getenv("DAQMONGO", "NONE")
+if (config == "NONE"):
+    print("The ENV varaible DAQMONGO=name:version must be set")
+    exit(0)
+
+fdc = difrc.difRC(account, config)
+fdc.Connect()
+# fdc.updateInfo(True,True)
+
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+results = parser.parse_args()
+
+# analyse the command
+lcgi = {}
+r_cmd = None
+
+if(results.jc_create):
+    fdc.jc_initialise()
+    exit(0)
+elif(results.jc_kill):
+    fdc.jc_kill()
+    exit(0)
+elif(results.jc_start):
+    fdc.jc_start()
+    exit(0)
+elif(results.jc_destroy):
+    fdc.jc_destroy()
+    exit(0)
+elif(results.jc_appcreate):
+    sr = fdc.jc_appcreate()
+    print(sr)
+    exit(0)
+elif(results.jc_status):
+    sr = fdc.jc_status()
+    print(sr)
+    exit(0)
+elif(results.jc_info):
+    fdc.updateInfo(True, results.verbose)
+    exit(0)
+
+# DAQ
+elif(results.daq_initialise):
+    delay=0
+    rep=fdc.daq_initialise()
+    print(rep)
+    exit(0)
+elif(results.daq_configure):
+    fdc.daq_configure()
+    exit(0)
+elif(results.daq_status):
+    fdc.BuilderStatus(True)
+    fdc.SourceStatus(True)
+    #fdc.TriggerStatus(True)
+    exit(0)
+elif(results.daq_difstatus):
+    sr = fdc.SourceStatus(results.verbose)
+    if (not results.verbose):
+        print(sr)
+    exit(0)
+elif(results.daq_startrun):
+    if (results.comment != None):
+        fdc.daq_start(0,comment=results.comment)
+    else:
+        fdc.daq_start(0)
+    exit(0)
+elif(results.daq_stoprun):
+    fdc.daq_stop()
+    exit(0)
+elif(results.daq_destroy):
+    fdc.daq_destroy()
+    exit(0)
+
+elif(results.daq_evbstatus):
+    sr = fdc.BuilderStatus()
+    if (not results.verbose):
+        print(sr)
+    exit(0)
+elif(results.daq_downloaddb):
+    lcgi = {}
+    if (results.dbstate != None):
+        lcgi['state'] = results.dbstate
+    else:
+        print('Please specify the state --dbstate=STATE')
+        exit(0)
+    version = 0
+    if (results.dbversion != None):
+        version = results.dbversion
+    lcgi['version'] = version
+    name = "DIFMANAGER"
+    if (results.name != None):
+        name = results.name
+    print(fdc.processCommand("DOWNLOADDB", name, lcgi))
+    exit(0)
+
+
+# FEB
+elif(results.dif_ctrlreg):
+
+
+    if (results.ctrlreg == None):
+        print('Please specify the control register --ctrlreg=value')
+        exit(0)
+    fdc.setControlRegister(results.ctrlreg)
+    exit(0)
+
+
