@@ -3,6 +3,7 @@ from __future__ import print_function
 import rcbase
 import MongoJob as mg
 import json
+import time
 
 class daqControl:
     def __init__(self,account,config):
@@ -10,10 +11,9 @@ class daqControl:
         self.config=config
         self.jobcontrols=[]
         self.appMap={}
-
+        self.db=mg.instance()
     def parseMongo(self):
-        mgi=mg.instance()
-        mgi.downloadConfig(self.config.split(":")[0],self.config.split(":")[1],True)
+        self.db.downloadConfig(self.config.split(":")[0],int(self.config.split(":")[1]),True)
         daq_file="/dev/shm/mgjob/"+self.config.split(":")[0]+"_"+self.config.split(":")[1]+".json"
         with open(daq_file) as data_file:    
             self._mgConfig = json.load(data_file)

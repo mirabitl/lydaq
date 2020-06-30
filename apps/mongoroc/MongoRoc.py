@@ -234,6 +234,7 @@ class MongoRoc:
          
         :obsolete: Use MongoJob instead
         """
+        print("Downloading %s version %d" % (cname,version))
         res=self.db.configurations.find({'name':cname,'version':version})
         for x in res:
             print(x["name"],x["version"],x["comment"])
