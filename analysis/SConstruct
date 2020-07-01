@@ -1,6 +1,8 @@
 import os
 
-plist=['sdhcal/SConscript','rootwriter/SConscript','shmwriter/SConscript','tdcwriter/SConscript','monitor/SConscript']
+plist=['sdhcal/SConscript','shmwriter/SConscript','tdcwriter/SConscript','monitor/SConscript']
+if (os.getenv("ROOTSYS")!=None):
+    plist.append('rootwriter/SConscript')
 if (os.getenv("LCIODIR")!=None):
     plist.append('lciowriter/SConscript')
 SConscript(plist)
