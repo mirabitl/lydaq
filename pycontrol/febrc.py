@@ -209,7 +209,7 @@ class febRC(lydaqrc.lydaqControl):
         self.mdcc_CalibOn(1)
         self.mdcc_setCalibCount(ntrg)
         self.mdcc_Status()
-        thrange = (thmax - thmin + 1) / step
+        thrange = (thmax - thmin + 1) // step
         for vth in range(0, thrange+1):
             self.mdcc_Pause()
             self.setVthTime(thmax - vth * step)
