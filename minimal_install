@@ -3,8 +3,11 @@ cd /opt/
 sudo chmod o+w /opt
 #########  DEBIAN LIBRARIES Needed
 
+
 sudo apt-get -y install git subversion scons cmake g++ openssh-server liblog4cxx-dev libboost-dev libboost-system-dev libboost-filesystem-dev  libboost-thread-dev swig python-dev libftdi-dev  libxerces-c-dev libaio1 uuid-dev libdbi-dev libxml2-dev  libjsoncpp-dev libsqlite3-dev   python-setuptools python-lxml dpkg-dev make binutils libldap2-dev python-dev libxml2-dev  libaio1 libcurl4-gnutls-dev  libzmq3-dev python-socks curl wget python3-pip
 
+# Pour compiler l'analyse si on utilise ROOT
+#sudo apt-get -y install libtbb-dev
 sudo pip3 install requests
 sudo pip3 install pysocks
 sudo pip3 install pymongo
