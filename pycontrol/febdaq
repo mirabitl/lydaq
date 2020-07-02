@@ -482,7 +482,10 @@ elif(results.trig_resume):
     exit(0)
 elif (results.method!=None):
     param=json.loads(results.parameter)
-    fdc.processCommand(results.method,results.application,param)
+    sr=fdc.processCommand(results.method,results.application,param)
+    if (results.verbose):
+        print(sr)
+
     exit(0)
 elif(results.trig_calibon):
 
