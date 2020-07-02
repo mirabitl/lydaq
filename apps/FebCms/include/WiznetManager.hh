@@ -108,7 +108,7 @@ public:
   /// Set Calibration Mask
   void setCalibrationMask(uint64_t mask);
   /// Set measurement mask
-  void setMeasurementMask(uint64_t mask);
+  void setMeasurementMask(uint64_t mask,uint32_t feb);
   /// Shm read
   void readShm(std::string host,uint32_t port);
   /// controlSize
@@ -120,7 +120,7 @@ public:
   void ScurveStep(fsmwebCaller* m,fsmwebCaller* b,int thmin,int thmax,int step);
   void Scurve(int mode,int thmin,int thmax,int step);
   fsmwebCaller* findMDCC(std::string name);
-  
+  void thrd_scurve();
 private:
   lydaq::TdcConfigAccess *_tca;
   lydaq::WiznetInterface *_wiznet;
@@ -138,6 +138,12 @@ private:
   int32_t _controlSize;
   uint8_t _controlData[0x40000];
   Json::Value _jControl;
+
+  bool _running;
+  // Scurve parameters
+  int _sc_mode,_sc_thmin,_sc_thmax,_sc_step;
+  bool _sc_running;
+  
 };
 }; // namespace lydaq
 #endif

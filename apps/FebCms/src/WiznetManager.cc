@@ -13,12 +13,16 @@ using namespace lytdc;
 #include <sstream>
 #include <arpa/inet.h>
 #include <boost/format.hpp>
+#include <boost/function.hpp>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
 
 using namespace zdaq;
 using namespace lydaq;
 
-lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(name), _context(NULL)
+lydaq::WiznetManager::WiznetManager(std::string name) : zdaq::baseApplication(name), _context(NULL),_sc_running(false),_running(false)
 {
   _fsm = this->fsm();
   // Register state machine
@@ -187,8 +191,9 @@ void lydaq::WiznetManager::c_setMeasurementMask(Mongoose::Request &request, Mong
   response["STATUS"] = "DONE";
   uint64_t mask = 0;
   sscanf(request.get("value", "0x0").c_str(), "%llx", &mask);
+  uint32_t feb = atol(request.get("feb", "255").c_str());
   LOG4CXX_INFO(_logFeb, "c_setMeasurementMask called  with mask" << std::hex << mask << std::dec);
-  this->setMeasurementMask(mask);
+  this->setMeasurementMask(mask,feb);
   response["MMASK"] = (Json::Value::UInt64)mask;
 }
 void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -270,8 +275,21 @@ void lydaq::WiznetManager::c_scurve(Mongoose::Request &request, Mongoose::JsonRe
   uint32_t step = atol(request.get("step", "2").c_str());
   uint32_t mode = atol(request.get("channel", "255").c_str());
   //  LOG4CXX_INFO(_logFeb, " SetOneVthTime called with vth " << vth << " feb " << feb << " asic " << asic);
-  this->Scurve(mode,first,last,step);
-  response["SCURVE"] ="DONE";
+  
+  //this->Scurve(mode,first,last,step);
+
+  _sc_mode=mode;
+  _sc_thmin=first;
+  _sc_thmax=last;
+  _sc_step=step;
+  if (_sc_running)
+    {
+      response["SCURVE"] ="ALREADY_RUNNING";
+      return;
+    }
+  boost::thread_group g;
+  g.create_thread(boost::bind(&lydaq::WiznetManager::thrd_scurve, this));
+  response["SCURVE"] ="RUNNING";
 }
 
 void lydaq::WiznetManager::initialise(zdaq::fsmmessage *m)
@@ -674,11 +692,20 @@ void lydaq::WiznetManager::setCalibrationMask(uint64_t mask)
     this->writeLongWord(x.second->hostTo(), x.second->portTo(), 0x226, mask);
   }
 }
-void lydaq::WiznetManager::setMeasurementMask(uint64_t mask)
+void lydaq::WiznetManager::setMeasurementMask(uint64_t mask,uint32_t feb)
 {
   LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " on all FEBS");
+  
+
+  
   for (auto x : _wiznet->controlSockets())
   {
+    if (feb!=255)
+      {
+	std::stringstream ip;
+	ip << "192.168.10." << feb;
+	if (ip.str().compare(x.second->hostTo())!=0) continue;
+      }
     this->writeLongWord(x.second->hostTo(), x.second->portTo(), 0x230, mask);
   }
 }
@@ -721,6 +748,7 @@ void lydaq::WiznetManager::start(zdaq::fsmmessage *m)
     break;
   }
   }
+  _running=true;
 }
 void lydaq::WiznetManager::stop(zdaq::fsmmessage *m)
 {
@@ -732,7 +760,8 @@ void lydaq::WiznetManager::stop(zdaq::fsmmessage *m)
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x220, 0); // Stop
   }
 
-  ::sleep(2);
+  ::sleep(1);
+  _running=false;
 }
 void lydaq::WiznetManager::destroy(zdaq::fsmmessage *m)
 {
@@ -794,6 +823,7 @@ void lydaq::WiznetManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
   int thrange=(thmax-thmin+1)/step;
   for (int vth=0;vth<=thrange;vth++)
     {
+      if (!_running) break;
       mdcc->sendCommand("PAUSE");
       this->setVthTime(thmax-vth*step);
       p.clear();
@@ -811,7 +841,7 @@ void lydaq::WiznetManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
 	  ::usleep(100000);
 	  for (auto x : _vTdc)
 	    if (x->event()>lastEvent) lastEvent=x->event();
-	  nloop++;if (nloop > 20)  break;
+	  nloop++;if (nloop > 20 || !_running)  break;
 	}
       printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
       mdcc->sendCommand("PAUSE");
@@ -819,23 +849,31 @@ void lydaq::WiznetManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
   mdcc->sendCommand("CALIBOFF");
 }
 
+
+void lydaq::WiznetManager::thrd_scurve()
+{
+  _sc_running=true;
+  this->Scurve(_sc_mode,_sc_thmin,_sc_thmax,_sc_step);
+  _sc_running=false;
+}
+
+
 void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
 {
   fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
   fsmwebCaller* builder=findMDCC("BUILDER");
   if (mdcc==NULL) return;
   if (builder==NULL) return;
-  int firmware[]={0,2,4,5,
-		  6,8,10,12,
-		  14,16,18,20,
-		  22,24,26,28,
-		  30};
+  int firmware[]={0,2,4,6,
+		  8,10,12,14,
+		  16,18,20,22,
+		  24,26,28,30};
 
   int mask=0;
   if (mode==255)
     {
 
-      for (int i=0;i<17;i++) mask|=(1<<firmware[i]);
+      for (int i=0;i<16;i++) mask|=(1<<firmware[i]);
       this->setMask(mask,0xFF);
       this->ScurveStep(mdcc,builder,thmin,thmax,step);
       return;
@@ -844,7 +882,7 @@ void lydaq::WiznetManager::Scurve(int mode,int thmin,int thmax,int step)
   if (mode==1023)
     {
       int mask=0;
-      for (int i=0;i<17;i++)
+      for (int i=0;i<16;i++)
 	{
 	  mask=(1<<firmware[i]);
 	  std::cout<<"Step PR2 "<<i<<" channel "<<firmware[i]<<std::endl;

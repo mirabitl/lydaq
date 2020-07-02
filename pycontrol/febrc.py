@@ -185,7 +185,7 @@ class febRC(lydaqrc.lydaqControl):
         r["lut_%d" % channel] = json.loads(tdc.sendCommand("GETLUT", param))
         return json.dumps(r)
 
-    def tdcLUTMask(self, instance, mask):
+    def tdcLUTMask(self, instance, mask,feb):
         if (not "TDCSERVER" in self.appMap):
             return '{"answer":"NOTDCSERVER","status":"FAILED"}'
         if (len(self.appMap["TDCSERVER"]) <= instance):
@@ -194,6 +194,7 @@ class febRC(lydaqrc.lydaqControl):
         tdc = self.appMap["TDCSERVER"][instance]
         param = {}
         param["value"] = mask
+        param["feb"] = feb
         r = {}
         r["test_mask"] = json.loads(tdc.sendCommand("TESTMASK", param))
         r["cal_status"] = json.loads(tdc.sendCommand("CALIBSTATUS", param))
@@ -209,7 +210,7 @@ class febRC(lydaqrc.lydaqControl):
         self.mdcc_CalibOn(1)
         self.mdcc_setCalibCount(ntrg)
         self.mdcc_Status()
-        thrange = (thmax - thmin + 1) / step
+        thrange = (thmax - thmin + 1) // step
         for vth in range(0, thrange+1):
             self.mdcc_Pause()
             self.setVthTime(thmax - vth * step)
@@ -254,9 +255,9 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def runScurve(self, run, ch, spillon, spilloff, beg, las, step=2, asic=255, Comment="PR2 Calibration", Location="UNKNOWN", nevmax=50):
-        firmware = [3, 4, 5, 6, 7, 8, 9, 10, 11,
+        oldfirmware = [3, 4, 5, 6, 7, 8, 9, 10, 11,
                     12, 20, 21, 22, 23, 24, 26, 28, 30]
-        firmware = [0,2, 4, 5, 6, 8, 10, 12,14,16,18,20,22,24,26,28,30]
+        firmware = [0,2, 4, 6, 7, 8, 10, 12,14,16,18,20,22,24,26,28,30]
 
 
         comment = Comment + \
