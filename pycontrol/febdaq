@@ -329,7 +329,7 @@ elif(results.feb_lutmask):
         exit(0)
 
     feb=255
-    if (results.feb == None):
+    if (results.feb != None):
         feb=results.feb
     fdc.tdcLUTMask(results.tdc, results.mask,feb)
     exit(0)

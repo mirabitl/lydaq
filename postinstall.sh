@@ -10,4 +10,6 @@ touch ${HOME}/.python_history
 cd /usr/local/bin
 sudo ln -sf /opt/zdaq/scripts/mgjob .
 sudo ln -sf /opt/lydaq/apps/mongoroc/mgroc .
-
+sudo ln -sf /opt/lydaq/pycontrol/febdaq .
+sudo ln -sf /opt/lydaq/pycontrol/difdaq .
+sudo ln -sf /opt/lydaq/pycontrol/combdaq .

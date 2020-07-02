@@ -192,7 +192,7 @@ void lydaq::WiznetManager::c_setMeasurementMask(Mongoose::Request &request, Mong
   uint64_t mask = 0;
   sscanf(request.get("value", "0x0").c_str(), "%llx", &mask);
   uint32_t feb = atol(request.get("feb", "255").c_str());
-  LOG4CXX_INFO(_logFeb, "c_setMeasurementMask called  with mask" << std::hex << mask << std::dec);
+  LOG4CXX_INFO(_logFeb, "c_setMeasurementMask called  with mask" << std::hex << mask << std::dec<<" On FEB "<<feb);
   this->setMeasurementMask(mask,feb);
   response["MMASK"] = (Json::Value::UInt64)mask;
 }
@@ -694,7 +694,7 @@ void lydaq::WiznetManager::setCalibrationMask(uint64_t mask)
 }
 void lydaq::WiznetManager::setMeasurementMask(uint64_t mask,uint32_t feb)
 {
-  LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " on all FEBS");
+  LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " on  FEBS"<<feb);
   
 
   
@@ -704,7 +704,11 @@ void lydaq::WiznetManager::setMeasurementMask(uint64_t mask,uint32_t feb)
       {
 	std::stringstream ip;
 	ip << "192.168.10." << feb;
-	if (ip.str().compare(x.second->hostTo())!=0) continue;
+	if (ip.str().compare(x.second->hostTo())!=0)
+	  {
+	    LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " skipping"<<feb);
+	    continue;
+	  }
       }
     this->writeLongWord(x.second->hostTo(), x.second->portTo(), 0x230, mask);
   }

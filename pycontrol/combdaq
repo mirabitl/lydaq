@@ -14,7 +14,7 @@ import base64
 import time
 import argparse
 import requests
-import febrc
+import combrc
 import sys
 from six.moves import range
 from six.moves import input
@@ -208,7 +208,7 @@ if (config == "NONE"):
     print("The ENV varaible DAQMONGO=name:version must be set")
     exit(0)
 
-fdc = febrc.febRC(account, config)
+fdc = combrc.combRC(account, config)
 fdc.Connect()
 # fdc.updateInfo(True,True)
 
