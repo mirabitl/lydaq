@@ -84,7 +84,7 @@ grp_action.add_argument('--feb-settdcdelays', action='store_true',
 grp_action.add_argument('--feb-lutcalib', action='store_true',
                         help='Calibrate --tdc=i --channel=k  is the total number of channels')
 grp_action.add_argument('--feb-lutmask', action='store_true',
-                        help='Set the LUT mask --tdc=i --mask=Hexadecimal mask')
+                        help='Set the LUT mask --tdc=i --mask=Hexadecimal mask --feb=febid')
 grp_action.add_argument('--feb-lutdump', action='store_true',
                         help='Dump lut --tdc=i --channel=k ')
 # grp_action.add_argument('--histo-draw', action='store_true',
@@ -327,7 +327,11 @@ elif(results.feb_lutmask):
     if (results.mask == None):
         print('Please specify the vth --mask=value')
         exit(0)
-    fdc.tdcLUTMask(results.tdc, results.mask)
+
+    feb=255
+    if (results.feb == None):
+        feb=results.feb
+    fdc.tdcLUTMask(results.tdc, results.mask,feb)
     exit(0)
 
 

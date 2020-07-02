@@ -108,7 +108,7 @@ public:
   /// Set Calibration Mask
   void setCalibrationMask(uint64_t mask);
   /// Set measurement mask
-  void setMeasurementMask(uint64_t mask);
+  void setMeasurementMask(uint64_t mask,uint32_t feb);
   /// Shm read
   void readShm(std::string host,uint32_t port);
   /// controlSize

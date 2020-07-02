@@ -185,7 +185,7 @@ class febRC(lydaqrc.lydaqControl):
         r["lut_%d" % channel] = json.loads(tdc.sendCommand("GETLUT", param))
         return json.dumps(r)
 
-    def tdcLUTMask(self, instance, mask):
+    def tdcLUTMask(self, instance, mask,feb):
         if (not "TDCSERVER" in self.appMap):
             return '{"answer":"NOTDCSERVER","status":"FAILED"}'
         if (len(self.appMap["TDCSERVER"]) <= instance):
@@ -194,6 +194,7 @@ class febRC(lydaqrc.lydaqControl):
         tdc = self.appMap["TDCSERVER"][instance]
         param = {}
         param["value"] = mask
+        param["feb"] = feb
         r = {}
         r["test_mask"] = json.loads(tdc.sendCommand("TESTMASK", param))
         r["cal_status"] = json.loads(tdc.sendCommand("CALIBSTATUS", param))
