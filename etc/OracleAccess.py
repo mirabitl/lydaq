@@ -1313,7 +1313,7 @@ class OracleAccess:
         a["slc"]={}
         a["slc"]["DIF_ID"]=d.getInt('DIF_ID')
         a["slc"]["HEADER"]=d.getInt('HEADER')
-        a["slc"]["ENABLEB"]=d.getInt('ENABLED')
+        a["slc"]["ENABLED"]=d.getInt('ENABLED')
         a["slc"]["QSCSROUTSC"]=d.getInt('QSCSROUTSC')
         a["slc"]["ENOCDOUT1B"]=d.getInt('ENOCDOUT1B')
         a["slc"]["ENOCDOUT2B"]=d.getInt('ENOCDOUT2B')
@@ -1412,9 +1412,9 @@ class OracleAccess:
         a["slc"]["PWRONFSB1"]=d.getInt('PWRONFSB1')
         a["slc"]["PWRONFSB2"]=d.getInt('PWRONFSB2')
         dv=d.getIntVector('PAGAIN')
-        
+        a["slc"]["PAGAIN"]=[]
         for x in range(64):
-            a["slc"]["PAGAIN"]=dv[x]
+            a["slc"]["PAGAIN"].append(dv[x])
         return a
 	
     def getAsicList(self):
