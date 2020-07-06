@@ -200,7 +200,7 @@ void lydaq::WiznetManager::c_setDelay(Mongoose::Request &request, Mongoose::Json
 {
   response["STATUS"] = "DONE";
 
-  uint8_t delay = atol(request.get("value", "255").c_str());
+  uint32_t delay = atol(request.get("value", "255").c_str());
   _delay = delay;
   this->setDelay();
   LOG4CXX_INFO(_logFeb, "SetDelay called with " << delay << " " << _delay);
@@ -227,7 +227,7 @@ void lydaq::WiznetManager::c_setDuration(Mongoose::Request &request, Mongoose::J
 {
   response["STATUS"] = "DONE";
 
-  uint8_t duration = atol(request.get("value", "255").c_str());
+  uint32_t duration = atol(request.get("value", "255").c_str());
   _duration = duration;
   this->setDuration();
   LOG4CXX_INFO(_logFeb, "Setduration called with " << duration << " " << _duration);
@@ -650,7 +650,7 @@ void lydaq::WiznetManager::setSingleVthTime(uint32_t vth, uint32_t feb, uint32_t
 
 void lydaq::WiznetManager::setDelay()
 {
-  LOG4CXX_INFO(_logFeb, "Setting dead time " << _delay);
+  LOG4CXX_INFO(_logFeb, "Setting active time " << (int) _delay);
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x222, _delay);
@@ -658,7 +658,7 @@ void lydaq::WiznetManager::setDelay()
 }
 void lydaq::WiznetManager::setDuration()
 {
-  LOG4CXX_INFO(_logFeb, " Setting  Active duration " << _duration);
+  LOG4CXX_INFO(_logFeb, " Setting Dead time duration " << (int) _duration);
   for (auto x : _wiznet->controlSockets())
   {
     this->writeAddress(x.second->hostTo(), x.second->portTo(), 0x223, _duration);
