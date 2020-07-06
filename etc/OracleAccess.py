@@ -1300,3 +1300,124 @@ class OracleAccess:
 
 
 
+    def getHR2Asic(self,d):
+        """
+        HardRoc 2  initialisation
+        """
+	#print "***** init HR2"
+        a={}
+        a["dif"]=d.getInt("DIF_ID")
+        a["num"]=d.getInt("HEADER")
+        a["address"]="0.0.0.%d" % a["dif"]
+        a["_id"]=None
+        a["slc"]={}
+        a["slc"]["DIF_ID"]=d.getInt('DIF_ID')
+        a["slc"]["HEADER"]=d.getInt('HEADER')
+        a["slc"]["ENABLEB"]=d.getInt('ENABLED')
+        a["slc"]["QSCSROUTSC"]=d.getInt('QSCSROUTSC')
+        a["slc"]["ENOCDOUT1B"]=d.getInt('ENOCDOUT1B')
+        a["slc"]["ENOCDOUT2B"]=d.getInt('ENOCDOUT2B')
+        a["slc"]["ENOCTRANSMITON1B"]=d.getInt('ENOCTRANSMITON1B')
+        a["slc"]["ENOCTRANSMITON2B"]=d.getInt('ENOCTRANSMITON2B')
+        a["slc"]["ENOCCHIPSATB"]=d.getInt('ENOCCHIPSATB')
+        a["slc"]["SELENDREADOUT"]=d.getInt('SELENDREADOUT')
+        a["slc"]["SELSTARTREADOUT"]=d.getInt('SELSTARTREADOUT')
+        a["slc"]["CLKMUX"]=d.getInt('CLKMUX')
+        a["slc"]["SCON"]=d.getInt('SCON')
+        a["slc"]["RAZCHNEXTVAL"]=d.getInt('RAZCHNEXTVAL')
+        a["slc"]["RAZCHNINTVAL"]=d.getInt('RAZCHNINTVAL')
+        a["slc"]["TRIGEXTVAL"]=d.getInt('TRIGEXTVAL')
+        a["slc"]["DISCROROR"]=d.getInt('DISCROROR')
+        a["slc"]["ENTRIGOUT"]=d.getInt('ENTRIGOUT')
+        a["slc"]["TRIG0B"]=d.getInt('TRIG0B')
+        a["slc"]["TRIG1B"]=d.getInt('TRIG1B')
+        a["slc"]["TRIG2B"]=d.getInt('TRIG2B')
+        a["slc"]["OTABGSW"]=d.getInt('OTABGSW')
+        a["slc"]["DACSW"]=d.getInt('DACSW')
+        a["slc"]["SMALLDAC"]=d.getInt('SMALLDAC')
+        a["slc"]["B2"]=d.getInt('B2')
+        a["slc"]["B1"]=d.getInt('B1')
+        a["slc"]["B0"]=d.getInt('B0')
+        m0=d.getString('MASK2');
+        im0=int(m0,16)
+        m1=d.getString('MASK1');
+        im1=int(m1,16)
+        m2=d.getString('MASK0');
+        im2=int(m2,16)
+        sct=d.getString('CTEST');
+        ict=0
+
+        a["slc"]["MASK0"]=[]
+        a["slc"]["MASK1"]=[]
+        a["slc"]["MASK2"]=[]
+        a["slc"]["CTEST"]=[]
+        for ipad in range(64):
+            a["slc"]["MASK0"].append((im0>>ipad)&1)
+            a["slc"]["MASK1"].append((im1>>ipad)&1)
+            a["slc"]["MASK2"].append((im2>>ipad)&1)
+            a["slc"]["CTEST"].append((ict>>ipad)&1)
+        a["slc"]["RS_OR_DISCRI"]=d.getInt('RS_OR_DISCRI')
+        a["slc"]["DISCRI1"]=d.getInt('DISCRI1')
+        a["slc"]["DISCRI2"]=d.getInt('DISCRI2')
+        a["slc"]["DISCRI0"]=d.getInt('DISCRI0')
+        a["slc"]["OTAQ_PWRADC"]=d.getInt('OTAQ_PWRADC')
+        a["slc"]["EN_OTAQ"]=d.getInt('EN_OTAQ')
+        a["slc"]["SW50F0"]=d.getInt('SW50F0')
+        a["slc"]["SW100F0"]=d.getInt('SW100F0')
+        a["slc"]["SW100K0"]=d.getInt('SW100K0')
+        a["slc"]["SW50K0"]=d.getInt('SW50K0')
+        a["slc"]["PWRONFSB1"]=d.getInt('PWRONFSB1')
+        a["slc"]["PWRONFSB2"]=d.getInt('PWRONFSB2')
+        a["slc"]["PWRONFSB0"]=d.getInt('PWRONFSB0')
+        a["slc"]["SEL1"]=d.getInt('SEL1')
+        a["slc"]["SEL0"]=d.getInt('SEL0')
+        a["slc"]["SW50F1"]=d.getInt('SW50F1')
+        a["slc"]["SW100F1"]=d.getInt('SW100F1')
+        a["slc"]["SW100K1"]=d.getInt('SW100K1')
+        a["slc"]["SW50K1"]=d.getInt('SW50K1')
+        a["slc"]["CMDB0FSB1"]=d.getInt('CMDB0FSB1')
+        a["slc"]["CMDB1FSB1"]=d.getInt('CMDB1FSB1')
+        a["slc"]["CMDB2FSB1"]=d.getInt('CMDB2FSB1')
+        a["slc"]["CMDB3FSB1"]=d.getInt('CMDB3FSB1')
+        a["slc"]["SW50F2"]=d.getInt('SW50F2')
+        a["slc"]["SW100F2"]=d.getInt('SW100F2')
+        a["slc"]["SW100K2"]=d.getInt('SW100K2')
+        a["slc"]["SW50K2"]=d.getInt('SW50K2')
+        a["slc"]["CMDB0FSB2"]=d.getInt('CMDB0FSB2')
+        a["slc"]["CMDB1FSB2"]=d.getInt('CMDB1FSB2')
+        a["slc"]["CMDB2FSB2"]=d.getInt('CMDB2FSB2')
+        a["slc"]["CMDB3FSB2"]=d.getInt('CMDB3FSB2')
+        a["slc"]["PWRONW"]=d.getInt('PWRONW')
+        a["slc"]["PWRONSS"]=d.getInt('PWRONSS')
+        a["slc"]["PWRONBUFF"]=d.getInt('PWRONBUFF')
+        a["slc"]["SWSSC"]=d.getInt('SWSSC')
+        a["slc"]["CMDB0SS"]=d.getInt('CMDB0SS')
+        a["slc"]["CMDB1SS"]=d.getInt('CMDB1SS')
+        a["slc"]["CMDB2SS"]=d.getInt('CMDB2SS')
+        a["slc"]["CMDB3SS"]=d.getInt('CMDB3SS')
+        a["slc"]["PWRONPA"]=d.getInt('PWRONPA')
+        a["slc"]["CLKMUX"]=d.getInt('CLKMUX')
+        a["slc"]["SCON"]=d.getInt('SCON')
+        a["slc"]["OTAQ_PWRADC"]=d.getInt('OTAQ_PWRADC')
+        a["slc"]["PWRONW"]=d.getInt('PWRONW')
+        a["slc"]["PWRONSS"]=d.getInt('PWRONSS')
+        a["slc"]["PWRONBUFF"]=d.getInt('PWRONBUFF')
+        a["slc"]["PWRONPA"]=d.getInt('PWRONPA')
+        a["slc"]["DISCRI0"]=d.getInt('DISCRI0')
+        a["slc"]["DISCRI1"]=d.getInt('DISCRI1')
+        a["slc"]["DISCRI2"]=d.getInt('DISCRI2')
+        a["slc"]["OTABGSW"]=d.getInt('OTABGSW')
+        a["slc"]["DACSW"]=d.getInt('DACSW')
+        a["slc"]["PWRONFSB0"]=d.getInt('PWRONFSB0')
+        a["slc"]["PWRONFSB1"]=d.getInt('PWRONFSB1')
+        a["slc"]["PWRONFSB2"]=d.getInt('PWRONFSB2')
+        dv=d.getIntVector('PAGAIN')
+        
+        for x in range(64):
+            a["slc"]["PAGAIN"]=dv[x]
+        return a
+	
+    def getAsicList(self):
+        self.asiclist=[]
+        for x in self.asics:
+            self.asiclist.append(self.getHR2Asic(x))
