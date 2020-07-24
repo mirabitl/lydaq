@@ -10,10 +10,22 @@ from six.moves import range
 
 class febRC(lydaqrc.lydaqControl):
 
+    # Xcheck
+    def check(self):
+        if ( not "MDCCSERVER" in self.appMap.keys()):
+            print("FATAL No MDCCSERVER ")
+            return False
+        if ( not "BUILDER" in self.appMap.keys()):
+            print("FATAL No BUILDER ")
+            return False
+        return True
     # daq
     def daq_initialise(self, reset=0):
+        if (not self.check()):
+            return '{"answer":"MISSING_APPLICATION","status":"FAILED"}'
         m = {}
         r = {}
+
         s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
         r["MDCCSERVER"] = s
 
@@ -32,6 +44,8 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def daq_configure(self):
+        if (not self.check()):
+            return '{"answer":"MISSING_APPLICATION","status":"FAILED"}'
         m = {}
         r = {}
         for x in self.appMap["TDCSERVER"]:
@@ -40,6 +54,8 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def daq_stop(self):
+        if (not self.check()):
+            return '{"answer":"MISSING_APPLICATION","status":"FAILED"}'
         m = {}
         r = {}
         s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
@@ -56,6 +72,8 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def daq_destroy(self):
+        if (not self.check()):
+            return '{"answer":"MISSING_APPLICATION","status":"FAILED"}'
         m = {}
         r = {}
         for x in self.appMap["TDCSERVER"]:
@@ -65,7 +83,8 @@ class febRC(lydaqrc.lydaqControl):
         return json.dumps(r)
 
     def daq_start(self, run, location="UNKNOWN", comment="Not set"):
-
+        if (not self.check()):
+            return '{"answer":"MISSING_APPLICATION","status":"FAILED"}'
         if (location == "UNKNOWN"):
             location = os.getenv("DAQSETUP", "UNKNOWN")
         nrun = run

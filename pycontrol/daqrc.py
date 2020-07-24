@@ -43,17 +43,23 @@ class daqControl:
                 if (m['answer']['JOBS'] != None):
                     for  pcs in m['answer']['JOBS']:
                         if (pcs['STATUS'].split(' ')[0] == 'X'):
-                            print(pcs)
+                            #print(pcs)
+                            print("\t \t FATAL Host %s Port %d PID %d is DEAD" % (pcs['HOST'], int(pcs['PORT']),pcs['PID'] ))
+
                             continue
           
                         bapp = rcbase.FSMAccess(pcs['HOST'], int(pcs['PORT']))
                         bapp.getInfo();
-                        if (not bapp.infos['name'] in self.appMap):
-                            l=[]
-                            l.append(bapp)
-                            self.appMap[bapp.infos['name']]=l
-                        else:
-                            self.appMap[bapp.infos['name']].append(bapp) 
+                        #print(bapp.state)
+                        if (bapp.state == "DEAD"):
+                            print("Host %s Port %d Name %s is DEAD" % (pcs['HOST'], int(pcs['PORT']),bapp.infos['name'] ))
+                        else:   
+                            if (not bapp.infos['name'] in self.appMap):
+                                l=[]
+                                l.append(bapp)
+                                self.appMap[bapp.infos['name']]=l
+                            else:
+                                self.appMap[bapp.infos['name']].append(bapp) 
     
     def updateInfo(self,printout,vverbose):
         if (printout):

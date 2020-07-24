@@ -149,6 +149,8 @@ class FSMAccess:
 
     def getInfo(self):
         self.getProcInfo()
+        if (self.state == "DEAD"):
+           return
         if (self.pid < 0):
             return
         if (self.isBaseApplication(self.procInfos)):
