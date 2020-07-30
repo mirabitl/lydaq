@@ -54,22 +54,27 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         
     def action_pbJCKILL(self):
         srep=self.ctrl.jc_kill()
+        self.laCMD.setText("KILL done")
         self.action_pbJCINFO()
 
     def action_pbJCSTART(self):
         srep=self.ctrl.jc_start()
+        self.laCMD.setText("START done")
         self.action_pbJCINFO()
         
     def action_pbJCAPPCREATE(self):
         srep=self.ctrl.jc_appcreate()
+        self.laCMD.setText("APPCREATE done")
         self.action_pbJCINFO()
         
     def action_pbJCCREATE(self):
         srep=self.ctrl.jc_initialise()
+        self.laCMD.setText("CREATE done")
         self.action_pbJCINFO()
 
     def action_pbJCDESTROY(self):
         srep=self.ctrl.jc_destroy()
+        self.laCMD.setText("DESTROY done")
         self.action_pbJCINFO()
 
     def action_pbJOBLOGS(self):
@@ -77,7 +82,8 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         srep=self.ctrl.getAllInfos()
         jsrep=json.loads(srep)
         lay=QVBoxLayout()
-
+        bhsize=0
+        bvsize=0
         for x in jsrep:
             xi=x["infos"]
             xpr=x["process"]
@@ -85,10 +91,15 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
                 continue;
             sbname="%s %d PID %d" % (xi["name"],xi["instance"],int(xpr["PID"]))
             sb=QPushButton(sbname)
+            sb.setMinimumSize(100,50)
+            bvsize=bvsize+50
             sb.clicked.connect(lambda z,x=xi["host"],y=xpr["PID"]: self.showLog(x,y))
             lay.addWidget(sb)
         lay.addStretch(1)
         swlog.gbPROC.setLayout(lay)
+        
+        swlog.gbPROC.resize(100,bvsize);
+        #swlog.resize();
         swlog.show()
         
     def showLog(self,host,pid):
@@ -102,6 +113,7 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         tb.tbTEXT.setText(jrep["answer"]["LINES"])
         tb.show()
     def action_pbJCINFO(self):
+       
         srep=self.ctrl.getAllInfos()
 
         jsrep=json.loads(srep)

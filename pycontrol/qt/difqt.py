@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import MongoJob as mg
-import difrc
+import combrc
 import sys
 import os
 import json
@@ -112,7 +112,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             tb.show()
             
     def action_pbCREATEACCESS(self):
-        self.fdc = difrc.difRC(self.account, self.config)
+        self.fdc = combrc.combRC(self.account, self.config)
         self.fdc.Connect()
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)

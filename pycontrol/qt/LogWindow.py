@@ -12,6 +12,11 @@ class Ui_LogWindow(object):
     def setupUi(self, LogWindow):
         LogWindow.setObjectName("LogWindow")
         LogWindow.resize(800, 600)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(LogWindow.sizePolicy().hasHeightForWidth())
+        LogWindow.setSizePolicy(sizePolicy)
         self.centralwidget = QtWidgets.QWidget(LogWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
