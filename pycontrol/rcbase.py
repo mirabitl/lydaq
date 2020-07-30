@@ -208,7 +208,10 @@ class FSMAccess:
 
         #rep = self.executeRequest(luri)
         #return rep
-        return self.executeCMD(self.host,self.port,self.prefix,name,content)
+        rep=self.executeCMD(self.host,self.port,self.prefix,name,content)
+        if (type(rep) is bytes):
+            rep=rep.decode("utf-8")
+        return rep
     def sendTransition(self, name, content):
         self.getProcInfo()
         #print "Send Transition",self.procInfos
@@ -225,7 +228,10 @@ class FSMAccess:
         #    self.fUrl, name, json.dumps(content))
         #rep = self.executeRequest(luri)
         #return rep
-        return self.executeFSM(self.host,self.port,self.prefix,name,content)
+        rep=self.executeFSM(self.host,self.port,self.prefix,name,content)
+        if (type(rep) is bytes):
+            rep=rep.decode("utf-8")
+        return rep
 
     def printInfos(self, vverb):
         if (vverb):

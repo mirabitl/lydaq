@@ -93,6 +93,8 @@ class daqControl:
 
     def getAllInfos(self):
         summary=[]
+        if (len(self.appMap)==0):
+            self.discover()
         for k,v in self.appMap.items():
             for x in v:
                 x.getInfo()
@@ -103,7 +105,10 @@ class daqControl:
         if (not appname in self.appMap):
             return '{"answer":"invalidname","status":"FAILED"}'
         for x in self.appMap[appname]:
-            s=json.loads(x.sendCommand(cmd,param))
+            rep=x.sendCommand(cmd,param)
+            if (type(rep) is bytes):
+                rep=rep.decode("utf-8")
+            s=json.loads(rep)
             r["%s_%d" % (appname,x.appInstance)]=s
         return json.dumps(r)
   
@@ -145,7 +150,9 @@ class daqControl:
     def jc_kill(self):
         return self.jc_transition("KILL",{})
     def jc_destroy(self):
-        return self.jc_transition("DESTROY",{})
+        srep=self.jc_transition("DESTROY",{})
+        self.appMap={}
+        return srep
     def jc_status(self):
         return self.jc_command("STATUS",{})
     def jc_appcreate(self):

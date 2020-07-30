@@ -74,6 +74,8 @@ class MdccWindowImpl(QtWidgets.QMainWindow, Ui_MdccWindow):
 
     def action_mdcc_status(self):
         srep=self.ctrl.mdcc_Status()
+        if (type(srep) is bytes):
+            srep=srep.decode("utf-8")
         s="<h1>Status</h1>"
         s=s+"<P> <b>Parameters:</b>"
         s=s+json2html.json2html.convert(json=srep)
