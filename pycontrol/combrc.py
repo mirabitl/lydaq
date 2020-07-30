@@ -14,8 +14,9 @@ class combRC(lydaqrc.lydaqControl):
     def daq_initialise(self, reset=0):
         m = {}
         r = {}
-        s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
-        r["MDCCSERVER"] = s
+        if ("MDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
+            r["MDCCSERVER"] = s
 
         for x in self.appMap["BUILDER"]:
             s = json.loads(x.sendTransition("CONFIGURE", m))
@@ -25,21 +26,24 @@ class combRC(lydaqrc.lydaqControl):
             self.mdcc_resetTdc()
             time.sleep(reset/1000.)
 
-        for x in self.appMap["TDCSERVER"]:
-            s = json.loads(x.sendTransition("INITIALISE", m))
-            r["TDCSERVER_%d" % x.appInstance] = s
+        if ("TDCSERVER" in self.appMap.keys()):
+            for x in self.appMap["TDCSERVER"]:
+                s = json.loads(x.sendTransition("INITIALISE", m))
+                r["TDCSERVER_%d" % x.appInstance] = s
+        
+        if ("PMRMANAGER" in self.appMap.keys()):
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("SCAN", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
 
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("SCAN", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("INITIALISE", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
 
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("INITIALISE", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
-            
-        for x in self.appMap["GRICSERVER"]:
-            s = json.loads(x.sendTransition("INITIALISE", m))
-            r["GRICSERVER_%d" % x.appInstance] = s
+        if ("GRICSERVER" in self.appMap.keys()):
+            for x in self.appMap["GRICSERVER"]:
+                s = json.loads(x.sendTransition("INITIALISE", m))
+                r["GRICSERVER_%d" % x.appInstance] = s
 
         return json.dumps(r)
 

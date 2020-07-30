@@ -17,6 +17,7 @@ from MainWindow import Ui_MainWindow
 
 from jobdialogimpl import JobDialogImpl
 from tbdialogimpl import TbDialogImpl
+from daqwindowimpl import DaqWindowImpl
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, *args, obj=None, **kwargs):
@@ -69,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # window
         self.window_jobcontrol = JobDialogImpl(self)
+        self.window_daq = DaqWindowImpl(self)
         self.make_connections()
 
         #
@@ -76,6 +78,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
     def make_connections(self):
          self.pbJOBCONTROL.clicked.connect(self.action_pbJOBCONTROL)
+         self.pbDAQ.clicked.connect(self.action_pbDAQ)
          self.lwMONGO.doubleClicked.connect(self.action_lwMONGO)
          self.pbCREATEACCESS.clicked.connect(self.action_pbCREATEACCESS)
          self.pbSHOWCONFIG.clicked.connect(self.action_pbSHOWCONFIG)
@@ -85,6 +88,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if (self.window_jobcontrol.setController(self.fdc)):
             self.window_jobcontrol.action_pbJCINFO()
             self.window_jobcontrol.show()
+        else:
+           msg = QMessageBox()
+           msg.setIcon(QMessageBox.Warning)
+           msg.setText("The DAQ access should be created first")
+           msg.setWindowTitle("Error")
+           msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+           retval = msg.exec_() 
+
+    def action_pbDAQ(self):
+        if (self.window_daq.setController(self.fdc)):
+            self.window_daq.show()
         else:
            msg = QMessageBox()
            msg.setIcon(QMessageBox.Warning)
