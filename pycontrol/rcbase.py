@@ -141,9 +141,14 @@ class FSMAccess:
     def getProcInfo(self):
 
         sr = self.executeRequest(self.url)
+        print("Avant ",sr,type(sr))
+        if (type(sr) is bytes):
+            sr=sr.decode("utf-8")
+        print(sr)
         self.procInfos = json.loads(sr)
-        self.pid = self.procInfos['PID']
-        self.prefix = self.procInfos['PREFIX']
+        if (self.procInfos['STATE'] !="DEAD"): 
+            self.pid = self.procInfos['PID']
+            self.prefix = self.procInfos['PREFIX']
         self.fUrl = "http://%s:%d/%s" % (self.host, self.port, self.prefix)
         self.state = self.procInfos['STATE']
 
@@ -155,16 +160,27 @@ class FSMAccess:
             return
         if (self.isBaseApplication(self.procInfos)):
             sinf = self.sendCommand('INFO', {})
+            if (type(sinf) is bytes):
+                sinf=sinf.decode("utf-8")
+
             self.infos = json.loads(sinf)['answer']['INFO']
             self.appType = self.infos['name']
             self.appInstance = self.infos['instance']
             spar = self.sendCommand('GETPARAM', {})
+            if (type(spar) is bytes):
+                spar=spar.decode("utf-8")
+
             jpar=json.loads(spar)
             if ('PARAMETER' in jpar['answer']):
                 self.params = json.loads(spar)['answer']['PARAMETER']
             else:
                 self.params={}
-
+    def allInfos(self):
+        jdict={}
+        jdict['infos']=self.infos
+        jdict['params']=self.params
+        jdict['process']=self.procInfos
+        return jdict
     def isBaseApplication(self, m):
         base = False
         for key, value in m.items():

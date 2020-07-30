@@ -18,10 +18,22 @@ class daqControl:
         with open(daq_file) as data_file:    
             self._mgConfig = json.load(data_file)
             
+    def getLog(self,host,pid):
+         for x in self.jobcontrols:
+             if ( x.host!=host):
+                 continue
+             par={}
+             par["pid"]=pid
+             par["lines"]=500
+             s=x.sendCommand("JOBLOG",par)
+             if (type(s) is bytes):
+                 s=s.decode("utf-8")
+             return s
     def discover(self):
         if (not "HOSTS" in self._mgConfig):
             return
         self.appMap={}
+        self.jobcontrols=[]
         mh = self._mgConfig['HOSTS'];
         for  key,value in mh.items():
             #print "Host found %s" % key
@@ -35,6 +47,9 @@ class daqControl:
                 exit(0)
       
             s = x.sendCommand("STATUS",{})
+            if (type(s) is bytes):
+                s=s.decode("utf-8")
+
             m = json.loads(s)
             #print s
             if (not 'JOBS' in m['answer']):
@@ -75,7 +90,14 @@ class daqControl:
                 x.getInfo()
                 if (printout):
                     x.printInfos(vverbose)
-                    
+
+    def getAllInfos(self):
+        summary=[]
+        for k,v in self.appMap.items():
+            for x in v:
+                x.getInfo()
+                summary.append(x.allInfos())
+        return json.dumps(summary,sort_keys=True)
     def processCommand(self,cmd,appname,param):
         r={}
         if (not appname in self.appMap):
@@ -94,6 +116,8 @@ class daqControl:
         for x in self.jobcontrols:
             print("Calling",Transition,par)
             ans=x.sendTransition(Transition,par)
+            if (type(ans) is bytes):
+                ans=ans.decode("utf-8")
             rep["%s" % x.host] = json.loads(ans)
         return json.dumps(rep)
     
@@ -104,6 +128,9 @@ class daqControl:
             exit(0)
         for x in self.jobcontrols:
             ans=x.sendCommand(Command,par)
+            if (type(ans) is bytes):
+                ans=ans.decode("utf-8")
+
             rep["%s" % x.host] = json.loads(ans)
         return json.dumps(rep)
 

@@ -19,10 +19,10 @@ class difRC(lydaqrc.lydaqControl):
         if "GPIOSERVER" in self.appMap.keys():
             s = json.loads(self.appMap['GPIOSERVER'][0].sendTransition("CONFIGURE", m))
             r["GPIOSERVER"] = s
-             json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
-             json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEOFF", {}))
-             json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
-             time.sleep(5)
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEOFF", {}))
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
+            time.sleep(5)
         
         s = json.loads(self.appMap['CCCSERVER'][0].sendTransition("OPEN", m))
         s = json.loads(self.appMap['CCCSERVER'][0].sendTransition("INITIALISE", m))
