@@ -1,0 +1,12 @@
+sudo apt install -y python3-pyqt5
+sudo apt install -y python3-pymongo
+sudo apt install -y python3-socks
+
+pyuic5 daqwindow.ui -o DaqWindow.py
+pyuic5 febwindow.ui -o Febindow.py
+pyuic5 genesyswindow.ui -o GenesysWindow.py
+pyuic5 jobdialog.ui -o JobDialog.py
+pyuic5 logwindow.ui -o LogWindow.py
+pyuic5 mainwindow.ui -o MainWindow.py
+pyuic5 mdccwindow.ui -o MdccWindow.py
+pyuic5 tbdialog.ui -o TbWindow.py
