@@ -134,12 +134,17 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   s<<"ADR "<<address<<"\r";
 
   this->readCommand(s.str());
+
+  // Double first command on linux
+  this->readCommand(s.str());
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" Value read "<<_value);
   // wr=write(fd1,s.str().c_str(),s.str().length());usleep(50000);
   // printf("%d Bytes sent are %d \n",portstatus,wr);
   
   s.str(std::string());
   s<<"RMT 1\r";
   this->readCommand(s.str());
+  LOG4CXX_INFO(_logGenesys,__PRETTY_FUNCTION__<<" Value read "<<_value);
   // wr=write(fd1,s.str().c_str(),s.str().length());usleep(50000);
   // printf("%d Bytes sent are %d \n",portstatus,wr);
 

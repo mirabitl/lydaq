@@ -1,5 +1,8 @@
 
 #include "LGenesysServer.hh"
+
+#include <iostream>
+#include <sstream>
 using namespace zdaq;
 using namespace lydaq;
 
@@ -113,6 +116,28 @@ void lydaq::LGenesysServer::c_off(Mongoose::Request &request, Mongoose::JsonResp
 }
 
 
+void lydaq::LGenesysServer::c_setdevice(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+ 
+  uint32_t device = atol(request.get("device", "999").c_str());
+  LOG4CXX_INFO(_logLdaq, " Genesys device set to" << device);
+  uint32_t address = atol(request.get("address", "999").c_str());
+  LOG4CXX_INFO(_logLdaq, " Genesys address set to" << address);
+
+  if (device==999 || address==999)
+    {
+    LOG4CXX_ERROR(_logLdaq,"Genesys Invalid device or address");
+    response["STATUS"]=Json::Value::null;
+    return;
+    }
+  std::stringstream sdev("");
+  sdev<<"/dev/ttyUSB"<<device;
+  this->parameters()["device"]=sdev.str();
+  this->parameters()["port"]=address;
+  
+  response["STATUS"]=this->status();
+}
+
 
 lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::monitorApplication(name),_lv(NULL)
 {
@@ -126,7 +151,8 @@ lydaq::LGenesysServer::LGenesysServer(std::string name) : zdaq::monitorApplicati
   
   
  _fsm->addCommand("STATUS",boost::bind(&lydaq::LGenesysServer::c_status,this,_1,_2));
- _fsm->addCommand("ON",boost::bind(&lydaq::LGenesysServer::c_on,this,_1,_2));
+ _fsm->addCommand("DEVICE",boost::bind(&lydaq::LGenesysServer::c_setdevice,this,_1,_2));
+  _fsm->addCommand("ON",boost::bind(&lydaq::LGenesysServer::c_on,this,_1,_2));
  _fsm->addCommand("OFF",boost::bind(&lydaq::LGenesysServer::c_off,this,_1,_2));
  
 

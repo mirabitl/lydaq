@@ -34,6 +34,7 @@ namespace lydaq
     void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_on(Mongoose::Request &request, Mongoose::JsonResponse &response);
     void c_off(Mongoose::Request &request, Mongoose::JsonResponse &response);
+    void c_setdevice(Mongoose::Request &request, Mongoose::JsonResponse &response);
   private:
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;
