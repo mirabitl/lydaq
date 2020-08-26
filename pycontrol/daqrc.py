@@ -4,19 +4,74 @@ import rcbase
 import MongoJob as mg
 import json
 import time
-
+import os
+from transitions import Machine,State
 class daqControl:
     def __init__(self,account,config):
         self.account=account
         self.config=config
         self.jobcontrols=[]
         self.appMap={}
+        # DB access
         self.db=mg.instance()
+        #Job control
+        self.jc=Machine(model='self',states=['VOID','INITIALISED','RUNNING','CONFIGURED'],initial='VOID')
+        self.jc.add_transition('initialise','VOID','INITIALISED',after=self.jc_initialising)
+        self.jc.add_transition('start','INITIALISED','RUNNING',after=self.jc_starting)
+        self.jc.add_transition('kill',['RUNNING','CONFIGURED'],'INITIALISED',after=self.jc_killing)
+        self.jc.add_transition('configure','RUNNING','CONFIGURED',after=self.jc_appcreate)
+        self.jc.add_transition('destroy','INITIALISED','VOID',after=self.jc_destroy)
+        self.job_answer=None
+        #DAQ PART
+        self.daq_answer=None
+        self.daqfsm=Machine(model=self,states=['VOID','INITIALISED','CONFIGURED','RUNNING','CONFIGURED'],initial='VOID')
+        self.daqfsm.add_transition('initialise','VOID','INITIALISED',after='daq_initialising',conditions='isConfigured')
+        self.daqfsm.add_transition('configure','INITIALISED','CONFIGURED',after='daq_configuring',conditions='isConfigured')
+        self.daqfsm.add_transition('start','CONFIGURED','RUNNING',after='daq_starting',conditions='isConfigured')
+        self.daqfsm.add_transition('stop','RUNNING','CONFIGURED',after='daq_stopping',conditions='isConfigured')
+        self.daqfsm.add_transition('destroy','CONFIGURED','VOID',after='daq_destroying',conditions='isConfigured')
+
+        self.stored_state=self.getStoredState()
+
+    def getStoredState(self):
+        self.config_name=self.config.split(":")[0]
+        self.config_version=int(self.config.split(":")[1])
+        self.daq_setup=os.getenv('DAQSETUP')
+        if (self.daq_setup==None):
+            self.jc.to_VOID()
+            self.to_VOID()
+            return None
+        rep=self.db.fsmInfo(self.config_name,self.config_version,self.daq_setup)
+        if (rep==None):
+            self.jc.to_VOID()
+            self.to_VOID()
+            return None
+        else:
+            if (rep['job']!="NOTSET"):
+                self.jc.state=rep['job']
+            else:
+                self.jc.to_VOID()
+            if (rep['daq']!="NOTSET"):
+                self.state=rep['daq']
+            else:
+                self.to_VOID()   
+            return rep
+        return None
+
+    def storeState(self):
+        self.db.setFsmInfo(self.config_name,self.config_version,self.daq_setup,job=self.jc.state,daq=self.state)
+        self.stored_state=self.getStoredJobState()
+        return
+
+    def isConfigured(self):
+        return (self.jc.state=="CONFIGURED" )
+    
     def parseMongo(self):
         self.db.downloadConfig(self.config.split(":")[0],int(self.config.split(":")[1]),True)
         daq_file="/dev/shm/mgjob/"+self.config.split(":")[0]+"_"+self.config.split(":")[1]+".json"
         with open(daq_file) as data_file:    
             self._mgConfig = json.load(data_file)
+
             
     def getLog(self,host,pid):
          for x in self.jobcontrols:
@@ -139,22 +194,26 @@ class daqControl:
             rep["%s" % x.host] = json.loads(ans)
         return json.dumps(rep)
 
+    def jc_status(self):
+        return self.jc_command("STATUS",{})
+
     # Transition
-    def jc_initialise(self):
+    def jc_initialising(self):
         par={}
         par['mongo']=self.config
         print("Initialising",par)
-        return self.jc_transition("INITIALISE",par)
-    def jc_start(self):
-        return self.jc_transition("START",{})
-    def jc_kill(self):
-        return self.jc_transition("KILL",{})
-    def jc_destroy(self):
-        srep=self.jc_transition("DESTROY",{})
+        self.job_answer= self.jc_transition("INITIALISE",par)
+        self.storeState()
+    def jc_starting(self):
+        self.job_answer= self.jc_transition("START",{})
+        self.storeState()
+    def jc_killing(self):
+        self.job_answer= self.jc_transition("KILL",{})
+        self.storeState()
+    def jc_destroying(self):
+        self.job_answer==self.jc_transition("DESTROY",{})
         self.appMap={}
-        return srep
-    def jc_status(self):
-        return self.jc_command("STATUS",{})
+        self.storeState()
     def jc_appcreate(self):
-        return self.jc_command("APPCREATE",{})
-    
+        self.job_answer= self.jc_command("APPCREATE",{})    
+        self.storeState()

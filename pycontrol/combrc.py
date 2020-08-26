@@ -9,22 +9,43 @@ from six.moves import range
 
 
 class combRC(lydaqrc.lydaqControl):
-
+    def __init__(self,account,config):
+        super().__init__(account,config)
+        self.reset=0
     # daq
-    def daq_initialise(self, reset=0):
+    # Initialising implementation
+    def daq_initialising(self):
         m = {}
         r = {}
+        # old DIF Fw
+        if ("GPIOSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['GPIOSERVER'][0].sendTransition("CONFIGURE", m))
+            r["GPIOSERVER"] = s
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEOFF", {}))
+            json.loads(self.appMap['GPIOSERVER'][0].sendCommand("VMEON", {}))
+            time.sleep(5)
+        if ("CCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['CCCSERVER'][0].sendTransition("OPEN", m))
+            s = json.loads(self.appMap['CCCSERVER'][0].sendTransition("INITIALISE", m))
+            s = json.loads(self.appMap['CCCSERVER'][0].sendTransition("CONFIGURE", m))
+            json.loads(self.appMap['CCCSERVER'][0].sendTransition("STOP", m))
+            time.sleep(1.);
+            json.loads(self.appMap['CCCSERVER'][0].sendCommand("CCCRESET", {}))
+            json.loads(self.appMap['CCCSERVER'][0].sendCommand("DIFRESET", {}))
+            r["CCCSERVER"] = s
+        # Mdcc 
         if ("MDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
             r["MDCCSERVER"] = s
-
+        # Builder
         for x in self.appMap["BUILDER"]:
             s = json.loads(x.sendTransition("CONFIGURE", m))
             r["BUILDER_%d" % x.appInstance] = s
-
-        if (reset != 0):
+        # Reset for FEB V1
+        if (self.reset != 0):
             self.mdcc_resetTdc()
-            time.sleep(reset/1000.)
+            time.sleep(self.reset/1000.)
 
         if ("TDCSERVER" in self.appMap.keys()):
             for x in self.appMap["TDCSERVER"]:
@@ -44,63 +65,103 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("INITIALISE", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+        # Old DIF Fw
+        if ("DIFMANAGER" in self.appMap.keys()):
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("SCAN", m))
+                r["DIFMANAGER_SCAN_%d" % x.appInstance] = s
 
-        return json.dumps(r)
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("INITIALISE", m))
+                r["DIFMANAGER_INIT_%d" % x.appInstance] = s
 
-    def daq_configure(self):
+        self.daq_answer=json.dumps(r)
+
+    def daq_configuring(self):
         m = {}
         r = {}
-        for x in self.appMap["TDCSERVER"]:
-            s = json.loads(x.sendTransition("CONFIGURE", m))
-            r["TDCSERVER_%d" % x.appInstance] = s
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("CONFIGURE", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
-        for x in self.appMap["GRICSERVER"]:
-            s = json.loads(x.sendTransition("CONFIGURE", m))
-            r["GRICSERVER_%d" % x.appInstance] = s
-
-        return json.dumps(r)
-
-    def daq_stop(self):
+        if ("TDCSERVER" in self.appMap.keys()):
+            for x in self.appMap["TDCSERVER"]:
+                s = json.loads(x.sendTransition("CONFIGURE", m))
+                r["TDCSERVER_%d" % x.appInstance] = s
+        if ("PMRMANAGER" in self.appMap.keys()):
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("CONFIGURE", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
+        if ("GRICSERVER" in self.appMap.keys()):
+            for x in self.appMap["GRICSERVER"]:
+                s = json.loads(x.sendTransition("CONFIGURE", m))
+                r["GRICSERVER_%d" % x.appInstance] = s
+        #Old DIF Firmware
+        if ("CCCSERVER" in self.appMap.keys()):
+            json.loads(self.appMap['CCCSERVER'][0].sendCommand("CCCRESET", {}))
+            s=json.loads(self.appMap['CCCSERVER'][0].sendCommand("DIFRESET", {}))
+            r["CCCSERVER"] = s
+        if ("DIFMANAGER" in self.appMap.keys()):
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("CONFIGURE", m))
+                r["DIFMANAGER_%d" % x.appInstance] = s
+        self.daq_answer= json.dumps(r)
+        
+    def daq_stopping(self):
         m = {}
         r = {}
-        s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
-        r["MDCCSERVER"] = s
+        if ("MDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
+            r["MDCCSERVER"] = s
 
-        for x in self.appMap["TDCSERVER"]:
-            s = json.loads(x.sendTransition("STOP", m))
-            r["TDCSERVER_%d" % x.appInstance] = s
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("STOP", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
-        for x in self.appMap["GRICSERVER"]:
-            s = json.loads(x.sendTransition("STOP", m))
-            r["GRICSERVER_%d" % x.appInstance] = s
+        if ("TDCSERVER" in self.appMap.keys()):
+            for x in self.appMap["TDCSERVER"]:
+                s = json.loads(x.sendTransition("STOP", m))
+                r["TDCSERVER_%d" % x.appInstance] = s
+                
+        if ("PMRMANAGER" in self.appMap.keys()):
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("STOP", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
 
+        if ("GRICSERVER" in self.appMap.keys()):
+            for x in self.appMap["GRICSERVER"]:
+                s = json.loads(x.sendTransition("STOP", m))
+                r["GRICSERVER_%d" % x.appInstance] = s
+        #Old DIF fw
+        if ("CCCSERVER" in self.appMap.keys()):
+            s=json.loads(self.appMap['CCCSERVER'][0].sendTransition("STOP", m))
+            r["CCCSERVER"] = s
+        if ("DIFMANAGER" in self.appMap.keys()):
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("STOP", m))
+                r["DIFMANAGER_%d" % x.appInstance] = s
+        
         for x in self.appMap["BUILDER"]:
             s = json.loads(x.sendTransition("STOP", m))
             r["BUILDER_%d" % x.appInstance] = s
 
-        return json.dumps(r)
+        self.daq_answer= json.dumps(r)
 
-    def daq_destroy(self):
+    def daq_destroying(self):
         m = {}
         r = {}
-        for x in self.appMap["TDCSERVER"]:
-            s = json.loads(x.sendTransition("DESTROY", m))
-            r["TDCSERVER_%d" % x.appInstance] = s
+        if ("TDCSERVER" in self.appMap.keys()):
+            for x in self.appMap["TDCSERVER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["TDCSERVER_%d" % x.appInstance] = s
+        if ("PMRMANAGER" in self.appMap.keys()):
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
+        if ("GRICSERVER" in self.appMap.keys()):
+            for x in self.appMap["GRICSERVER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["GRICSERVER_%d" % x.appInstance] = s
+        #old DIF Fw
+        if ("DIFMANAGER" in self.appMap.keys()):
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["DIFMANAGER_%d" % x.appInstance] = s
 
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("DESTROY", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
 
-        for x in self.appMap["GRICSERVER"]:
-            s = json.loads(x.sendTransition("DESTROY", m))
-            r["GRICSERVER_%d" % x.appInstance] = s
-
-
-        return json.dumps(r)
+        self.daq_answer=json.dumps(r)
 
     def daq_start(self, run, location="UNKNOWN", comment="Not set"):
 
