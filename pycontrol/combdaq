@@ -222,19 +222,19 @@ lcgi = {}
 r_cmd = None
 
 if(results.jc_create):
-    fdc.jc_initialise()
+    fdc.jc.initialise()
     exit(0)
 elif(results.jc_kill):
-    fdc.jc_kill()
+    fdc.jc.kill()
     exit(0)
 elif(results.jc_start):
-    fdc.jc_start()
+    fdc.jc.start()
     exit(0)
 elif(results.jc_destroy):
-    fdc.jc_destroy()
+    fdc.jc.destroy()
     exit(0)
 elif(results.jc_appcreate):
-    sr = fdc.jc_appcreate()
+    sr = fdc.jc.configure()
     print(sr)
     exit(0)
 elif(results.jc_status):
@@ -249,12 +249,13 @@ elif(results.jc_info):
 elif(results.daq_initialise):
     delay=0
     if (results.dead!=None):
-        fdc.daq_initialise(results.dead)
+        fdc.reset=results.dead
+        fdc.initialise()
     else:
-        fdc.daq_initialise()
+        fdc.initialise()
     exit(0)
 elif(results.daq_configure):
-    fdc.daq_configure()
+    fdc.configure()
     exit(0)
 elif(results.daq_status):
     fdc.BuilderStatus(True)
@@ -268,15 +269,16 @@ elif(results.daq_tdcstatus):
     exit(0)
 elif(results.daq_startrun):
     if (results.comment != None):
-        fdc.daq_start(0,comment=results.comment)
+        fdc.comment=results.comment
+        fdc.start()
     else:
-        fdc.daq_start(0)
+        fdc.start()
     exit(0)
 elif(results.daq_stoprun):
-    fdc.daq_stop()
+    fdc.stop()
     exit(0)
 elif(results.daq_destroy):
-    fdc.daq_destroy()
+    fdc.destroy()
     exit(0)
 
 elif(results.daq_evbstatus):
@@ -400,6 +402,16 @@ elif(results.feb_scurve):
 
     fdc.runScurve(0, chan, spillon, spilloff,
                   first, last, step=step, asic=mask)
+    exit(0)
+
+# DIF old firmware
+elif(results.dif_ctrlreg):
+
+
+    if (results.ctrlreg == None):
+        print('Please specify the control register --ctrlreg=value')
+        exit(0)
+    fdc.setControlRegister(results.ctrlreg)
     exit(0)
 
 

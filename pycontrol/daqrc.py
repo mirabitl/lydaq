@@ -20,7 +20,7 @@ class daqControl:
         self.jc.add_transition('start','INITIALISED','RUNNING',after=self.jc_starting)
         self.jc.add_transition('kill',['RUNNING','CONFIGURED'],'INITIALISED',after=self.jc_killing)
         self.jc.add_transition('configure','RUNNING','CONFIGURED',after=self.jc_appcreate)
-        self.jc.add_transition('destroy','INITIALISED','VOID',after=self.jc_destroy)
+        self.jc.add_transition('destroy','INITIALISED','VOID',after=self.jc_destroying)
         self.job_answer=None
         #DAQ PART
         self.daq_answer=None
@@ -32,7 +32,9 @@ class daqControl:
         self.daqfsm.add_transition('destroy','CONFIGURED','VOID',after='daq_destroying',conditions='isConfigured')
 
         self.stored_state=self.getStoredState()
-
+    def fsmStatus(self):
+        x=self.stored_state
+        print(" FSM Status:",x["name"],x["version"],x["location"],time.ctime(x["time"]),x["job"],x["daq"])
     def getStoredState(self):
         self.config_name=self.config.split(":")[0]
         self.config_version=int(self.config.split(":")[1])
@@ -59,8 +61,13 @@ class daqControl:
         return None
 
     def storeState(self):
-        self.db.setFsmInfo(self.config_name,self.config_version,self.daq_setup,job=self.jc.state,daq=self.state)
-        self.stored_state=self.getStoredJobState()
+        # Force DAQ state to VOID if job control is not CONFIGURED
+        dstate="VOID"
+        if (self.jc.state == "CONFIGURED"):
+            dstate=self.state
+        self.db.setFsmInfo(self.config_name,self.config_version,self.daq_setup,job=self.jc.state,daq=dstate)
+        self.stored_state=self.getStoredState()
+        self.fsmStatus()
         return
 
     def isConfigured(self):

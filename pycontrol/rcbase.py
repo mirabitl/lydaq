@@ -141,10 +141,10 @@ class FSMAccess:
     def getProcInfo(self):
 
         sr = self.executeRequest(self.url)
-        print("Avant ",sr,type(sr))
+        #print("Avant ",sr,type(sr))
         if (type(sr) is bytes):
             sr=sr.decode("utf-8")
-        print(sr)
+        #print(sr)
         self.procInfos = json.loads(sr)
         if (self.procInfos['STATE'] !="DEAD"): 
             self.pid = self.procInfos['PID']

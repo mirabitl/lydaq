@@ -12,6 +12,8 @@ class combRC(lydaqrc.lydaqControl):
     def __init__(self,account,config):
         super().__init__(account,config)
         self.reset=0
+        self.comment="Not yet set"
+        self.location="UNKNOWN"
     # daq
     # Initialising implementation
     def daq_initialising(self):
@@ -76,6 +78,7 @@ class combRC(lydaqrc.lydaqControl):
                 r["DIFMANAGER_INIT_%d" % x.appInstance] = s
 
         self.daq_answer=json.dumps(r)
+        self.storeState()
 
     def daq_configuring(self):
         m = {}
@@ -102,7 +105,8 @@ class combRC(lydaqrc.lydaqControl):
                 s = json.loads(x.sendTransition("CONFIGURE", m))
                 r["DIFMANAGER_%d" % x.appInstance] = s
         self.daq_answer= json.dumps(r)
-        
+        self.storeState()
+       
     def daq_stopping(self):
         m = {}
         r = {}
@@ -138,6 +142,7 @@ class combRC(lydaqrc.lydaqControl):
             r["BUILDER_%d" % x.appInstance] = s
 
         self.daq_answer= json.dumps(r)
+        self.storeState()
 
     def daq_destroying(self):
         m = {}
@@ -162,15 +167,14 @@ class combRC(lydaqrc.lydaqControl):
 
 
         self.daq_answer=json.dumps(r)
+        self.storeState()
 
-    def daq_start(self, run, location="UNKNOWN", comment="Not set"):
+    def daq_starting(self):
 
-        if (location == "UNKNOWN"):
-            location = os.getenv("DAQSETUP", "UNKNOWN")
-        nrun = run
-        if (run == 0):
-            smg = mg.instance()
-            jnrun = smg.getRun(location, comment)
+        if (self.location == "UNKNOWN"):
+            self.location = os.getenv("DAQSETUP", "UNKNOWN")
+       
+        jnrun = self.db.getRun(self.location, self.comment)
         r = {}
         m = {}
         # print "EVENT BUILDER",jnrun['run']
@@ -181,22 +185,37 @@ class combRC(lydaqrc.lydaqControl):
             r["BUILDER_%d" % x.appInstance] = s
 
         m = {}
-        for x in self.appMap["TDCSERVER"]:
-            s = json.loads(x.sendTransition("START", m))
-            r["TDCSERVER_%d" % x.appInstance] = s
-        for x in self.appMap["PMRMANAGER"]:
-            s = json.loads(x.sendTransition("START", m))
-            r["PMRMANAGER_%d" % x.appInstance] = s
-        for x in self.appMap["GRICSERVER"]:
-            s = json.loads(x.sendTransition("START", m))
-            r["GRICSERVER_%d" % x.appInstance] = s
+        if ("TDCSERVER" in self.appMap.keys()):
+            for x in self.appMap["TDCSERVER"]:
+                s = json.loads(x.sendTransition("START", m))
+                r["TDCSERVER_%d" % x.appInstance] = s
+        if ("PMRMANAGER" in self.appMap.keys()):
+            for x in self.appMap["PMRMANAGER"]:
+                s = json.loads(x.sendTransition("START", m))
+                r["PMRMANAGER_%d" % x.appInstance] = s
+        if ("GRICSERVER" in self.appMap.keys()):
+            for x in self.appMap["GRICSERVER"]:
+                s = json.loads(x.sendTransition("START", m))
+                r["GRICSERVER_%d" % x.appInstance] = s
+        if ("MDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("RESET", m))
+            s = json.loads(self.appMap['MDCCSERVER']
+                           [0].sendTransition("ECALRESUME", m))
+            r["MDCCSERVER"] = s
 
-        s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("RESET", m))
-        s = json.loads(self.appMap['MDCCSERVER']
-                       [0].sendTransition("ECALRESUME", m))
-        r["MDCCSERVER"] = s
 
-        return json.dumps(r)
+        #old firmware
+        if ("DIFMANAGER" in self.appMap.keys()):
+            for x in self.appMap["DIFMANAGER"]:
+                s = json.loads(x.sendTransition("START", m))
+                r["DIFMANAGER_%d" % x.appInstance] = s
+
+        if ("CCCSERVER" in self.appMap.keys()):
+            s=json.loads(self.appMap['CCCSERVER'][0].sendTransition("START", m))
+            r["CCCSERVER"] = s
+
+        self.daq_answer= json.dumps(r)
+        self.storeState()
 
     def SourceStatus(self, verbose=False):
         rep = {}
@@ -235,6 +254,17 @@ class combRC(lydaqrc.lydaqControl):
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
 
                     #rep["%s_%d" % (s.host, s.infos['instance'])] = r
+        for k, v in self.appMap.items():
+            if (k != "DIFMANAGER"):
+                continue
+            for s in v:
+                mr = json.loads(s.sendCommand("STATUS", {}))
+                #print(mr)
+                if (mr['status'] != "FAILED"):
+                    rep["%s_%d" % (s.host, s.infos['instance'])
+                        ] = mr["answer"]["DIFLIST"]
+                else:
+                    rep["%s_%d" % (s.host, s.infos['instance'])] = mr
         if (not verbose):
             return json.dumps(rep)
         # Verbose Printout
@@ -423,3 +453,8 @@ class combRC(lydaqrc.lydaqControl):
             nevmax, spillon, spilloff, beg, las, step))
         self.daq_stop()
         return json.dumps(r)
+# DIF Specific
+    def setControlRegister(self,ctrlreg):
+        param = {}
+        param["value"] = int(ctrlreg, 16)
+        return self.processCommand("CTRLREG", "DIFMANAGER", param)
