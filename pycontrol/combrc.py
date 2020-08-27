@@ -421,7 +421,8 @@ class combRC(lydaqrc.lydaqControl):
         comment = Comment + \
             " Mode %d ON %d Off %d TH min %d max %d Step %d" % (
                 ch, spillon, spilloff, beg, las, step)
-        self.daq_start(run, location=Location, comment=comment)
+        self.comment=comment
+        self.start()
         r = {}
         r["run"] = run
         if (ch == 255):
@@ -432,7 +433,7 @@ class combRC(lydaqrc.lydaqControl):
             self.setTdcMask(mask, asic)
             r["S_%d" % ch] = json.loads(self.febScurve(
                 nevmax, spillon, spilloff, beg, las, step))
-            self.daq_stop()
+            self.stop()
             return json.dumps(r)
         if (ch == 1023):
             print("Run Scurve on all channel one by one")
@@ -443,7 +444,7 @@ class combRC(lydaqrc.lydaqControl):
                 self.setTdcMask(mask, asic)
                 r["S_%d" % ch] = json.loads(self.febScurve(
                     nevmax, spillon, spilloff, beg, las, step))
-            self.daq_stop()
+            self.stop()
             return json.dumps(r)
         print("Run Scurve on  channel %d " % ch)
         mask = 0
@@ -451,7 +452,7 @@ class combRC(lydaqrc.lydaqControl):
         self.setTdcMask(mask, asic)
         r["S_%d" % ch] = json.loads(self.febScurve(
             nevmax, spillon, spilloff, beg, las, step))
-        self.daq_stop()
+        self.stop()
         return json.dumps(r)
 # DIF Specific
     def setControlRegister(self,ctrlreg):
