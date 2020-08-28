@@ -34,6 +34,7 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
             self.ctrl=controller
             print(self.ctrl)
         self.make_connections()
+
         
     def setController(self,ctrl):
         print(ctrl)
@@ -41,6 +42,7 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         if (ctrl == None):
             return False
         self.ctrl=ctrl
+        self.laCMD.setText(self.ctrl.jc.state)
         return True
 
     def make_connections(self):
@@ -51,30 +53,64 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         self.pbJCSTART.clicked.connect(self.action_pbJCSTART)
         self.pbJCAPPCREATE.clicked.connect(self.action_pbJCAPPCREATE)
         self.pbJOBLOGS.clicked.connect(self.action_pbJOBLOGS)
-        
+
+
     def action_pbJCKILL(self):
-        srep=self.ctrl.jc_kill()
-        self.laCMD.setText("KILL done")
-        self.action_pbJCINFO()
+       srep=False
+       try:
+          srep=self.ctrl.jc.kill()
+       except:
+          print("Unexpected error:", sys.exc_info()[0])
+
+       self.laCMD.setText("KILL done")
+       self.laCMD.setText(self.ctrl.jc.state)
+       self.action_pbJCINFO()
 
     def action_pbJCSTART(self):
-        srep=self.ctrl.jc_start()
-        self.laCMD.setText("START done")
-        self.action_pbJCINFO()
+
+       srep=False
+       try:
+          srep=self.ctrl.jc.start()
+       except:
+          print("Unexpected error:", sys.exc_info()[0])
+
+       self.laCMD.setText("START done")
+       self.laCMD.setText(self.ctrl.jc.state)
+       self.action_pbJCINFO()
         
     def action_pbJCAPPCREATE(self):
-        srep=self.ctrl.jc_appcreate()
-        self.laCMD.setText("APPCREATE done")
-        self.action_pbJCINFO()
+       srep=False
+       try:
+          srep=self.ctrl.jc.configure()
+       except:
+          print("Unexpected error:", sys.exc_info()[0])
+
+
+       self.laCMD.setText("APPCREATE done")
+       self.laCMD.setText(self.ctrl.jc.state)
+       self.action_pbJCINFO()
         
     def action_pbJCCREATE(self):
-        srep=self.ctrl.jc_initialise()
-        self.laCMD.setText("CREATE done")
-        self.action_pbJCINFO()
+       srep=False
+       try:
+          srep=self.ctrl.jc.initialise()
+       except:
+          print("Unexpected error:", sys.exc_info()[0])
+
+
+       self.laCMD.setText("CREATE done")
+       self.laCMD.setText(self.ctrl.jc.state)
+       self.action_pbJCINFO()
 
     def action_pbJCDESTROY(self):
-        srep=self.ctrl.jc_destroy()
+        srep=False
+        try:
+           srep=self.ctrl.jc.initialise()
+        except:
+           print("Unexpected error:", sys.exc_info()[0])
+
         self.laCMD.setText("DESTROY done")
+        self.laCMD.setText(self.ctrl.jc.state)
         self.action_pbJCINFO()
 
     def action_pbJOBLOGS(self):
@@ -113,7 +149,7 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
         tb.tbTEXT.setText(jrep["answer"]["LINES"])
         tb.show()
     def action_pbJCINFO(self):
-       
+        self.laCMD.setText(self.ctrl.jc.state)       
         srep=self.ctrl.getAllInfos()
 
         jsrep=json.loads(srep)
