@@ -30,6 +30,8 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         if (ctrl == None):
             return False
         self.ctrl=ctrl
+        self.laCMD.setText(self.ctrl.state)
+
         return True
 
     def make_connections(self):
@@ -59,4 +61,11 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             self.window_genesys.show()
 
     def action_pbINITIALISE(self):
-        self.ctrl.daq_initialise()
+        srep=False
+        try:
+            srep=self.ctrl.initialise()
+        except:
+           print("Unexpected error:", sys.exc_info()[0])
+
+        self.laCMD.setText(self.ctrl.state)
+        

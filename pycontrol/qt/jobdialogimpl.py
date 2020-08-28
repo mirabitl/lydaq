@@ -61,6 +61,12 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
           srep=self.ctrl.jc.kill()
        except:
           print("Unexpected error:", sys.exc_info()[0])
+          msg = QMessageBox()
+          msg.setIcon(QMessageBox.Warning)
+          msg.setText("Cannot kill (FSM error)")
+          msg.setWindowTitle("Error")
+          msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+          retval = msg.exec_() 
 
        self.laCMD.setText("KILL done")
        self.laCMD.setText(self.ctrl.jc.state)
@@ -73,6 +79,12 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
           srep=self.ctrl.jc.start()
        except:
           print("Unexpected error:", sys.exc_info()[0])
+          msg = QMessageBox()
+          msg.setIcon(QMessageBox.Warning)
+          msg.setText("Cannot start (FSM error)")
+          msg.setWindowTitle("Error")
+          msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+          retval = msg.exec_() 
 
        self.laCMD.setText("START done")
        self.laCMD.setText(self.ctrl.jc.state)
@@ -84,6 +96,12 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
           srep=self.ctrl.jc.configure()
        except:
           print("Unexpected error:", sys.exc_info()[0])
+          msg = QMessageBox()
+          msg.setIcon(QMessageBox.Warning)
+          msg.setText("Cannot configure (FSM error)")
+          msg.setWindowTitle("Error")
+          msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+          retval = msg.exec_() 
 
 
        self.laCMD.setText("APPCREATE done")
@@ -96,6 +114,12 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
           srep=self.ctrl.jc.initialise()
        except:
           print("Unexpected error:", sys.exc_info()[0])
+          msg = QMessageBox()
+          msg.setIcon(QMessageBox.Warning)
+          msg.setText("Cannot initialise (FSM error)")
+          msg.setWindowTitle("Error")
+          msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+          retval = msg.exec_() 
 
 
        self.laCMD.setText("CREATE done")
@@ -105,9 +129,15 @@ class JobDialogImpl(QtWidgets.QMainWindow, Ui_JobDialog):
     def action_pbJCDESTROY(self):
         srep=False
         try:
-           srep=self.ctrl.jc.initialise()
+           srep=self.ctrl.jc.destroy()
         except:
            print("Unexpected error:", sys.exc_info()[0])
+           msg = QMessageBox()
+           msg.setIcon(QMessageBox.Warning)
+           msg.setText("Cannot destroy (FSM error)")
+           msg.setWindowTitle("Error")
+           msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+           retval = msg.exec_() 
 
         self.laCMD.setText("DESTROY done")
         self.laCMD.setText(self.ctrl.jc.state)
