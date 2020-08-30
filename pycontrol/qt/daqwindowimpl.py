@@ -39,14 +39,34 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         self.pbFEB.clicked.connect(self.action_pbFEB)
         self.pbGENESYS.clicked.connect(self.action_pbGENESYS)
         self.pbINITIALISE.clicked.connect(self.action_pbINITIALISE)
+        self.pbCONFIGURE.clicked.connect(self.action_pbCONFIGURE)
+        self.pbSTART.clicked.connect(self.action_pbSTART)
+        self.pbSTOP.clicked.connect(self.action_pbSTOP)
+        self.pbDESTROY.clicked.connect(self.action_pbDESTROY)
 
     def action_pbMDCC(self):
-        self.window_mdccc=MdccWindowImpl(self,controller=self.ctrl)
-        self.window_mdccc.show()
+        if ( not "MDCCSERVER" in self.ctrl.appMap ):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("No MDCCSERVER application")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_()
+        else:
+            self.window_mdccc=MdccWindowImpl(self,controller=self.ctrl)
+            self.window_mdccc.show()
 
     def action_pbFEB(self):
-        self.window_feb=FebWindowImpl(self,controller=self.ctrl)
-        self.window_feb.show()
+        if ( not "TDCSERVER" in self.ctrl.appMap ):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("No TDCSERVER application")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_()
+        else:
+            self.window_feb=FebWindowImpl(self,controller=self.ctrl)
+            self.window_feb.show()
         
     def action_pbGENESYS(self):
         if ( not "GENESYS" in self.ctrl.appMap ):
@@ -65,7 +85,118 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         try:
             srep=self.ctrl.initialise()
         except:
-           print("Unexpected error:", sys.exc_info()[0])
+            print("Unexpected error:", sys.exc_info()[0])
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot initialise (FSM error)")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
 
+        if (!srep):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot make tranistion Process are not configured")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+        self.laCMD.setText(self.ctrl.state)
+        
+    def action_pbCONFIGURE(self):
+        srep=False
+        try:
+            srep=self.ctrl.configure()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot configure (FSM error)")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+
+        if (!srep):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot make tranistion Process are not configured")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+        self.laCMD.setText(self.ctrl.state)
+        
+    def action_pbDESTROY(self):
+        srep=False
+        try:
+            srep=self.ctrl.destroy()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot destroy (FSM error)")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+
+        if (!srep):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot make tranistion Process are not configured")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+        self.laCMD.setText(self.ctrl.state)
+        
+    def action_pbSTART(self):
+        srep=False
+        try:
+            srep=self.ctrl.start()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot start (FSM error)")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+
+        if (!srep):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot make tranistion Process are not configured")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+        self.laCMD.setText(self.ctrl.state)
+
+    def action_pbSTOP(self):
+        srep=False
+        try:
+            srep=self.ctrl.stop()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot stop (FSM error)")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
+
+        if (!srep):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Cannot make tranistion Process are not configured")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            retval = msg.exec_() 
+  
         self.laCMD.setText(self.ctrl.state)
         
