@@ -53,7 +53,7 @@ class MdccWindowImpl(QtWidgets.QMainWindow, Ui_MdccWindow):
         self.ctrl.mdcc_setSpillOff(4000000)
         self.ctrl.mdcc_setBeamOn(int(self.LEBeamOn.text()))
         self.ctrl.mdcc_setSpillRegister(64)
-        self.ctrl.mdcc_setRegister(32,int(self.SBBusy.value()))
+        self.ctrl.mdcc_WriteRegister(32,int(self.SBBusy.value()))
         self.action_mdcc_status()
         
     def action_mdcc_reset_counters(self):
