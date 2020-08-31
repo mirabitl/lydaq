@@ -233,6 +233,14 @@
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QLabel" name="laCMD">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <italic>true</italic>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Last Command</string>
             </property>
@@ -283,6 +291,13 @@
           </item>
           <item>
            <widget class="QLCDNumber" name="lcdEvent"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbUpdate">
+            <property name="text">
+             <string>Update Status</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

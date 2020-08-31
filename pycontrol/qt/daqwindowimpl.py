@@ -43,6 +43,8 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         self.pbSTART.clicked.connect(self.action_pbSTART)
         self.pbSTOP.clicked.connect(self.action_pbSTOP)
         self.pbDESTROY.clicked.connect(self.action_pbDESTROY)
+        self.pbUpdate.clicked.connect(self.action_pbUpdate)
+
 
     def action_pbMDCC(self):
         if ( not "MDCCSERVER" in self.ctrl.appMap ):
@@ -199,4 +201,27 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
         self.laCMD.setText(self.ctrl.state)
+        
+    def action_pbUpdate(self):
+        srep=self.ctrl.SourceStatus()
+        jsrep=json.loads(srep)
+        print(jsrep)
+        
+        s="<h1> Data Sources Status </h1>"
+        s=s+json2html.json2html.convert(json=srep)
+        srep=self.ctrl.BuilderStatus()
+        jsrep=json.loads(srep)
+        print(jsrep)
+        
+        s=s+"<h1> Builder Status </h1>"
+        s=s+json2html.json2html.convert(json=srep)
+        srep=self.ctrl.TriggerStatus()
+        jsrep=json.loads(srep)
+        print(jsrep)
+        
+        s=s+"<h1> Trigger Status </h1>"
+        s=s+json2html.json2html.convert(json=srep)
+        s=s+"</P></br>"
+        self.tbSTATUS.setText(s)
+
         
