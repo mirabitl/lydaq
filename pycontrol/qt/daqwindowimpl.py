@@ -94,7 +94,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
 
-        if (!srep):
+        if (not srep):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Cannot make tranistion Process are not configured")
@@ -118,7 +118,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
 
-        if (!srep):
+        if (not srep):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Cannot make tranistion Process are not configured")
@@ -142,7 +142,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
 
-        if (!srep):
+        if (not srep):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Cannot make tranistion Process are not configured")
@@ -166,7 +166,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
 
-        if (!srep):
+        if (not srep):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Cannot make tranistion Process are not configured")
@@ -190,7 +190,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
             retval = msg.exec_() 
   
 
-        if (!srep):
+        if (not srep):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setText("Cannot make tranistion Process are not configured")
