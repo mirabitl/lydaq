@@ -26,7 +26,7 @@ class daqControl:
         self.daq_answer=None
         self.daqfsm=Machine(model=self,states=['VOID','INITIALISED','CONFIGURED','RUNNING','CONFIGURED'],initial='VOID')
         self.daqfsm.add_transition('initialise','VOID','INITIALISED',after='daq_initialising',conditions='isConfigured')
-        self.daqfsm.add_transition('configure','INITIALISED','CONFIGURED',after='daq_configuring',conditions='isConfigured')
+        self.daqfsm.add_transition('configure',['INITIALISED','CONFIGURED'],'CONFIGURED',after='daq_configuring',conditions='isConfigured')
         self.daqfsm.add_transition('start','CONFIGURED','RUNNING',after='daq_starting',conditions='isConfigured')
         self.daqfsm.add_transition('stop','RUNNING','CONFIGURED',after='daq_stopping',conditions='isConfigured')
         self.daqfsm.add_transition('destroy','CONFIGURED','VOID',after='daq_destroying',conditions='isConfigured')
