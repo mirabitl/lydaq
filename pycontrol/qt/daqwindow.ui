@@ -281,7 +281,21 @@
            </widget>
           </item>
           <item>
-           <widget class="QLCDNumber" name="lcdRUN"/>
+           <widget class="QLCDNumber" name="lcdRUN">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="digitCount">
+             <number>8</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::Flat</enum>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_9">
@@ -304,7 +318,21 @@
            </widget>
           </item>
           <item>
-           <widget class="QLCDNumber" name="lcdEvent"/>
+           <widget class="QLCDNumber" name="lcdEvent">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="digitCount">
+             <number>9</number>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::Flat</enum>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="pbUpdate">
