@@ -12,6 +12,7 @@ from DaqWindow import Ui_DaqWindow
 from mdccwindowimpl import MdccWindowImpl
 from febwindowimpl import FebWindowImpl
 from dbwindowimpl import DbWindowImpl
+from difwindowimpl import DifWindowImpl
 from genesyswindowimpl import GenesysWindowImpl
 
 class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
@@ -39,6 +40,8 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         self.pbMDCC.clicked.connect(self.action_pbMDCC)
         self.pbFEB.clicked.connect(self.action_pbFEB)
         self.pbDB.clicked.connect(self.action_pbDB)
+        self.pbDIF.clicked.connect(self.action_pbDIF)
+        
         self.pbGENESYS.clicked.connect(self.action_pbGENESYS)
         self.pbINITIALISE.clicked.connect(self.action_pbINITIALISE)
         self.pbCONFIGURE.clicked.connect(self.action_pbCONFIGURE)
@@ -75,6 +78,10 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
     def action_pbDB(self):
         self.window_db=DbWindowImpl(self,controller=self.ctrl)
         self.window_db.show()
+
+    def action_pbDIF(self):
+        self.window_dif=DifWindowImpl(self,controller=self.ctrl)
+        self.window_dif.show()
         
     def action_pbGENESYS(self):
         if ( not "GENESYS" in self.ctrl.appMap ):
