@@ -7,6 +7,11 @@ import os
 from PyQt5 import QtWidgets, uic
 
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QTextBrowser
+from PyQt5.QtWidgets import QVBoxLayout
+
+from PyQt5.QtWidgets import QListWidgetItem
+from tbdialogimpl import TbDialogImpl
 
 from DbWindow import Ui_DbWindow
 import MongoRoc as mg
@@ -55,7 +60,7 @@ class DbWindowImpl(QtWidgets.QMainWindow, Ui_DbWindow):
         #print()
         config=self.lwMONGO.currentItem().text()
         self.db.download(config.split(":")[0],int(config.split(":")[1]),True)
-        daq_file="/dev/shm/mgjob/"+config.split(":")[0]+"_"+config.split(":")[1]+".json"
+        daq_file="/dev/shm/mgroc/"+config.split(":")[0]+"_"+config.split(":")[1]+".json"
         with open(daq_file) as data_file:    
             mgConfig = json.load(data_file)
             tb=TbDialogImpl(self)
@@ -69,5 +74,6 @@ class DbWindowImpl(QtWidgets.QMainWindow, Ui_DbWindow):
         par={}
         par["state"]=self.config.split(":")[0]
         par["version"]=int(self.config.split(":")[1])
-        print(self.ctrl.processCommand("DOWNLOAD",process,par))
+        print(process,par)
+        print(self.ctrl.processCommand("DOWNLOADDB",process,par))
         

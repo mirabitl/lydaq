@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMessageBox
 from DaqWindow import Ui_DaqWindow
 from mdccwindowimpl import MdccWindowImpl
 from febwindowimpl import FebWindowImpl
+from dbwindowimpl import DbWindowImpl
 from genesyswindowimpl import GenesysWindowImpl
 
 class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
@@ -37,6 +38,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
     def make_connections(self):
         self.pbMDCC.clicked.connect(self.action_pbMDCC)
         self.pbFEB.clicked.connect(self.action_pbFEB)
+        self.pbDB.clicked.connect(self.action_pbDB)
         self.pbGENESYS.clicked.connect(self.action_pbGENESYS)
         self.pbINITIALISE.clicked.connect(self.action_pbINITIALISE)
         self.pbCONFIGURE.clicked.connect(self.action_pbCONFIGURE)
@@ -69,6 +71,10 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         else:
             self.window_feb=FebWindowImpl(self,controller=self.ctrl)
             self.window_feb.show()
+            
+    def action_pbDB(self):
+        self.window_db=DbWindowImpl(self,controller=self.ctrl)
+        self.window_db.show()
         
     def action_pbGENESYS(self):
         if ( not "GENESYS" in self.ctrl.appMap ):
