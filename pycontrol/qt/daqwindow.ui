@@ -65,9 +65,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pbPMR">
+        <widget class="QPushButton" name="pbDB">
          <property name="text">
-          <string>DIF PMR...</string>
+          <string>Database ASICs</string>
          </property>
         </widget>
        </item>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'daqwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -31,9 +31,9 @@ class Ui_DaqWindow(object):
         self.horizontalLayout.addWidget(self.pbDIF)
         spacerItem1 = QtWidgets.QSpacerItem(18, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
-        self.pbPMR = QtWidgets.QPushButton(self.groupBox)
-        self.pbPMR.setObjectName("pbPMR")
-        self.horizontalLayout.addWidget(self.pbPMR)
+        self.pbDB = QtWidgets.QPushButton(self.groupBox)
+        self.pbDB.setObjectName("pbDB")
+        self.horizontalLayout.addWidget(self.pbDB)
         spacerItem2 = QtWidgets.QSpacerItem(18, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
         self.pbFEB = QtWidgets.QPushButton(self.groupBox)
@@ -137,7 +137,7 @@ class Ui_DaqWindow(object):
         self.groupBox.setTitle(_translate("DaqWindow", "Settings"))
         self.pbMDCC.setText(_translate("DaqWindow", "MDCC..."))
         self.pbDIF.setText(_translate("DaqWindow", "DIF..."))
-        self.pbPMR.setText(_translate("DaqWindow", "DIF PMR..."))
+        self.pbDB.setText(_translate("DaqWindow", "Database ASICs"))
         self.pbFEB.setText(_translate("DaqWindow", "FEB..."))
         self.pbGENESYS.setText(_translate("DaqWindow", "Genesys.."))
         self.groupBox_2.setTitle(_translate("DaqWindow", "State Machine "))
