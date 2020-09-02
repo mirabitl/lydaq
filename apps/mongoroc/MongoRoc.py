@@ -206,14 +206,18 @@ class MongoRoc:
         """
         List all states in the DB
         """
+        cl=[]
         res=self.db.states.find({})
         for x in res:
             if (not ("name" in x)):
                 continue
             if ("comment" in x):
                 print(x["name"],x["version"],x["comment"])
+                cl.append((x["name"],x['version'],x['comment']))
             else:
                 print(x["name"],x["version"] )
+                cl.append((x["name"],x['version'],"None"))
+        return cl
     def configurations(self):
         """
         List all jobcontrol configurations in the db 
