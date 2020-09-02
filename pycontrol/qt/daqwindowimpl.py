@@ -219,13 +219,22 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         srep=self.ctrl.BuilderStatus()
         jsrep=json.loads(srep)
         print(jsrep)
+        run=0
+        evt=0
+        for x,y in jsrep.items():
+            print("ITEM ",x," VAL",y)
+            run=y["run"]
+            evt=y["event"]
+            break
+        self.lcdRUN.display(run)
+        self.lcdEvent.display(evt)
+        
         
         s=s+"<h1> Builder Status </h1>"
         s=s+json2html.json2html.convert(json=srep)
         srep=self.ctrl.TriggerStatus()
         jsrep=json.loads(srep)
         print(jsrep)
-        
         s=s+"<h1> Trigger Status </h1>"
         s=s+json2html.json2html.convert(json=srep)
         s=s+"</P></br>"
