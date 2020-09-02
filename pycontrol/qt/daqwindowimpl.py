@@ -156,6 +156,7 @@ class DaqWindowImpl(QtWidgets.QMainWindow, Ui_DaqWindow):
         
     def action_pbSTART(self):
         srep=False
+        self.ctrl.comment=self.leCOMMENT.text()
         try:
             srep=self.ctrl.start()
         except:

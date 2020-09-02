@@ -71,6 +71,7 @@ class daqControl:
         return
 
     def isConfigured(self):
+        self.getStoredState()
         return (self.jc.state=="CONFIGURED" )
     
     def parseMongo(self):
