@@ -91,6 +91,7 @@ void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResp
       Json::Value jt;
       jt["detid"]=x->detectorId();
       jt["sourceid"]=x->difId();
+      jt["SLC"]=x->slcStatus();
       jt["gtc"]=x->gtc();
       jt["abcid"]=(Json::Value::UInt64)x->abcid();
       jt["event"]=x->event();
@@ -425,7 +426,7 @@ void lydaq::GricManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
-void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
+void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,bool slc)
 {
   uint8_t b[0x4000];
   for (auto x:_vGric)
@@ -453,6 +454,7 @@ void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
       
       fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+      if (slc) x->setSlcStatus(command);
       for (int i=4;i<length-1;i++)
 	{
 	  fprintf(stderr,"%.2x ",(b[i]));
@@ -466,7 +468,7 @@ void lydaq::GricManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
       break;
     }
 }
-void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command)
+void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t command,bool slc)
 {
   uint16_t len=6;
   uint32_t adr= lydaq::MpiMessageHandler::convertIP(host);
@@ -478,7 +480,7 @@ void lydaq::GricManager::sendCommand(std::string host,uint32_t port,uint8_t comm
   _msg->ptr()[4]=command;
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
-  this->processReply(adr,tr,command);
+  this->processReply(adr,tr,command,slc);
 }
 void lydaq::GricManager::sendParameter(std::string host,uint32_t port,uint8_t command,uint8_t par)
 {
@@ -545,7 +547,7 @@ void lydaq::GricManager::configureHR2()
 
       this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
-      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
+       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC,true);
 
     }
 

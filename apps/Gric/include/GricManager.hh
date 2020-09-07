@@ -38,7 +38,7 @@ public:
   void c_close(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_pulse(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void initialise(zdaq::fsmmessage* m);
-  void sendCommand(std::string host,uint32_t port,uint8_t command);
+  void sendCommand(std::string host,uint32_t port,uint8_t command,bool slc=false);
   void sendParameter(std::string host,uint32_t port,uint8_t command,uint8_t par);
   void sendSlowControl(std::string host,uint32_t port,uint8_t* slc);
   void configureHR2();
@@ -51,7 +51,7 @@ public:
   void stop(zdaq::fsmmessage* m);
   void destroy(zdaq::fsmmessage* m);
 
-  void processReply(uint32_t adr,uint32_t tr,uint8_t command);
+  void processReply(uint32_t adr,uint32_t tr,uint8_t command,bool slc=false);
 
 private:
   lydaq::HR2ConfigAccess* _hca;
