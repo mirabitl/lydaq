@@ -90,7 +90,9 @@ void lydaq::GricManager::c_status(Mongoose::Request &request, Mongoose::JsonResp
 
       Json::Value jt;
       jt["detid"]=x->detectorId();
-      jt["sourceid"]=x->difId();
+      std::stringstream sid;
+      sid<<std::hex<<x->difId()<<std::dec;
+      jt["sourceid"]=sid.str();
       jt["SLC"]=x->slcStatus();
       jt["gtc"]=x->gtc();
       jt["abcid"]=(Json::Value::UInt64)x->abcid();
