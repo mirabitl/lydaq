@@ -65,7 +65,8 @@ grp_action.add_argument('--daq-evbstatus', action='store_true',
 grp_action.add_argument('--daq-downloaddb', action='store_true',
                         help='download the dbstate specified in --dbstate=state --version=num')
 
-
+grp_action.add_argument('--dif-ctrlreg', action='store_true',
+                        help=' Send CTRLREG to DIFMANAGER --ctrlreg=ctrl')
 # FEBV1 actions
 grp_action.add_argument('--feb-resettdc', action='store_true',
                         help=' Send Reset to all FEB TDC')
