@@ -54,7 +54,7 @@ void lydaq::monitorItem::processData(std::string address,std::string contents)
   
 }
 
-lydaq::monitorSubscriber::monitorSubscriber(std::string name) : zdaq::baseApplication(name), _running(false),_dbname(""),_context(0)
+lydaq::monitorSubscriber::monitorSubscriber(std::string name) : zdaq::baseApplication(name), _running(false),_dbname(""),_context(0),_filedir("")
 {
   //_fsm=this->fsm();
   this->fsm()->addState("PAUSED");
@@ -86,6 +86,17 @@ void lydaq::monitorSubscriber::clear()
   _context=0;
   
 }
+void lydaq::monitorSubscriber::openFile(std::string ldir)
+{
+  std::stringstream filename("");    
+  char dateStr [64];
+            
+  time_t tm= time(NULL);
+  strftime(dateStr,20,"SLOW_%d%m%y_%H%M%S",localtime(&tm));
+  filename<<ldir<<"/.json";
+  _file.open(filename.str().c_str());
+
+}
 void lydaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
@@ -96,10 +107,18 @@ void lydaq::monitorSubscriber::initialise(zdaq::fsmmessage* m)
       _dbname=m->content()["dbname"].asString();
       this->parameters()["dbname"]=m->content()["dbname"];
     }
-  else
+  if (this->parameters().isMember("dbname"))
+    {
     _dbname=this->parameters()["dbname"].asString();
 
-  this->openSqlite(_dbname);
+    this->openSqlite(_dbname);
+    }
+  if (this->parameters().isMember("filedir"))
+    {
+    _filedir=this->parameters()["filedir"].asString();
+
+    //this->openFile(filedir);
+    }
 
   if (m->content().isMember("streams"))
     { 
@@ -163,6 +182,8 @@ void lydaq::monitorSubscriber::openSqlite(std::string dbname)
 void lydaq::monitorSubscriber::start(zdaq::fsmmessage* m)
 {
    LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+   if (_filedir.length()>0)
+     this->openFile(_filedir);
   _running=true;
   g_d.create_thread(boost::bind(&lydaq::monitorSubscriber::poll,this));
 }
@@ -171,6 +192,8 @@ void lydaq::monitorSubscriber::stop(zdaq::fsmmessage* m)
 {
   _running=false;
   g_d.join_all();
+  if (_filedir.length()>0 &&_file.is_open())
+    _file.close();
 }
 void lydaq::monitorSubscriber::destroy(zdaq::fsmmessage* m)
 {
@@ -231,8 +254,14 @@ void lydaq::monitorSubscriber::poll()
 	  time_t tr;
 	  sscanf(strs[2].c_str(),"%lld",(long long *) &tr);
 	  //printf("Message receive :\n \t Hardware: %s \n \t Location %s \n \t Time: %lld \n %s \n",strs[0].c_str(),strs[1].c_str(),(long long) tr,contents.c_str());
+	  // Fill File
+	  if (_file.is_open())
+	    {
+	      _file<<address<<std::endl;
+	      _file<<contents<<std::endl;
+	    }
 	  // Fill DB
-	  if (_dbname.length()>0)
+	  if (!_file.is_open()&&_dbname.length()>0)
 	    {
 	      rc = sqlite3_open(_dbname.c_str(), &_db);
 		  
