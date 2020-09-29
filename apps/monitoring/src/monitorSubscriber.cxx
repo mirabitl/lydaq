@@ -93,7 +93,7 @@ void lydaq::monitorSubscriber::openFile(std::string ldir)
             
   time_t tm= time(NULL);
   strftime(dateStr,20,"SLOW_%d%m%y_%H%M%S",localtime(&tm));
-  filename<<ldir<<"/.json";
+  filename<<ldir<<"/"<<dateStr<<".json";
 
   _file.open(filename.str().c_str());
   LOG4CXX_INFO(_logLdaq,"Opening "<<filename.str()<<" status "<<_file.is_open());
