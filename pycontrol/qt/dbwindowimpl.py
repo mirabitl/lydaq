@@ -66,7 +66,9 @@ class DbWindowImpl(QtWidgets.QMainWindow, Ui_DbWindow):
             tb=TbDialogImpl(self)
 
             # setting the minimum size 
-            tb.tbTEXT.setText(json.dumps(mgConfig, indent=4, sort_keys=True))
+            tb.tbTEXT.setText(
+                json2html.json2html.convert(clubbing=True,json=json.dumps(mgConfig, sort_keys=True))
+            )
             tb.show()
         
     def action_DOWNLOAD(self):

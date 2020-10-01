@@ -21,6 +21,8 @@
 #include <sqlite3.h> 
 #include <stdlib.h>
 #include "ReadoutLogger.hh"
+#include <fstream>
+using namespace std;
 
 namespace lydaq
 {
@@ -52,6 +54,7 @@ namespace lydaq
       monitorSubscriber(std::string name);
       void clear();
       void openSqlite(std::string db);
+      void openFile(std::string ldir);
       void initialise(zdaq::fsmmessage* m);
       void poll();
       void start(zdaq::fsmmessage* m);
@@ -67,6 +70,8 @@ namespace lydaq
       //zdaq::fsmweb* _fsm;
       boost::thread_group g_d;
       std::string _dbname;
+      std::string _filedir;
+      ofstream _file;
       zmq::context_t* _context;
       bool _running;
 
