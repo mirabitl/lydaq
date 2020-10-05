@@ -10,15 +10,18 @@ using namespace zdaq::mon;
 lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplication(name),_dbaccount(""),_context(0),_uri(0),_client(0),_database(0),_collitems(0)
 {
   //_fsm=this->fsm();
+  this->fsm()->addState("PAUSED");
   this->fsm()->addState("RUNNING");
   
-  this->fsm()->addTransition("INITIALISE","CREATED","RUNNING",boost::bind(&lydaq::monitorSupervisor::initialise, this,_1));
+  this->fsm()->addTransition("INITIALISE","CREATED","PAUSED",boost::bind(&lydaq::monitorSupervisor::initialise, this,_1));
+  this->fsm()->addTransition("START","PAUSED","RUNNING",boost::bind(&lydaq::monitorSupervisor::start, this,_1));
+  this->fsm()->addTransition("STOP","RUNNING","PAUSED",boost::bind(&lydaq::monitorSupervisor::start, this,_1));
   this->fsm()->addTransition("DESTROY","PAUSED","CREATED",boost::bind(&lydaq::monitorSupervisor::destroy, this,_1));
 
   
  this->fsm()->addCommand("STATUS",boost::bind(&lydaq::monitorSupervisor::c_status,this,_1,_2));
  this->fsm()->addCommand("ITEM",boost::bind(&lydaq::monitorSupervisor::c_item,this,_1,_2));
- this->fsm()->addCommand("MONITOR",boost::bind(&lydaq::monitorSupervisor::c_monitor,this,_1,_2)); 
+
   
 
   char* wp=getenv("WEBPORT");
@@ -51,20 +54,56 @@ void lydaq::monitorSupervisor::clear()
   mongoc_cleanup ();
   
 }
-void lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
+int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
 {
   bson_t *command, reply;
   bson_error_t error;
   char *str;
   bool retval;
+  // Find loggin
 
+
+  std::string login;
+  char* wp=getenv("MGDBLOGIN");
+  if (wp!=NULL)  
+    login=std::string(wp);
+  else
+    {
+       LOG4CXX_ERROR(_logLdaq," MGDBLOGIN is not set");
+       return EXIT_FAILURE;
+    }
+  std::size_t current, previous = 0;
+  current = str.find("@");
+  std::vector<string> cont;
+  while (current != std::string::npos) {
+    cont.push_back(str.substr(previous, current - previous));
+    previous = current + 1;
+    current = str.find("@", previous);
+  }
+
+  cont.push_back(str.substr(previous, current - previous));
+  std::string userinfo=cont[0];
+  std::stringstream hostinfo("");
+  hostinfo<<"mongodb://"<<cont[1];
+  std::string uri_string=hostinfo.str();
+  _dbname=cont[2];
+  /*
+    userinfo=login.split("@")[0]
+    hostinfo=login.split("@")[1]
+    dbname=login.split("@")[2]
+    user=userinfo.split("/")[0]
+    pwd=userinfo.split("/")[1]
+    host=hostinfo.split(":")[0]
+    port=int(hostinfo.split(":")[1])
+
+  */
   // mongoc internal
   mongoc_init ();
 
   //find uri and dbname
 
   
-    uri = mongoc_uri_new_with_error (uri_string, &error);
+  _uri = mongoc_uri_new_with_error (uri_string, &error);
   if (!_uri) {
     fprintf (stderr,
 	     "failed to parse URI: %s\n"
@@ -77,8 +116,8 @@ void lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
   /*
    * Create a new client instance
    */
-  client = mongoc_client_new_from_uri (_uri);
-  if (!client) {
+  _client = mongoc_client_new_from_uri (_uri);
+  if (!_client) {
     return EXIT_FAILURE;
   }
 
@@ -100,28 +139,21 @@ void lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
    */
   command = BCON_NEW ("ping", BCON_INT32 (1));
 
-  int retval = mongoc_client_command_simple (
+  int32_t retval = mongoc_client_command_simple (
 					 _client, "admin", command, NULL, &reply, &error);
 
   if (!retval) {
     fprintf (stderr, "%s\n", error.message);
+    LOG4CXX_ERROR(_logLdaq," Cannot ping to dbaccount :"<<error.message);
     return EXIT_FAILURE;
   }
 
   str = bson_as_json (&reply, NULL);
-  printf ("%s\n", str);
-  /*
-    insert = BCON_NEW ("hello", BCON_UTF8 ("switzerland"));
-
-    if (!mongoc_collection_insert_one (collection, insert, NULL, NULL, &error)) {
-    fprintf (stderr, "%s\n", error.message);
-    }
-
-    bson_destroy (insert);
-  */
+  LOG4CXX_INFO(_logLdaq," Ping to "<<dbaccount<<" => "<<std::string(str));
   bson_destroy (&reply);
   bson_destroy (command);
   bson_free (str);
+  return retval;
 
 }
 void lydaq::monitorSupervisor::initialise(zdaq::fsmmessage* m)
@@ -131,184 +163,154 @@ void lydaq::monitorSupervisor::initialise(zdaq::fsmmessage* m)
   
   if (m->content().isMember("dbaccount"))
     { 
-      _dbaccount=m->content()["dbaccount"].asString();
-      this->parameters()["dbaccount"]=m->content()["dbaccount"];
+        this->parameters()["dbaccount"]=m->content()["dbaccount"];
+    }
+  if (this->parameters().isMember("dbaccount"))
+    {
+      _dbaccount=this->parameters()["dbaccount"].asString();
+      int32_t ier=this->connectDb(_dbaccount);
+	
     }
   else
-    _dbaccount=this->parameters()["dbaccount"].asString();
+    LOG4CXX_ERROR(_logLdaq," dbaccount not set. Nothing initialised ");
 
-  this->connectDb(_dbaccount);
-
-  if (m->content().isMember("streams"))
-    { 
-      this->parameters()["streams"]=m->content()["streams"];
-    }
- 
-  if (this->parameters().isMember("streams"))
-    {
-      this->clear();
-      _context=new zmq::context_t(1);
-      
-      const Json::Value& streams = this->parameters()["streams"];
-      Json::Value array_keys;
-      for (Json::ValueConstIterator it = streams.begin(); it != streams.end(); ++it)
-	{
-	  const Json::Value& book = *it;
-	  std::cout<<"Registering "<<(*it).asString()<<std::endl;
-
-	  lydaq::monitorItem* item=new  lydaq::monitorItem((*it).asString(),(*_context));
-	  _items.push_back(item);
-	  array_keys.append((*it).asString());
-
-	}
-    }
   
 }
-void lydaq::monitorSupervisor::openSqlite(std::string dbname)
-{
- char *zErrMsg = 0;
- int rc;
-   std::string sql;
-   _dbname=dbname;
-   /* Open database */
-   rc = sqlite3_open(_dbname.c_str(), &_db);
-   
-   if( rc ) {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(_db));
-      return;
-   } else {
-      fprintf(stdout, "Opened database successfully\n");
-   }
-
-   /* Create SQL statement */
-   sql = "CREATE TABLE RESULTS (ID INTEGER PRIMARY KEY     AUTOINCREMENT,"\
-     "HARDWARE           TEXT    NOT NULL,"\
-     "LOCATION           TEXT NOT NULL,"\
-     "CTIME              INT     NOT NULL,"\
-     "STATUS             TEXT NOT NULL );";
-
-   /* Execute SQL statement */
-   rc = sqlite3_exec(_db, sql.c_str(), sqliteCallback, 0, &zErrMsg);
-   
-   if( rc != SQLITE_OK ){
-   fprintf(stderr, "SQL error: %s\n", zErrMsg);
-      sqlite3_free(zErrMsg);
-   } else {
-      fprintf(stdout, "Table created successfully\n");
-   }
-   sqlite3_close(_db);
-}
-void lydaq::monitorSupervisor::start(zdaq::fsmmessage* m)
-{
-   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  _running=true;
-  g_d.create_thread(boost::bind(&lydaq::monitorSupervisor::poll,this));
-}
-
-void lydaq::monitorSupervisor::stop(zdaq::fsmmessage* m)
-{
-  _running=false;
-  g_d.join_all();
-}
-void lydaq::monitorSupervisor::destroy(zdaq::fsmmessage* m)
-{
-  _running=false;
-  this->clear();
-}
-void lydaq::monitorSupervisor::poll()
-{
-  char *zErrMsg = 0;
-  int rc;
-  //Initialise pollitems
-  _nItems= _items.size();
- 
-  for (int i=0;i<_nItems;i++)
-    {
-      //memset(&_pollitems[i],0,sizeof(zmq::pollitem_t));
-      _pollitems[i]=_items[i]->item();
-      /*
-      _pollitems[i].socket=_items[i]->socket();
-      _pollitems[i].fd=0;
-      _pollitems[i].events=ZMQ_POLLIN;
-      _pollitems[i].revents=0;
-      */
-    }
-  // Loop
-  std::vector<std::string> strs;
-  LOG4CXX_INFO(_logLdaq," Polling started: "<<_nItems);
-    while (_running)
-    {
-      LOG4CXX_DEBUG(_logLdaq," Polling loop: "<<_nItems);
-
-      rc=zmq::poll (&_pollitems [0], _nItems, 3000);
-
-      LOG4CXX_DEBUG(_logLdaq," Polling results: "<<rc);
-      if (rc==0) continue;
-      for (uint16_t i=0;i<_nItems;i++)
-        if (_pollitems[i].revents & ZMQ_POLLIN) {
-
-
-	  std::string address = s_recv (_items[i]->socket());
-
-	  // split address hardware@location@time
-	  strs.clear();
-	  boost::split(strs,address, boost::is_any_of("@"));
-	  //  Read message contents
-	  zmq::message_t message;
-	  _items[i]->socket().recv(&message);
-	  //std::cout<<"Message size is "<<message.size()<<std::endl;
-	  //char buffer[65536];
-
-
-	  std::string contents ;
-	  contents.clear();
-	  contents.assign((char*) message.data(),message.size());
-
-	  _items[i]->processData(address,contents);
-	  
-	  time_t tr;
-	  sscanf(strs[2].c_str(),"%lld",(long long *) &tr);
-	  //printf("Message receive :\n \t Hardware: %s \n \t Location %s \n \t Time: %lld \n %s \n",strs[0].c_str(),strs[1].c_str(),(long long) tr,contents.c_str());
-	  // Fill DB
-	  if (_dbname.length()>0)
-	    {
-	      rc = sqlite3_open(_dbname.c_str(), &_db);
-		  
-	      if( rc ) {
-		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(_db));
-		return;
-	      }
-	      // else {
-	      // 	fprintf(stdout, "Opened database successfully\n");
-	      // }
-
-	      std::stringstream sql;   
-	      /* Create SQL statement */
-	      sql <<"INSERT INTO RESULTS (HARDWARE,LOCATION,CTIME,STATUS) " \
-		"VALUES ('"<<strs[0]<<"','"<<strs[1]<<"',"<<tr<<",'"<<contents<<"');"; 
-	      /* Execute SQL statement */
-	      rc = sqlite3_exec(_db, sql.str().c_str(), sqliteCallback, 0, &zErrMsg);
-	      if( rc != SQLITE_OK ){
-		fprintf(stderr, "SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);
-	      }
-	      // else {
-	      // 	fprintf(stdout, "Records created successfully\n");
-	      // }
-
-	      sqlite3_close(_db);
-	    }
-
-	}
-
-    }
-    
-}
-
 void lydaq::monitorSupervisor::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   //  LOG4CXX_INFO(_logLdaq," Trig ext setting called ");
 
+  Json::Value array_keys;
+
+  for (auto x:_items)
+    {
+       Json::Value rc;
+      
+       rc["VALUE"]=x->status();
+       rc["HARDWARE"]=x->hardware();
+       rc["LOCATION"]=x->location();
+       rc["TIME"]=(uint32_t) x->time();
+       array_keys.append(rc);
+
+    }
+  response["STATUS"]=array_keys;
+} 
+void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logLdaq," Registering item status ");
+
+  std::string location=request.get("location","");
+  std::string host=request.get("host","");
+  std::string hardware=request.get("hardware","");
+  uint32_t webport=atol(request.get("webport","0").c_str());
+  uint32_t pubport=atol(request.get("pubport","0").c_str());
+  std::string state=request.get("state","");
+  if (location.length()==0 || hardware.length()==0 || host.length()==0 || state.length()==0 || webport==0|| pubport==0)
+    {
+      LOG4CXX_ERROR(_logLdaq," Missing item infos ");
+      response["STATUS"]="FAILED";
+      return;
+    }
+
+  // Now query the item in the DB and find the last one
+  mongoc_collection_t *colitems = mongoc_client_get_collection (_client,_dbname,"items");
+  std::stringstream sal("");
+  sal<<"{\"location\":\""<<location<<"\""
+     <<",\"host\":\""<<host<<"\""
+     <<",\"hardware\":\""<<hardware<<"\""
+     <<",\"webport\":"<<webport
+     <<",\"pubport\":"<<pubport<<"}";
+  bson_t* queryitems=bson_new_from_json ((const uint8_t *)sal.str().c_str(), -1, &error);
+  mongoc_cursor_t *citem = mongoc_collection_find_with_opts (colitems, queryitems, NULL, NULL);
+  const bson_t *docitems;
+  Json::Value vcitem,vclast;
+  time_t tlast=0;
+  while (mongoc_cursor_next (citem, &docitems))
+      {
+	char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
+	printf ("\t ===>\n");
+	Json::Reader readera;
+	bool parsinga =reader.parse(stritem,vcitem);
+	std::cout<<vcitem["time"].asUInt()<<":"<<vcitem["host"]<<":"<<vcitem["state"]<<std::endl;
+	if (vcitem["time"].asUInt()>tlast)
+	  {tlast=vcitem["time"].asUInt();vclast=vcitem;}
+	bson_free(stritem);
+      }
+   bson_destroy(queryitems);
+   mongoc_cursor_destroy(citem);
+  if (tlast!=0)
+    {
+      if (vclast["state"].asString().compare(state)==0)
+	{
+	  LOG4CXX_ERROR(_logLdaq," Already registered "<<vcitem);
+	  response["STATUS"]="ALREADYDONE";
+	  return;
+	}
+      // Update
+      std::stringstream sal("");
+      sal<<"{\"_id\":{\"$in\":"<<vclast["_id"]<<"}}";
+      bson_t* querya=bson_new_from_json ((const uint8_t *)sal.str().c_str(), -1, &error);
+      bson_t *update = BCON_NEW ("$set",
+                      "{",
+                      "state",
+		      BCON_UTF8 (state.c_str()),
+		      "time",
+		      BCON_INT32 (time(0)),
+                      "}");
+
+      if (!mongoc_collection_update_one (
+					 colitems, query, update, NULL, NULL, &error)) {
+	fprintf (stderr, "%s\n", error.message);
+	if (querya)
+	  bson_destroy (querya);
+	if (update)
+	  bson_destroy (update);
+	LOG4CXX_ERROR(_logLdaq," Update failed "<<error.message);
+	response["STATUS"]="UPDATEFAILED";
+	return;
+
+      }
+      if (querya)
+	bson_destroy (querya);
+      if (update)
+	bson_destroy (update);
+      mongoc_collection_destroy (colitems);
+      response["STATUS"]="DONE";
+      return;
+    }
+  else
+    {
+      vcitem["time"]=time(0);
+      vcitem["state"]=state;
+      vcitem["location"]=location;
+      vcitem["hardware"]=hardware;
+      vcitem["host"]=host;
+      vcitem["webport"]=webport;
+      vcitem["pubport"]=pubport;
+      Json::FastWriter fastWriter;
+      std::string scont= fastWriter.write(vcitem);
+      
+      bson_t      *doc;
+      char        *string;
+      doc = bson_new_from_json ((const uint8_t *)scont.c_str(), -1, &error);
+      if (!doc) {
+	LOG4CXX_ERROR(_logLdaq,"Cannot create doc "<<error.message);
+	response["STATUS"]="CANNOTPARSE";
+	return;
+      }
+      if (!mongoc_collection_insert_one (colitems, doc, NULL, NULL, &error)) {
+	LOG4CXX_ERROR(_logLdaq,"Cannot insert doc "<<error.message);
+	response["STATUS"]="CANNOTINSERT";
+	return;
+      }
+      bson_destroy (doc);
+      mongoc_collection_destroy (colitems);
+      response["VALUE"]=vcitem;
+      response["STATUS"]="DONE";
+      return;
+    }
+
+  
   Json::Value array_keys;
 
   for (auto x:_items)
