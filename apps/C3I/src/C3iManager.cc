@@ -70,7 +70,7 @@ lydaq::C3iManager::C3iManager(std::string name) : zdaq::baseApplication(name),_c
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Service "<<name<<" is starting on "<<atoi(wp));
 
       
-    _fsm->start(atoi(wp));
+      _fsm->start(atoi(wp));
     }
     
   
@@ -107,7 +107,7 @@ void lydaq::C3iManager::c_startacq(Mongoose::Request &request, Mongoose::JsonRes
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"STARTACQ CMD called ");
 
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STARTACQ);
     }
@@ -117,7 +117,7 @@ void lydaq::C3iManager::c_startacq(Mongoose::Request &request, Mongoose::JsonRes
 void lydaq::C3iManager::c_stopacq(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"STOPACQ CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STOPACQ);
     }
@@ -127,7 +127,7 @@ void lydaq::C3iManager::c_stopacq(Mongoose::Request &request, Mongoose::JsonResp
 void lydaq::C3iManager::c_reset(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"RESET CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::RESET);
     }
@@ -149,7 +149,7 @@ void lydaq::C3iManager::c_storesc(Mongoose::Request &request, Mongoose::JsonResp
 void lydaq::C3iManager::c_loadsc(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC);
     }
@@ -158,7 +158,7 @@ void lydaq::C3iManager::c_loadsc(Mongoose::Request &request, Mongoose::JsonRespo
 void lydaq::C3iManager::c_close(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CLOSE CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::CLOSE);
     }
@@ -168,7 +168,7 @@ void lydaq::C3iManager::c_close(Mongoose::Request &request, Mongoose::JsonRespon
 void lydaq::C3iManager::c_readsc(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"READSC CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::READSC);
     }
@@ -178,7 +178,7 @@ void lydaq::C3iManager::c_readsc(Mongoose::Request &request, Mongoose::JsonRespo
 void lydaq::C3iManager::c_lastabcid(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LASTABCID);
     }
@@ -188,7 +188,7 @@ void lydaq::C3iManager::c_lastabcid(Mongoose::Request &request, Mongoose::JsonRe
 void lydaq::C3iManager::c_lastgtc(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"LOADSC CMD called ");
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LASTGTC);
     }
@@ -218,7 +218,7 @@ void lydaq::C3iManager::c_pulse(Mongoose::Request &request, Mongoose::JsonRespon
 
   
   uint32_t b0=atol(request.get("value","0").c_str());
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Pulse  "<<x.second->hostTo()<<" "<<x.second->portTo()<<" "<<lydaq::MpiMessage::command::PULSE<<" "<<b0);
       this->sendParameter(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::PULSE,b0);
@@ -284,126 +284,126 @@ void lydaq::C3iManager::c_downloadDB(Mongoose::Request &request, Mongoose::JsonR
   std::string dbstate=request.get("state","NONE");
   uint32_t version=atol(request.get("version","0").c_str());
   Json::Value jTDC=this->parameters()["c3i"];
-   if (jTDC.isMember("db"))
-     {
-       Json::Value jTDCdb=jTDC["db"];
-       _hca->clear();
+  if (jTDC.isMember("db"))
+    {
+      Json::Value jTDCdb=jTDC["db"];
+      _hca->clear();
 
-       if (jTDCdb["mode"].asString().compare("mongo")!=0)
-	 _hca->parseDb(dbstate,jTDCdb["mode"].asString());
-       else
-	 _hca->parseMongoDb(dbstate,version);
+      if (jTDCdb["mode"].asString().compare("mongo")!=0)
+	_hca->parseDb(dbstate,jTDCdb["mode"].asString());
+      else
+	_hca->parseMongoDb(dbstate,version);
 
 	 
-     }
+    }
   response["DBSTATE"]=dbstate;
 }
 
 void lydaq::C3iManager::initialise(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"****** CMD: "<<m->command());
-//  std::cout<<"m= "<<m->command()<<std::endl<<m->content()<<std::endl;
+  //  std::cout<<"m= "<<m->command()<<std::endl<<m->content()<<std::endl;
  
   Json::Value jtype=this->parameters()["type"];
   _type=jtype.asInt();
   printf ("_type =%d\n",_type); 
 
-   // Need a C3I tag
-   if (m->content().isMember("c3i"))
-     {
-     printf ("found c3i/n");
-       this->parameters()["c3i"]=m->content()["c3i"];
-     }
-   if (!this->parameters().isMember("c3i"))
-     {
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No c3i tag found ");
-       return;
-     }
-   // Now create the Message handler
-   if (_mpi==NULL)
-     _mpi= new lydaq::c3i::MpiInterface();
-   _mpi->initialise();
+  // Need a C3I tag
+  if (m->content().isMember("c3i"))
+    {
+      printf ("found c3i/n");
+      this->parameters()["c3i"]=m->content()["c3i"];
+    }
+  if (!this->parameters().isMember("c3i"))
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No c3i tag found ");
+      return;
+    }
+  // Now create the Message handler
+  if (_mpi==NULL)
+    _mpi= new lydaq::c3i::MpiInterface();
+  _mpi->initialise();
 
    
-   Json::Value jC3I=this->parameters()["c3i"];
-   //_msh =new lydaq::MpiMessageHandler("/dev/shm");
-   if (!jC3I.isMember("network"))
-     {
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No c3i:network tag found ");
-       return;
-     }
-   // Scan the network
-   std::map<uint32_t,std::string> diflist=mpi::MpiMessageHandler::scanNetwork(jC3I["network"].asString());
-   // Download the configuration
-   if (_hca==NULL)
-     {
-       std::cout<< "Create config acccess"<<std::endl;
-       _hca=new lydaq::HR2ConfigAccess();
-       _hca->clear();
-     }
-   std::cout<< " jC3I "<<jC3I<<std::endl;
-   if (jC3I.isMember("json"))
-     {
-       Json::Value jC3Ijson=jC3I["json"];
-       if (jC3Ijson.isMember("file"))
-	 {
-	   _hca->parseJsonFile(jC3Ijson["file"].asString());
-	 }
-       else
-	 if (jC3Ijson.isMember("url"))
-	   {
-	     _hca->parseJsonUrl(jC3Ijson["url"].asString());
-	   }
-     }
-    if (jC3I.isMember("db"))
-     {
-              Json::Value jC3Idb=jC3I["db"];
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jC3Idb["state"].asString()<<jC3Idb["mode"].asString());
+  Json::Value jC3I=this->parameters()["c3i"];
+  //_msh =new lydaq::MpiMessageHandler("/dev/shm");
+  if (!jC3I.isMember("network"))
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No c3i:network tag found ");
+      return;
+    }
+  // Scan the network
+  std::map<uint32_t,std::string> diflist=mpi::MpiMessageHandler::scanNetwork(jC3I["network"].asString());
+  // Download the configuration
+  if (_hca==NULL)
+    {
+      std::cout<< "Create config acccess"<<std::endl;
+      _hca=new lydaq::HR2ConfigAccess();
+      _hca->clear();
+    }
+  std::cout<< " jC3I "<<jC3I<<std::endl;
+  if (jC3I.isMember("json"))
+    {
+      Json::Value jC3Ijson=jC3I["json"];
+      if (jC3Ijson.isMember("file"))
+	{
+	  _hca->parseJsonFile(jC3Ijson["file"].asString());
+	}
+      else
+	if (jC3Ijson.isMember("url"))
+	  {
+	    _hca->parseJsonUrl(jC3Ijson["url"].asString());
+	  }
+    }
+  if (jC3I.isMember("db"))
+    {
+      Json::Value jC3Idb=jC3I["db"];
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<"Parsing:"<<jC3Idb["state"].asString()<<jC3Idb["mode"].asString());
 
               
-	if (jC3Idb["mode"].asString().compare("mongo")!=0)	
-	  _hca->parseDb(jC3Idb["state"].asString(),jC3Idb["mode"].asString());
-	else
-	  _hca->parseMongoDb(jC3Idb["state"].asString(),jC3Idb["version"].asUInt());
+      if (jC3Idb["mode"].asString().compare("mongo")!=0)	
+	_hca->parseDb(jC3Idb["state"].asString(),jC3Idb["mode"].asString());
+      else
+	_hca->parseMongoDb(jC3Idb["state"].asString(),jC3Idb["version"].asUInt());
       
-     }
-   if (_hca->asicMap().size()==0)
-     {
-        LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
-       return;
-     }
-   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_hca->asicMap().size() );
-   // Initialise the network
-   std::vector<uint32_t> vint;
-   vint.clear();
-   for (auto x:_hca->asicMap())
-     {
-       uint32_t eip= ((x.first)>>32)&0XFFFFFFFF;
-       std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
-       if (idif==diflist.end()) continue;
-       if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
+    }
+  if (_hca->asicMap().size()==0)
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No ASIC found in the configuration ");
+      return;
+    }
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"ASIC found in the configuration "<<_hca->asicMap().size() );
+  // Initialise the network
+  std::vector<uint32_t> vint;
+  vint.clear();
+  for (auto x:_hca->asicMap())
+    {
+      uint32_t eip= ((x.first)>>32)&0XFFFFFFFF;
+      std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
+      if (idif==diflist.end()) continue;
+      if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
 
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New C3I found in db "<<std::hex<<eip<<std::dec);
-       vint.push_back(eip);
-       lydaq::C3iMpi* _c3i=new lydaq::C3iMpi(eip);
-       // REGISTER
-       _mpi->addRegister(idif->second,lydaq::c3i::MpiInterface::PORT::REGISTER);
-       _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::REGISTER,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New C3I found in db "<<std::hex<<eip<<std::dec);
+      vint.push_back(eip);
+      lydaq::C3iMpi* _c3i=new lydaq::C3iMpi(eip);
+      // REGISTER
+      _mpi->addRegister(idif->second,lydaq::c3i::MpiInterface::PORT::REGISTER);
+      _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::REGISTER,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
        
-	 // DATA
-       _mpi->addDataTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::DATA);
-       _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::DATA,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
+      // DATA
+      _mpi->addDataTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::DATA);
+      _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::DATA,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
 
-       //   SLC
-       _mpi->addDataTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::SLC);
-       _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::SLC,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
+      //   SLC
+      _mpi->addDataTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::SLC);
+      _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::SLC,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
 
-       _vC3i.push_back(_c3i);
+      _vC3i.push_back(_c3i);
 
        
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
-     }
-   //std::string network=
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
+    }
+  //std::string network=
   // Connect to the event builder
   if (_context==NULL)
     _context= new zmq::context_t(1);
@@ -415,12 +415,12 @@ void lydaq::C3iManager::initialise(zdaq::fsmmessage* m)
   if (!this->parameters().isMember("publish"))
     {
       
-       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No publish tag found ");
-       return;
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No publish tag found ");
+      return;
     }
   for (auto x:_vC3i)
     x->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
-    //x->connect(_context,this->parameters()["publish"].asString());
+  //x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All C3i sockets
   _mpi->listen();
@@ -428,7 +428,7 @@ void lydaq::C3iManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
-void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
+void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,uint32_t* reply)
 {
   uint8_t b[0x4000];
   for (auto x:_vC3i)
@@ -438,7 +438,7 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
       uint8_t* rep=x->answer(tr%255);
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<adr<<" Trame "<<tr<<" Command "<<command<<" "<<rep[0]<<" C "<<rep[4]);
       int cnt=0;
-      while (rep[4]!=command )
+      while (rep[4]!=lydaq::c3i::MpiMessage::ACKNOWLEDGE )
 	{
 	  usleep(1000);
 	  cnt++;
@@ -448,6 +448,13 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
 	      return;
 	    }
 	}
+      if (reply!=0)
+	{
+	  memcpy(reply,&rep[7),sizeof(uint32-t));
+	  return;
+	}
+
+      // Dump returned buffer
       memcpy(b,rep,0x4000);
       uint16_t* _sBuf= (uint16_t*) &b[1];
       uint16_t length=ntohs(_sBuf[0]); // Header
@@ -456,7 +463,7 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command)
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
       
       fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-      if (slc) x->setSlcStatus(command);
+      
       for (int i=4;i<length-1;i++)
 	{
 	  fprintf(stderr,"%.2x ",(b[i]));
@@ -479,15 +486,15 @@ void lydaq::C3iManager::writeRegister(std::string host,uint32_t port,uint16_t& a
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(len);
-  _msg->ptr()[4]=WRITEREG;
+  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::WRITEREG;
   memcpy(&(_msg->ptr()[5]),&address,2);
   memcpy(&(_msg->ptr()[7]),&value,4);
   
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
-  this->processReply(adr,tr,WRITEREG);
+  this->processReply(adr,tr,lydaq::c3i::MpiMessage::command::WRITEREG,0);
 }
-void lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t address)
+uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t address)
 {
   uint16_t len=16;
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
@@ -496,11 +503,13 @@ void lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t add
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(len);
-  _msg->ptr()[4]=READREG;
+  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::READREG;
   memcpy(&(_msg->ptr()[5]),&address,2);
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
-  this->processReply(adr,tr,READREG);
+  uint32_t rep=0;
+  this->processReply(adr,tr,lydaq::c3i::MpiMessage::command::READREG,&rep);
+  return rep;
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
@@ -512,54 +521,45 @@ void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* 
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
   _msg->ptr()[0]='(';
   sp[0]=htons(115);
-  _msg->ptr()[4]=lydaq::MpiMessage::command::STORESC;
+  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::SLC;
   memcpy(&(_msg->ptr()[5]),slc,109);
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
 
-  this->processReply(adr,tr,(uint8_t) lydaq::MpiMessage::command::STORESC);
-
-  // store send message
-#undef DUMPSC
-#ifdef DUMPSC
-  fprintf(stderr,"\n Slow Control \n==> ");
-  for (int i=0;i<109;i++)
-    {
-      fprintf(stderr,"%.2x ",(slc[i]));
-      
-      if (i%16==15)
-	{
-	  fprintf(stderr,"\n==> ");
-	}
-    }
-  fprintf(stderr,"\n");
-#endif
+  this->processReply(adr,tr,(uint8_t) lydaq::c3i::MpiMessage::command::SLC,0);
 }
 void lydaq::C3iManager::configureHR2()
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" COnfigure the chips ");
 
-   // Now loop on slowcontrol socket
+  // Turn On SLC Mode
+    for (auto x:_mpi->controlSockets())
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,1);
 
+  // Now loop on slowcontrol socket
+
+  for (auto x:_mpi->slcSockets())
+    {
+      _hca->prepareSlowControl(x.second->hostTo());
+      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+    }
+  
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
+  for (auto x:_mpi->controlSockets())
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,2);
+
+  // Turn off SLC
 
   for (auto x:_mpi->controlSockets())
-    {
+    this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,0);
 
-      
-      _hca->prepareSlowControl(x.second->hostTo());
-
-      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
-       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
-       this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::LOADSC,true);
-
-    }
 
 }
 void lydaq::C3iManager::configure(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
 
-   // Now loop on slowcontrol socket
+  // Now loop on slowcontrol socket
 
 
   this->configureHR2();
@@ -605,11 +605,11 @@ void lydaq::C3iManager::setGain(uint16_t gain)
 
 void lydaq::C3iManager::setMask(uint32_t level,uint64_t mask)
 {
-LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<mask<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
-	it->second.setMASK(level,mask);
+      it->second.setMASK(level,mask);
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
@@ -620,7 +620,7 @@ LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::h
 }
 void lydaq::C3iManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t val)
 {
-LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<channel<<std::dec);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<level<<" "<<std::hex<<channel<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       
@@ -644,23 +644,26 @@ void lydaq::C3iManager::start(zdaq::fsmmessage* m)
 
   // Clear buffers
   for (auto x:_vC3i)
-     {
-       x->clear();
-     }
+    {
+      x->clear();
+    }
 
   // Turn run type on
-    for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
-      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STARTACQ);
+      // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::Register::ACQ_CTRL,1);
     }
 }
 void lydaq::C3iManager::stop(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
- for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->controlSockets())
     {
-      this->sendCommand(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::command::STOPACQ);
+      // Automatic FSM (bit 1 a 0) , disabled (Bit 0 a 0)
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::MpiMessage::Register::ACQ_CTRL,0);
+
     }
   ::sleep(2);
 
