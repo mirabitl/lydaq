@@ -67,6 +67,11 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("INITIALISE", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+                
+        if ("C3ISERVER" in self.appMap.keys()):
+            for x in self.appMap["C3ISERVER"]:
+                s = json.loads(x.sendTransition("INITIALISE", m))
+                r["C3ISERVER_%d" % x.appInstance] = s
         # Old DIF Fw
         if ("DIFMANAGER" in self.appMap.keys()):
             for x in self.appMap["DIFMANAGER"]:
@@ -95,6 +100,10 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("CONFIGURE", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+        if ("C3ISERVER" in self.appMap.keys()):
+            for x in self.appMap["C3ISERVER"]:
+                s = json.loads(x.sendTransition("CONFIGURE", m))
+                r["C3ISERVER_%d" % x.appInstance] = s
         #Old DIF Firmware
         if ("CCCSERVER" in self.appMap.keys()):
             json.loads(self.appMap['CCCSERVER'][0].sendCommand("CCCRESET", {}))
@@ -128,6 +137,10 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("STOP", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+        if ("C3ISERVER" in self.appMap.keys()):
+            for x in self.appMap["C3ISERVER"]:
+                s = json.loads(x.sendTransition("STOP", m))
+                r["C3ISERVER_%d" % x.appInstance] = s
         #Old DIF fw
         if ("CCCSERVER" in self.appMap.keys()):
             s=json.loads(self.appMap['CCCSERVER'][0].sendTransition("STOP", m))
@@ -159,6 +172,10 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("DESTROY", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+        if ("C3ISERVER" in self.appMap.keys()):
+            for x in self.appMap["C3ISERVER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["C3ISERVER_%d" % x.appInstance] = s
         #old DIF Fw
         if ("DIFMANAGER" in self.appMap.keys()):
             for x in self.appMap["DIFMANAGER"]:
@@ -197,6 +214,10 @@ class combRC(lydaqrc.lydaqControl):
             for x in self.appMap["GRICSERVER"]:
                 s = json.loads(x.sendTransition("START", m))
                 r["GRICSERVER_%d" % x.appInstance] = s
+        if ("C3ISERVER" in self.appMap.keys()):
+            for x in self.appMap["C3ISERVER"]:
+                s = json.loads(x.sendTransition("START", m))
+                r["C3ISERVER_%d" % x.appInstance] = s
         if ("MDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("RESET", m))
             s = json.loads(self.appMap['MDCCSERVER']
@@ -250,6 +271,18 @@ class combRC(lydaqrc.lydaqControl):
                 if (mr['status'] != "FAILED"):
                     rep["%s_%d" % (s.host, s.infos['instance'])
                         ] = mr["answer"]["GRICSTATUS"]
+                else:
+                    rep["%s_%d" % (s.host, s.infos['instance'])] = mr
+
+                    #rep["%s_%d" % (s.host, s.infos['instance'])] = r
+        for k, v in self.appMap.items():
+            if (k != "C3ISERVER" ):
+                continue
+            for s in v:
+                mr = json.loads(s.sendCommand("STATUS", {}))
+                if (mr['status'] != "FAILED"):
+                    rep["%s_%d" % (s.host, s.infos['instance'])
+                        ] = mr["answer"]["C3ISTATUS"]
                 else:
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
 
