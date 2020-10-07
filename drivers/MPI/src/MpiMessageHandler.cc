@@ -23,7 +23,7 @@
 
 #include <err.h>
 
-using namespace lydaq;
+using namespace mpi;
 
 #undef DEBUGBUF
 #define LINELENGTH 8
@@ -44,7 +44,7 @@ std::string lmexec(const char* cmd) {
 
 
 
-std::map<uint32_t,std::string> lydaq::MpiMessageHandler::scanNetwork(std::string base)
+std::map<uint32_t,std::string> mpi::MpiMessageHandler::scanNetwork(std::string base)
 {
   std::map<uint32_t,std::string> m;
   std::stringstream ss;
@@ -93,17 +93,17 @@ std::map<uint32_t,std::string> lydaq::MpiMessageHandler::scanNetwork(std::string
 }
 
 
-lydaq::MpiMessageHandler::MpiMessageHandler(std::string directory) : _storeDir(directory),_npacket(0)
+mpi::MpiMessageHandler::MpiMessageHandler(std::string directory) : _storeDir(directory),_npacket(0)
 {
   _sockMap.clear();
 
 }
 
-void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (mpi::MpiException)
+void mpi::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (mpi::MpiException)
 {
   // build id
 
-  uint64_t id=( (uint64_t) lydaq::MpiMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
+  uint64_t id=( (uint64_t) mpi::MpiMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
   LOG4CXX_DEBUG(_logFeb,"Message received from "<<socket->hostTo()<<":"<<socket->portTo()<<" =>"<<std::hex<<id<<std::dec);
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
 
@@ -196,16 +196,16 @@ void lydaq::MpiMessageHandler::processMessage(NL::Socket* socket) //throw (mpi::
   p.first=0;
   return;
 }
-void lydaq::MpiMessageHandler::removeSocket(NL::Socket* socket)
+void mpi::MpiMessageHandler::removeSocket(NL::Socket* socket)
 {
-  uint64_t id=((uint64_t) lydaq::MpiMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
+  uint64_t id=((uint64_t) mpi::MpiMessageHandler::convertIP(socket->hostTo())<<32)|socket->portTo();
   std::map<uint64_t, ptrBuf>::iterator itsock=_sockMap.find(id);
   if (itsock==_sockMap.end()) return;
   delete itsock->second.second;
   _sockMap.erase(itsock);
 }
 
-uint32_t lydaq::MpiMessageHandler::convertIP(std::string hname)
+uint32_t mpi::MpiMessageHandler::convertIP(std::string hname)
 {
   struct hostent *he;
   struct in_addr **addr_list;
@@ -228,7 +228,7 @@ uint32_t lydaq::MpiMessageHandler::convertIP(std::string hname)
   in_addr_t ls1=inet_addr(ip);
   return (uint32_t) ls1;
 }
-void lydaq::MpiMessageHandler::addHandler(uint64_t id,MPIFunctor f)
+void mpi::MpiMessageHandler::addHandler(uint64_t id,MPIFunctor f)
 {
   std::pair<uint64_t,MPIFunctor> p(id,f);
   _handlers.insert(p);

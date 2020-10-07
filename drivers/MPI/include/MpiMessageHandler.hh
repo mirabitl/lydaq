@@ -11,7 +11,7 @@
 typedef std::pair<uint32_t,unsigned char*> ptrBuf;
 typedef boost::function<void (uint64_t,uint16_t,char*)> MPIFunctor;
 
-namespace lydaq
+namespace mpi
 {
 class MpiMessageHandler : public mpi::MessageHandler
   {

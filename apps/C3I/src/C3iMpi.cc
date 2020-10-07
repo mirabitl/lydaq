@@ -276,7 +276,7 @@ void lydaq::C3iMpi::purgeBuffer()
   uint16_t* _sBuf= (uint16_t*) &_buf[1];
   uint16_t length=ntohs(_sBuf[0]); // Header
   uint8_t transaction=_buf[3];
-  sBuf=(uint16_t*) &_buf[4];
+  _sBuf=(uint16_t*) &_buf[4];
   uint16_t address=_sBuf[0];
   uint32_t* lBuf=(uint32_t*) &_sBuf[1];
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<

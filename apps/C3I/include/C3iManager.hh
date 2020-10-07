@@ -22,24 +22,17 @@ public:
   ~C3iManager(){;}
 
   void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_startacq(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_stopacq(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_reset(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_storesc(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_loadsc(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_readsc(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_lastabcid(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_lastgtc(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setthresholds(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setpagain(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_setchannelmask(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_close(Mongoose::Request &request, Mongoose::JsonResponse &response);
-  void c_pulse(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_readreg(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_writereg(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void initialise(zdaq::fsmmessage* m);
-  void sendCommand(std::string host,uint32_t port,uint8_t command,bool slc=false);
-  void sendParameter(std::string host,uint32_t port,uint8_t command,uint8_t par);
+  void writeRegister(std::string host,uint32_t port,uint16_t address,uint32_t value);
+  uint32_t readRegister(std::string host,uint32_t port,uint16_t address);
   void sendSlowControl(std::string host,uint32_t port,uint8_t* slc);
   void configureHR2();
   void configure(zdaq::fsmmessage* m);
@@ -51,7 +44,7 @@ public:
   void stop(zdaq::fsmmessage* m);
   void destroy(zdaq::fsmmessage* m);
 
-  void processReply(uint32_t adr,uint32_t tr,uint8_t command,bool slc=false);
+  void processReply(uint32_t adr,uint32_t tr,uint8_t command,uint32_t* rep);
 
 private:
   lydaq::HR2ConfigAccess* _hca;
@@ -59,6 +52,7 @@ private:
   lydaq::c3i::MpiMessage* _msg;
 
   std::vector<lydaq::C3iMpi*> _vC3i;
+  std::map<uint32_t,lydaq::C3iMpi*> _mC3i;
 
   zdaq::fsmweb* _fsm;
   uint32_t _run,_type;

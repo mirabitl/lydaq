@@ -48,4 +48,5 @@ else:
 	plist.append('Dif/SConscript')
 
     SConscript('Gric/SConscript')
+    SConscript('C3I/SConscript')	
     SConscript(plist)

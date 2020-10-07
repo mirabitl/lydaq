@@ -1,5 +1,5 @@
 #include "MpiInterface.hh"
-using namespace lytdc;
+using namespace mpi;
 #include <unistd.h>
 #include <sys/dir.h>  
 #include <sys/param.h>  
@@ -54,10 +54,10 @@ void lydaq::c3i::MpiInterface::initialise()
    // Initialise the network
    if (_group!=NULL) delete _group;
    _group=new NL::SocketGroup();
-   _onRead= new lytdc::OnRead(_msh);
-  _onClientDisconnect= new lytdc::OnClientDisconnect();
-  _onDisconnect= new lytdc::OnDisconnect(_msh);
-  _onAccept=new lytdc::OnAccept(_msh);
+   _onRead= new mpi::OnRead(_msh);
+  _onClientDisconnect= new mpi::OnClientDisconnect();
+  _onDisconnect= new mpi::OnDisconnect(_msh);
+  _onAccept=new mpi::OnAccept(_msh);
   _group->setCmdOnRead(_onRead);
   _group->setCmdOnAccept(_onAccept);
   _group->setCmdOnDisconnect(_onClientDisconnect);
