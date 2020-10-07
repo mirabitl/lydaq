@@ -55,6 +55,7 @@ lydaq::C3iManager::C3iManager(std::string name) : zdaq::baseApplication(name),_c
   _fsm->addCommand("READREG",boost::bind(&lydaq::C3iManager::c_readreg,this,_1,_2));
   _fsm->addCommand("WRITEREG",boost::bind(&lydaq::C3iManager::c_writereg,this,_1,_2));
 
+  _fsm->addCommand("READBME",boost::bind(&lydaq::C3iManager::c_readbme,this,_1,_2));
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
   char* wp=getenv("WEBPORT");
@@ -107,6 +108,27 @@ void lydaq::C3iManager::c_reset(Mongoose::Request &request, Mongoose::JsonRespon
       this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::ACQ_RST,0);
     }
   response["STATUS"]="DONE"; 
+}
+
+void lydaq::C3iManager::c_readbme(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"RESET CMD called ");
+  Json::Value r;
+  for (auto x:_mpi->controlSockets())
+    {
+      r["CAL1"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL1);
+      r["CAL2"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL2);
+      r["CAL3"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL3);
+      r["CAL4"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL4);
+      r["CAL5"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL5);
+      r["CAL6"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL6);
+      r["CAL7"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL7);
+      r["CAL8"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_CAL8);
+      r["HUM"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_HUM);
+      r["PRES"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_PRES);
+      r["TEMP"]=this->readRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::BME_TEMP);
+    }
+  response["STATUS"]=r; 
 }
 
 

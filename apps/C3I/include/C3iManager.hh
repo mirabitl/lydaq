@@ -30,6 +30,7 @@ public:
   void c_downloadDB(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_readreg(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void c_writereg(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_readbme(Mongoose::Request &request, Mongoose::JsonResponse &response);
   void initialise(zdaq::fsmmessage* m);
   void writeRegister(std::string host,uint32_t port,uint16_t address,uint32_t value);
   uint32_t readRegister(std::string host,uint32_t port,uint16_t address);
