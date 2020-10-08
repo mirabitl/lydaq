@@ -12,6 +12,8 @@ if (Arm):
            'DIF/SConscript',
            'PMR/SConscript',
            'FebCms/SConscript',
+           'Gric/SConscript',
+           'C3I/SConscript',
            'Genesys/SConscript',
            'Mdcc/SConscript',
            'MdccEcal/SConscript',
@@ -34,6 +36,8 @@ else:
            'PMR/SConscript',
            'DIF/SConscript',
            'FebCms/SConscript',
+           'Gric/SConscript',
+           'C3I/SConscript',
            'Genesys/SConscript',
            'Mdcc/SConscript',
            'MdccEcal/SConscript',
@@ -47,6 +51,4 @@ else:
         plist.append('Control/SConscript')
 	plist.append('Dif/SConscript')
 
-    SConscript('Gric/SConscript')
-    SConscript('C3I/SConscript')	
     SConscript(plist)
