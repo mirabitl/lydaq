@@ -10,6 +10,13 @@
 #include <iostream>
 #include "ReadoutLogger.hh"
 #define MAX_BUFFER_LEN 0x4000
+#define  C3I_FMT_HEADER 0
+#define  C3I_FMT_LEN 1
+#define  C3I_FMT_TRANS 3
+#define  C3I_FMT_CMD 4
+#define  C3I_FMT_PAYLOAD 6
+
+
 namespace lydaq
 {
   namespace c3i

@@ -399,7 +399,7 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,ui
       uint8_t* rep=x->answer(tr%255);
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<adr<<" Trame "<<tr<<" Command "<<command<<" "<<rep[0]<<" C "<<rep[4]);
       int cnt=0;
-      while (rep[4]!=lydaq::c3i::MpiMessage::ACKNOWLEDGE )
+      while (rep[C3I_FMT_CMD]!=lydaq::c3i::MpiMessage::ACKNOWLEDGE )
 	{
 	  usleep(1000);
 	  cnt++;
@@ -409,23 +409,23 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,ui
 	      return;
 	    }
 	}
-      if (reply!=0)
+      if (reply!=0) //special case for read register
 	{
-	  memcpy(reply,&rep[7],sizeof(uint32_t));
+	  memcpy(reply,&rep[C3I_FMT_PAYLOAD+2],sizeof(uint32_t));
 	  return;
 	}
 
       // Dump returned buffer
       memcpy(b,rep,0x4000);
-      uint16_t* _sBuf= (uint16_t*) &b[1];
+      uint16_t* _sBuf= (uint16_t*) &b[C3I_FMT_LEN];
       uint16_t length=ntohs(_sBuf[0]); // Header
-      uint8_t trame=b[3];
-      uint8_t command=b[4];
+      uint8_t trame=b[C3I_FMT_TRANS];
+      uint8_t command=b[C3I_FMT_CMD];
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
       
       fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
       
-      for (int i=4;i<length-1;i++)
+      for (int i=C3I_FMT_PAYLOAD;i<length-1;i++)
 	{
 	  fprintf(stderr,"%.2x ",(b[i]));
 	  
@@ -444,13 +444,13 @@ void lydaq::C3iManager::writeRegister(std::string host,uint32_t port,uint16_t ad
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
   _msg->setAddress(( (uint64_t) adr<<32)|port);
   _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
-  _msg->ptr()[0]='(';
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C3I_FMT_LEN]);
+  _msg->ptr()[C3I_FMT_HEADER]='(';
   sp[0]=htons(len);
-  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::WRITEREG;
+  _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::WRITEREG;
   uint16_t radr=address;uint32_t rval=value;
-  memcpy(&(_msg->ptr()[5]),&radr,2);
-  memcpy(&(_msg->ptr()[7]),&rval,4);
+  memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),&radr,2);
+  memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD+2]),&rval,4);
   
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
@@ -462,12 +462,12 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
   _msg->setAddress(( (uint64_t) adr<<32)|port);
   _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
-  _msg->ptr()[0]='(';
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C3I_FMT_LEN]);
+  _msg->ptr()[C3I_FMT_HEADER]='(';
   sp[0]=htons(len);
-  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::READREG;
+  _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::READREG;
   uint16_t radr=address;
-  memcpy(&(_msg->ptr()[5]),&radr,2);
+  memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),&radr,2);
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
   uint32_t rep=0;
@@ -476,16 +476,16 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
-  uint16_t len=115;
+  uint16_t len=116;
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
   _msg->setAddress(( (uint64_t) adr<<32)|port);
   
   _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[1]);
-  _msg->ptr()[0]='(';
-  sp[0]=htons(115);
-  _msg->ptr()[4]=lydaq::c3i::MpiMessage::command::SLC;
-  memcpy(&(_msg->ptr()[5]),slc,109);
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C3I_FMT_LEN]);
+  _msg->ptr()[C3I_FMT_HEADER]='(';
+  sp[0]=htons(len);
+  _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::SLC;
+  memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),slc,109);
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
 
@@ -547,7 +547,7 @@ void lydaq::C3iManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32
       if (idif!=0)
 	{
 	  uint32_t ip=(((it->first)>>32&0XFFFFFFFF)>>16)&0xFFFF;
-	  printf("%x %x %x \n",(it->first>>32),ip,idif);
+	  printf("%lx %x %x \n",(it->first>>32),ip,idif);
 	  if (idif!=ip) continue;
 	}
       it->second.setB0(b0);

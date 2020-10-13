@@ -110,7 +110,7 @@ uint32_t  lydaq::c3i::MpiInterface::sendMessage(MpiMessage* m)
   // Send the Buffer
   try
   {
-    m->ptr()[3]=(_transaction++)%255;
+    m->ptr()[C3I_FMT_TRANS]=(_transaction++)%255;
     
     itsock->second->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
 
@@ -122,7 +122,7 @@ uint32_t  lydaq::c3i::MpiInterface::sendMessage(MpiMessage* m)
   {
     throw e.msg();
   }
-  printf("Buffer sent %d bytes at Address %lx on port %d \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
+  printf("Buffer sent %d bytes at Address %lx on port %ld \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
 
 }
 
