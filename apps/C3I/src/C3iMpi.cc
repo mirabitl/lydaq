@@ -20,6 +20,7 @@
 #include <bitset>
 #include <boost/format.hpp>
 #include <arpa/inet.h>
+#include "MpiInterface.hh"
 #define CHBYTES 6
 using namespace lydaq;
 using namespace zdaq;
@@ -35,7 +36,7 @@ int16_t lydaq::C3iMpi::checkBuffer(uint8_t* b,uint32_t maxidx)
      uint16_t* _sBuf= (uint16_t*) &b[1];
      elen=ntohs(_sBuf[0]); // Header
 
-     //LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header ELEN "<<elen<<" MAXID "<<maxidx);
+     LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header ELEN "<<elen<<" MAXID "<<maxidx);
      //fprintf(stderr,"d %d %c\n",__LINE__,b[elen-1]);
      if (elen>maxidx)
        {
@@ -69,7 +70,10 @@ lydaq::C3iMpi::C3iMpi(uint32_t adr) : _ntrg(0),_adr(adr),_dsData(NULL),_triggerI
   this->clear();
   _id=(adr>>16)&0xFFFF; // Last byte of IP address
   _detid=C3I_VERSION&0xFF;
-  memset(_buf,0,MBSIZE);
+  memset(_bufReg,0,MBSIZE);
+  memset(_bufSlc,0,MBSIZE);
+  memset(_bufData,0,MBSIZE);
+  _buf=0;
   _idx=0;
 
 }
@@ -111,9 +115,9 @@ void lydaq::C3iMpi::clear()
 
 
 
-bool lydaq::C3iMpi::isHardrocData(){ return (_buf[4]==0xDA);}
-bool lydaq::C3iMpi::isSlcData(){ return (_buf[4]==0xDB);}
-bool lydaq::C3iMpi::isRegisterData(){ return (_buf[4]==0xDD);}
+bool lydaq::C3iMpi::isHardrocData(){ return ((_ipid&0xFFFF)==lydaq::c3i::MpiInterface::PORT::DATA);}
+bool lydaq::C3iMpi::isSlcData(){ return ((_ipid&0xFFFF)==lydaq::c3i::MpiInterface::PORT::SLC);}
+bool lydaq::C3iMpi::isRegisterData(){ return ((_ipid&0xFFFF)==lydaq::c3i::MpiInterface::PORT::REGISTER);}
 
 bool lydaq::C3iMpi::processPacket()
 {
@@ -178,31 +182,40 @@ bool lydaq::C3iMpi::processPacket()
 void lydaq::C3iMpi::processBuffer(uint64_t id,uint16_t l,char* bb)
 {
 
-
+  _ipid=id;
+  if (this->isHardrocData()) _buf=_bufData;
+  if (this->isSlcData()) _buf=_bufSlc;
+  if (this->isRegisterData()) _buf=_bufReg;
+  if (_buf==0)
+    {
+    LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" Unknown socket "<<id);
+    return;
+    }
   LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"Entering procesBuffer "<<std::hex<<id<<std::dec<<" Length "<<l);
   //if (l>16) getchar();
   //memcpy(_b,bb,l);
   memcpy(&_buf[_idx],bb,l);
   _idx+=l;
-#define DEBUGPACKETN
+#define DEBUGPACKET
 #ifdef DEBUGPACKET
-  printf("DEBUG PACKET IDX %d L %d \n",_idx,l);
+  fprintf(stderr,"DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
      for (int i=0;i<_idx;i++)
        {
-	 printf("%.2x ",((uint8_t) _buf[i]));
+	 fprintf(stderr,"%.2x ",((uint8_t) _buf[i]));
 	 
 	 if (i%16==15)
 	   {
-	     printf("\n");
+	     fprintf(stderr,"\n");
 	   }
        }
-     printf("\n END PACKET \n");
+     fprintf(stderr,"\n END PACKET \n");
 #endif
      uint32_t a=l;
  checkpoint:
      int16_t tag = checkBuffer(_buf,_idx);
      if (tag>0)
        {
+	 _ipid=id;
 	 bool ok=processPacket();
 	 if (tag<_idx)
 	   {
@@ -273,10 +286,10 @@ void lydaq::C3iMpi::purgeBuffer()
 
  void lydaq::C3iMpi::processRegisterData()
 {
-  uint16_t* _sBuf= (uint16_t*) &_buf[1];
+  uint16_t* _sBuf= (uint16_t*) &_buf[C3I_FMT_LEN];
   uint16_t length=ntohs(_sBuf[0]); // Header
-  uint8_t transaction=_buf[3];
-  _sBuf=(uint16_t*) &_buf[4];
+  uint8_t transaction=_buf[C3I_FMT_TRANS];
+  _sBuf=(uint16_t*) &_buf[C3I_FMT_PAYLOAD];
   uint16_t address=_sBuf[0];
   uint32_t* lBuf=(uint32_t*) &_sBuf[1];
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<

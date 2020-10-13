@@ -59,6 +59,7 @@ namespace lydaq
       void addSlcTransfer(std::string address,uint16_t port);
       void listen();
       uint32_t sendMessage(MpiMessage* wmsg);
+      uint32_t sendSlcMessage(MpiMessage* wmsg);
       void registerDataHandler(std::string  address,uint16_t port,MPIFunctor f);
       uint32_t transaction() {return _transaction;}
       inline std::map<uint64_t,NL::Socket*>& controlSockets(){ return _vsCtrl;}

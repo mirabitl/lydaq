@@ -356,7 +356,7 @@ void lydaq::C3iManager::initialise(zdaq::fsmmessage* m)
       _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::DATA,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
 
       //   SLC
-      _mpi->addDataTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::SLC);
+      _mpi->addSlcTransfer(idif->second,lydaq::c3i::MpiInterface::PORT::SLC);
       _mpi->registerDataHandler(idif->second,lydaq::c3i::MpiInterface::PORT::SLC,boost::bind(&lydaq::C3iMpi::processBuffer, _c3i,_1,_2,_3));
 
       _vC3i.push_back(_c3i);
@@ -406,13 +406,8 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,ui
 	  if (cnt>1000)
 	    {
 	      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" no return after "<<cnt);
-	      return;
+	      break;
 	    }
-	}
-      if (reply!=0) //special case for read register
-	{
-	  memcpy(reply,&rep[C3I_FMT_PAYLOAD+2],sizeof(uint32_t));
-	  return;
 	}
 
       // Dump returned buffer
@@ -435,8 +430,16 @@ void lydaq::C3iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,ui
 	    }
 	}
       fprintf(stderr,"\n<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
+        if (reply!=0) //special case for read register
+    {
+      memcpy(reply,&rep[C3I_FMT_PAYLOAD+2],sizeof(uint32_t));
+      return;
+    }
+
       break;
     }
+
 }
 void lydaq::C3iManager::writeRegister(std::string host,uint32_t port,uint16_t address,uint32_t value)
 {
@@ -448,13 +451,13 @@ void lydaq::C3iManager::writeRegister(std::string host,uint32_t port,uint16_t ad
   _msg->ptr()[C3I_FMT_HEADER]='(';
   sp[0]=htons(len);
   _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::WRITEREG;
-  uint16_t radr=address;uint32_t rval=value;
+  uint16_t radr=htons(address);uint32_t rval=htonl(value);
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),&radr,2);
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD+2]),&rval,4);
   
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
-  this->processReply(adr,tr,lydaq::c3i::MpiMessage::command::WRITEREG,0);
+  this->processReply(adr,0,lydaq::c3i::MpiMessage::command::WRITEREG,0);
 }
 uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t address)
 {
@@ -466,12 +469,12 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
   _msg->ptr()[C3I_FMT_HEADER]='(';
   sp[0]=htons(len);
   _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::READREG;
-  uint16_t radr=address;
+  uint16_t radr=htons(address);
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),&radr,2);
   _msg->ptr()[len-1]=')';    
   uint32_t tr=_mpi->sendMessage(_msg);
   uint32_t rep=0;
-  this->processReply(adr,tr,lydaq::c3i::MpiMessage::command::READREG,&rep);
+  this->processReply(adr,0,lydaq::c3i::MpiMessage::command::READREG,&rep);
   return rep;
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
@@ -486,10 +489,11 @@ void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* 
   sp[0]=htons(len);
   _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::SLC;
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),slc,109);
-  _msg->ptr()[len-1]=')';    
-  uint32_t tr=_mpi->sendMessage(_msg);
-
-  this->processReply(adr,tr,(uint8_t) lydaq::c3i::MpiMessage::command::SLC,0);
+  _msg->ptr()[len-1]=')';
+  fprintf(stderr,"Sending slow control %s %d  %x \n",host.c_str(),port,slc);
+  uint32_t tr=_mpi->sendSlcMessage(_msg);
+  fprintf(stderr,"processing reply slow control \n");
+  this->processReply(adr,0,(uint8_t) lydaq::c3i::MpiMessage::command::SLC,0);
 }
 void lydaq::C3iManager::configureHR2()
 {
@@ -500,7 +504,7 @@ void lydaq::C3iManager::configureHR2()
       this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,1);
 
   // Now loop on slowcontrol socket
-
+    fprintf(stderr,"Loop on socket for Sending slow control \n");
   for (auto x:_mpi->slcSockets())
     {
       _hca->prepareSlowControl(x.second->hostTo());

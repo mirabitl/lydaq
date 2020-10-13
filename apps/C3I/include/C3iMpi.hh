@@ -49,10 +49,12 @@ public:
   void autoRegister(zmq::context_t* c,Json::Value config,std::string appname,std::string portname);
 private:
   uint32_t _adr,_idx,_chlines;
-  uint8_t _buf[MBSIZE];
-  
+  uint8_t _bufReg[MBSIZE];
+  uint8_t _bufSlc[MBSIZE];
+  uint8_t _bufData[MBSIZE];
+  uint8_t* _buf;
 
-  uint64_t _lastABCID;
+  uint64_t _lastABCID,_ipid;
   uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
   uint32_t _slcStatus;
   uint32_t _nProcessed;

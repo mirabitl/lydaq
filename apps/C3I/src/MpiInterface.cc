@@ -125,6 +125,31 @@ uint32_t  lydaq::c3i::MpiInterface::sendMessage(MpiMessage* m)
   printf("Buffer sent %d bytes at Address %lx on port %ld \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
 
 }
+uint32_t  lydaq::c3i::MpiInterface::sendSlcMessage(MpiMessage* m)
+{
+  std::map<uint64_t,NL::Socket*>::iterator itsock=_vsSlc.find(m->address());
+  if (itsock == _vsCtrl.end())
+    {
+      printf("Address %lx on port %ld not found \n", (m->address()>>32)&0xFFFFFFFF,m->address()&0XFFFF);
+    }
+  // Send the Buffer
+  try
+  {
+    m->ptr()[C3I_FMT_TRANS]=(_transaction++)%255;
+    
+    itsock->second->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
+
+    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
+
+    return (_transaction-1);
+  }
+  catch (NL::Exception e)
+  {
+    throw e.msg();
+  }
+  printf("Buffer sent %d bytes at Address %lx on port %ld \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
+
+}
 
 void lydaq::c3i::MpiInterface::registerDataHandler(std::string  address,uint16_t port,MPIFunctor f)
 {
