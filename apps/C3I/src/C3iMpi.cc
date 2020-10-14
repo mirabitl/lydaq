@@ -162,7 +162,7 @@ bool lydaq::C3iMpi::processPacket()
      if (isRegisterData())
        {
 	 // Write Event
-	 LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Processing Command answer"<<_event<<" GTC "<<_lastGTC<<" ABCID "<<_lastABCID<<" Lines "<<_chlines<<" ID "<<_id);
+	 LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Processing Register data");
 	 // To be done
 	 this->processRegisterData();
 	 
@@ -198,7 +198,7 @@ void lydaq::C3iMpi::processBuffer(uint64_t id,uint16_t l,char* bb)
   _idx+=l;
 #define DEBUGPACKET
 #ifdef DEBUGPACKET
-  fprintf(stderr,"DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
+  fprintf(stderr,"\n DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
      for (int i=0;i<_idx;i++)
        {
 	 fprintf(stderr,"%.2x ",((uint8_t) _buf[i]));
@@ -290,16 +290,18 @@ void lydaq::C3iMpi::purgeBuffer()
   uint16_t length=ntohs(_sBuf[0]); // Header
   uint8_t transaction=_buf[C3I_FMT_TRANS];
   _sBuf=(uint16_t*) &_buf[C3I_FMT_PAYLOAD];
-  uint16_t address=_sBuf[0];
+  uint16_t address=ntohs(_sBuf[0]);
   uint32_t* lBuf=(uint32_t*) &_sBuf[1];
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<
-	       std::hex<<(int) address<<":"<<(int) lBuf[0]<<std::dec
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_ipid<<" Command answer="<<
+	       std::hex<<(int) address<<":"<<(int) ntohl(lBuf[0])<<std::dec
 	       <<" length="<<length<<" trame id="<<(int) transaction<<" buffer length "<<_idx);
 
   memcpy(_answ[transaction%255],_buf,length);
 
+  #define DUMPREGREPN
+  #ifdef DUMPREGRE
   fprintf(stderr,"\n REGISTER RC ==> ");
-     for (int i=4;i<_idx-1;i++)
+     for (int i=0;i<_idx-1;i++)
        {
 	 fprintf(stderr,"%.2x ",(_buf[i]));
 	 
@@ -309,18 +311,18 @@ void lydaq::C3iMpi::purgeBuffer()
 	   }
        }
      fprintf(stderr,"\n");
-
+ #endif
 }
 void lydaq::C3iMpi::processSlcData()
 {
-  uint16_t* _sBuf= (uint16_t*) &_buf[1];
+  uint16_t* _sBuf= (uint16_t*) &_buf[C3I_FMT_LEN];
   uint16_t length=ntohs(_sBuf[0]); // Header
-  uint8_t transaction=_buf[3];
+  uint8_t transaction=_buf[C3I_FMT_TRANS];
 
   
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"SLC data answer="<<transaction<<" length="<<length);
-  fprintf(stderr,"\n==> ");
-     for (int i=4;i<_idx;i++)
+  fprintf(stderr,"\nSLC RC ==> ");
+     for (int i=0;i<_idx;i++)
        {
 	 fprintf(stderr,"%.2x ",(_buf[i]));
 	 
@@ -335,22 +337,23 @@ void lydaq::C3iMpi::processSlcData()
  void lydaq::C3iMpi::processEventData()
 {
 
-  uint16_t* _sBuf= (uint16_t*) &_buf[1];
+  uint16_t* _sBuf= (uint16_t*) &_buf[C3I_FMT_LEN];
   uint16_t length=ntohs(_sBuf[0]); // Header
-  uint16_t trame=_buf[3];
-  uint16_t command=_buf[4];
+  uint16_t trame=_buf[C3I_FMT_TRANS];
+  uint16_t command=_buf[C3I_FMT_CMD];
 
-  uint32_t* ib=(uint32_t*) &_buf[5];
+  uint32_t* idb=(uint32_t*) &_buf[C3I_FMT_PAYLOAD];
+  uint8_t* cdb=(uint8_t*) &_buf[C3I_FMT_PAYLOAD];
   
-  _lastGTC=((uint32_t) _buf[5] <<24)|((uint32_t) _buf[6] <<16)|((uint32_t) _buf[7] <<8)|((uint32_t) _buf[8]);
-  _lastABCID = ((uint64_t) _buf[9] <<48)|((uint64_t) _buf[10] <<32)|((uint64_t) _buf[11] <<24)|((uint64_t) _buf[12] <<16)|((uint64_t) _buf[13] <<8)|((uint64_t) _buf[14]);
-
+  _lastGTC=((uint32_t) cdb[0] <<24)|((uint32_t) cdb[1] <<16)|((uint32_t) cdb[2] <<8)|((uint32_t) cdb[3]);
+  _lastABCID = ((uint64_t) cdb[4] <<48)|((uint64_t) cdb[5] <<32)|((uint64_t) cdb[6] <<24)|((uint64_t) cdb[7] <<16)|((uint64_t) cdb[8] <<8)|((uint64_t) cdb[9]);
+  _lastBCID=((uint32_t) cdb[10] <<24)|((uint32_t) cdb[11] <<16)|((uint32_t) cdb[12] <<8)|((uint32_t) cdb[13]);
   LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
 
 #define DEBUGEVENTN
 #ifdef DEBUGEVENT  
   fprintf(stderr,"Length %d \n==> ",_idx);
-  for (int i=4;i<_idx;i++)
+  for (int i=C3I_FMT_PAYLOAD;i<_idx;i++)
        {
       fprintf(stderr,"%.2x ",(_buf[i]));
       

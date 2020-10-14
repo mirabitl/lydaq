@@ -475,7 +475,7 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
   uint32_t tr=_mpi->sendMessage(_msg);
   uint32_t rep=0;
   this->processReply(adr,0,lydaq::c3i::MpiMessage::command::READREG,&rep);
-  return rep;
+  return ntohl(rep);
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
@@ -490,9 +490,9 @@ void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* 
   _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::SLC;
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),slc,109);
   _msg->ptr()[len-1]=')';
-  fprintf(stderr,"Sending slow control %s %d  %x \n",host.c_str(),port,slc);
+  //fprintf(stderr,"Sending slow control %s %d  %x \n",host.c_str(),port,slc);
   uint32_t tr=_mpi->sendSlcMessage(_msg);
-  fprintf(stderr,"processing reply slow control \n");
+  //fprintf(stderr,"processing reply slow control \n");
   this->processReply(adr,0,(uint8_t) lydaq::c3i::MpiMessage::command::SLC,0);
 }
 void lydaq::C3iManager::configureHR2()

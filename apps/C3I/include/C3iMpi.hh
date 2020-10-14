@@ -55,7 +55,7 @@ private:
   uint8_t* _buf;
 
   uint64_t _lastABCID,_ipid;
-  uint32_t _lastGTC,_event,_detid,_id,_ntrg,_expectedLength;
+  uint32_t _lastGTC,_lastBCID,_event,_detid,_id,_ntrg,_expectedLength;
   uint32_t _slcStatus;
   uint32_t _nProcessed;
   zdaq::zmSender* _dsData;
