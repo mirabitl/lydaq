@@ -118,6 +118,10 @@ namespace lydaq
     public:
       registerHandler(std::string);
       virtual bool processPacket();
+      inline uint32_t slcStatus(){return _slcStatus;}
+      inline void setSlcStatus(uint32_t i){_slcStatus=i;}
+    private:
+      uint32_t _slcStatus;
     };
 
     // Gere la socket Slow control
