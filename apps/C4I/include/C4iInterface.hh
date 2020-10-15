@@ -10,11 +10,15 @@
 #include <iostream>
 #include "ReadoutLogger.hh"
 #define MAX_BUFFER_LEN 0x4000
+#include "zmSender.hh"
+#define C3I_VERSION 145
+#define MBSIZE 0x100000
 
 namespace lydaq
 {
   namespace c4i
   {
+    class board;
     class Message {
     public:
       enum Fmt {HEADER=0,LEN=1,TRANS=3,CMD=4,PAYLOAD=6};
@@ -28,13 +32,13 @@ namespace lydaq
 		 BME_HUM=0x48,BME_PRES=0x49,BME_TEMP=0x4A,
 		 CTEST_CTRL=0x50,VERSION=0xFF};
 
-      C4iMessage(): _address(0),_length(2) {;}
+      Message(): _address(0),_length(2) {;}
       inline uint64_t address(){return _address;}
       inline uint16_t length(){return _length;}
       inline uint8_t* ptr(){return _buf;}
       inline void setLength(uint16_t l){_length=l;}
       inline void setAddress(uint64_t a){_address=a;}
-      inline void setAddress(std::string address,uint16_t port){_address=( (uint64_t) c4i::C4iMessageHandler::convertIP(address)<<32)|port;}
+      inline void setAddress(std::string address,uint16_t port){_address=( (uint64_t) mpi::MpiMessageHandler::convertIP(address)<<32)|port;}
     private:
       uint64_t _address;
       uint16_t _length;
@@ -49,14 +53,14 @@ namespace lydaq
     {
     public:
       enum PORT { REGISTER=10002,SLC=10001,DATA=10003};
-      C4iInterface();
-      ~C4iInterface(){;}
+      Interface();
+      ~Interface(){;}
       void initialise();
       void addDevice(std::string address);
       void listen();
 
       inline std::map<std::string,c4i::board*>& boards(){ return _boards;}
-      inline c4i::board(std::string ip) {return _boards[ip];} 
+      inline c4i::board* getBoard(std::string ip) {return _boards[ip];} 
       void close();
     private:
       void dolisten();
@@ -87,6 +91,9 @@ namespace lydaq
       virtual bool processPacket()=0;
       NL::Socket* socket(){return _sock;}
       uint64_t id() {return _id;}
+      uint32_t ipid() {return (_id>>32)&0xFFFFFFFF;}
+      uint32_t sourceid() {return (ipid()>>16)&0XFFFF;}
+
       inline uint8_t* answer(uint8_t tr){return _answ[tr];}
       uint32_t transaction() {return _transaction;}
 
@@ -96,6 +103,7 @@ namespace lydaq
       uint8_t _buf[MBSIZE];
     private:
       uint64_t _id;
+      
       NL::Socket* _sock;
       // temporary buffer to collect reply
       uint8_t _b[0x1000000];
@@ -128,7 +136,7 @@ namespace lydaq
       virtual bool processPacket();
       inline void setTriggerId(uint8_t i) {_triggerId=i;}
 
-      inline uint32_t detectorId(){return _detid;}
+      inline uint32_t detectorId(){return _detId;}
       inline uint32_t difId(){return ((this->id()>>32)&0xFFFF);}
       inline uint64_t abcid(){return _lastABCID;}
       inline uint32_t gtc(){return _lastGTC;}
@@ -144,6 +152,7 @@ namespace lydaq
       uint32_t _nProcessed;
       zdaq::zmSender* _dsData;
       uint8_t _triggerId;
+      uint32_t _detId;
 
       
     };
@@ -154,7 +163,7 @@ namespace lydaq
     public:
       board(std::string ip);
       inline c4i::registerHandler* reg(){return _regh;}
-      inline c4i::slcHandler* slc(){return _slc;}
+      inline c4i::slcHandler* slc(){return _slch;}
       inline c4i::dataHandler* data(){return _datah;}
       inline std::string ipAddress(){return _ip;}
     private:
@@ -163,7 +172,7 @@ namespace lydaq
       c4i::slcHandler* _slch;
       c4i::dataHandler* _datah;
       
-    }
+    };
 
   };
 };

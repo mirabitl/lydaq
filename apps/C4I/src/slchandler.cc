@@ -20,7 +20,7 @@
 #include <bitset>
 #include <boost/format.hpp>
 #include <arpa/inet.h>
-#include "MpiInterface.hh"
+
 
 using namespace lydaq;
 
@@ -37,7 +37,7 @@ bool c4i::slcHandler::processPacket()
   uint8_t transaction=_buf[c4i::Message::Fmt::TRANS];
 
   
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"SLC data answer="<<transaction<<" length="<<length);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"SLC data answer="<<transaction<<" length="<<length);
   fprintf(stderr,"\nSLC RC ==> ");
      for (int i=0;i<_idx;i++)
        {

@@ -38,11 +38,11 @@ bool c4i::registerHandler::processPacket()
   _sBuf=(uint16_t*) &_buf[c4i::Message::Fmt::PAYLOAD];
   uint16_t address=ntohs(_sBuf[0]);
   uint32_t* lBuf=(uint32_t*) &_sBuf[1];
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_ipid<<" Command answer="<<
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<sourceid()<<" Command answer="<<
                std::hex<<(int) address<<":"<<(int) ntohl(lBuf[0])<<std::dec
                <<" length="<<length<<" trame id="<<(int) transaction<<" buffer length "<<_idx);
 
-  memcpy(_answ[transaction%255],_buf,length);
+  memcpy(answer(transaction%255),_buf,length);
 
 #define DUMPREGREPN
 #ifdef DUMPREGRE

@@ -20,7 +20,6 @@
 #include <bitset>
 #include <boost/format.hpp>
 #include <arpa/inet.h>
-#include "MpiInterface.hh"
 
 using namespace lydaq;
 
@@ -32,7 +31,7 @@ void c4i::dataHandler::connect(zmq::context_t* c,std::string dest)
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,_id);
+  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
   _dsData->connect(dest);
 }
 void c4i::dataHandler::clear()
@@ -53,7 +52,7 @@ void c4i::dataHandler::autoRegister(zmq::context_t* c,Json::Value config,std::st
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,_id);
+  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
   _dsData->autoDiscover(config,appname,portname);//
   //for (uint32_t i=0;i<_mStream.size();i++)
   //        ds->connect(_mStream[i]);
@@ -74,7 +73,7 @@ bool c4i::dataHandler::processPacket()
   _lastGTC=((uint32_t) cdb[0] <<24)|((uint32_t) cdb[1] <<16)|((uint32_t) cdb[2] <<8)|((uint32_t) cdb[3]);
   _lastABCID = ((uint64_t) cdb[4] <<48)|((uint64_t) cdb[5] <<32)|((uint64_t) cdb[6] <<24)|((uint64_t) cdb[7] <<16)|((uint64_t) cdb[8] <<8)|((uint64_t) cdb[9]);
   _lastBCID=((uint32_t) cdb[10] <<24)|((uint32_t) cdb[11] <<16)|((uint32_t) cdb[12] <<8)|((uint32_t) cdb[13]);
-  LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<_id<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
+  LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
 
 #define DEBUGEVENTN
 #ifdef DEBUGEVENT  
@@ -98,7 +97,7 @@ bool c4i::dataHandler::processPacket()
   itemp[1]=_lastGTC;
   ltemp[1]=_lastABCID;
   itemp[4]= _event;
-  itemp[5]=_adr;
+  itemp[5]=this->ipid();
   itemp[6]=length;
   uint32_t idx=28; // 4 x5 int + 1 int64
   uint32_t trbcid=0;
@@ -110,7 +109,7 @@ bool c4i::dataHandler::processPacket()
       memcpy((unsigned char*) _dsData->payload(),_buf,length);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       if (_event%100==0)
-        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<_id<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
+        LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
     }
   _event++;
 

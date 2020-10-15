@@ -40,7 +40,7 @@ void c4i::Interface::listen()
 
 }
 
-c4i::Interface::Interface() :  _group(NULL),_transaction(0)
+c4i::Interface::Interface() :  _group(NULL)
 {
   // Initialise NetLink
   NL::init();

@@ -55,7 +55,7 @@ uint32_t c4i::socketHandler::sendMessage(c4i::Message* m)
   // Send the Buffer
   try
   {
-    m->ptr()[C3I_FMT_TRANS]=(_transaction++)%255;
+    m->ptr()[c4i::Message::Fmt::TRANS]=(_transaction++)%255;
     
     _sock->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
 
@@ -129,7 +129,6 @@ void c4i::socketHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
      int16_t tag = checkBuffer(_buf,_idx);
      if (tag>0)
        {
-	 _ipid=id;
 	 bool ok=processPacket();
 	 if (tag<_idx)
 	   {
