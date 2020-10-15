@@ -479,7 +479,7 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
-  uint16_t len=116;
+  uint16_t len=109+3+C3I_FMT_PAYLOAD+1;
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
   _msg->setAddress(( (uint64_t) adr<<32)|port);
   
@@ -498,27 +498,37 @@ void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* 
 void lydaq::C3iManager::configureHR2()
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" COnfigure the chips ");
-
-  // Turn On SLC Mode
-    for (auto x:_mpi->controlSockets())
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,1);
-
-  // Now loop on slowcontrol socket
-    fprintf(stderr,"Loop on socket for Sending slow control \n");
-  for (auto x:_mpi->slcSockets())
-    {
-      _hca->prepareSlowControl(x.second->hostTo());
-      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
-    }
-  
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
-  for (auto x:_mpi->controlSockets())
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,2);
-
+  /*
   // Turn off SLC
 
   for (auto x:_mpi->controlSockets())
     this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,0);
+
+  // Turn On SLC Mode
+    for (auto x:_mpi->controlSockets())
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,1);
+  */
+  // Now loop on slowcontrol socket
+    fprintf(stderr,"Loop on socket for Sending slow control \n");
+  for (auto x:_mpi->slcSockets())
+    {
+      _hca->prepareSlowControl(x.second->hostTo(),true);
+      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+    }
+
+    // Turn off SLC
+  /*
+  for (auto x:_mpi->controlSockets())
+    this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,0);
+
+    for (auto x:_mpi->controlSockets())
+    this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_SIZE,109);
+
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
+  for (auto x:_mpi->controlSockets())
+      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,2);
+
+  ::usleep(100000);
 
   // Read SLC status
 
@@ -529,7 +539,11 @@ void lydaq::C3iManager::configureHR2()
       if (auto ic3=_mC3i.find(adr)!=_mC3i.end())
 	_mC3i[adr]->setSlcStatus(status);
     }
+  // Turn off SLC
 
+  for (auto x:_mpi->controlSockets())
+    this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c3i::MpiMessage::Register::SLC_CTRL,0);
+  */
 }
 void lydaq::C3iManager::configure(zdaq::fsmmessage* m)
 {
