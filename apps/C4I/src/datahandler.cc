@@ -112,5 +112,5 @@ bool c4i::dataHandler::processPacket()
         LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Publish  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
     }
   _event++;
-
+  return true;
 }

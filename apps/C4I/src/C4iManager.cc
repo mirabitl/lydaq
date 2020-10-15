@@ -94,7 +94,7 @@ void lydaq::C4iManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
       jt["triggers"]=x.second->data()->triggers();
       jl.append(jt);
     }
-  response["C4ISTATUS"]=jl;
+  response["C3ISTATUS"]=jl;
 }
 
 
@@ -343,7 +343,7 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
       if (idif==diflist.end()) continue;
       if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
       
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New C4I found in db "<<std::hex<<eip<<std::dec);
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New C4I found in db "<<std::hex<<eip<<std::dec<<" IP address "<<idif->second);
       vint.push_back(eip);
       _mpi->addDevice(idif->second);
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
@@ -406,8 +406,19 @@ void lydaq::C4iManager::configureHR2()
   // Read SLC status
   for (auto x:_mpi->boards())
     {
-      uint32_t status=x.second->reg()->readRegister(lydaq::c4i::Message::Register::SLC_STATUS);
+      uint32_t status=0,cnt=0;
+      while(!(status&1))
+	{status=x.second->reg()->readRegister(lydaq::c4i::Message::Register::SLC_STATUS);
+	  fprintf(stderr,"::::::::::::::: %x \n",status);
+	  usleep(1000);
+	  cnt++;
+	  if (cnt>1000)
+	    {
+	      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" DIFSTATUS NULL after 1 s ");
+	    break;
+	    }
 
+	}
       x.second->reg()->setSlcStatus(status);
     }
 

@@ -57,9 +57,15 @@ uint32_t c4i::registerHandler::readRegister(uint16_t address)
   _msg->ptr()[c4i::Message::Fmt::CMD]=lydaq::c4i::Message::command::READREG;
   uint16_t radr=htons(address);
   memcpy(&(_msg->ptr()[c4i::Message::Fmt::PAYLOAD]),&radr,2);
-  _msg->ptr()[len-1]=')';    
+  _msg->ptr()[len-1]=')';
+
+  // // For the moment the reply is in transaction 0
+  // // Clear it first, to be suppressed asap Xtof return the transaction #
+  // uint8_t* repa=this->answer(0);
+  // memset(repa,0,0x4000);  
   uint32_t tr=this->sendMessage(_msg);
   uint32_t rep=0;
+ fprintf(stderr,"Waiting PROCESSREPLY\n");
   this->processReply(0,&rep);
   return ntohl(rep);
 }
@@ -69,6 +75,11 @@ void c4i::registerHandler::processReply(uint32_t tr,uint32_t* reply)
   uint8_t b[0x4000];
   
   uint8_t* rep=this->answer(tr%255);
+  if (rep==NULL)
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" NULL ptr for answ "<<tr);
+
+    }
   int cnt=0;
   while (rep[c4i::Message::Fmt::CMD]!=lydaq::c4i::Message::ACKNOWLEDGE )
     {
@@ -88,6 +99,7 @@ void c4i::registerHandler::processReply(uint32_t tr,uint32_t* reply)
   uint8_t trame=b[c4i::Message::Fmt::TRANS];
   uint8_t command=b[c4i::Message::Fmt::CMD];
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
+  fflush(stdout);
   /*
   fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
   
@@ -120,12 +132,18 @@ bool c4i::registerHandler::processPacket()
   uint32_t* lBuf=(uint32_t*) &_sBuf[1];
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<sourceid()<<" Command answer="<<
                std::hex<<(int) address<<":"<<(int) ntohl(lBuf[0])<<std::dec
-               <<" length="<<length<<" trame id="<<(int) transaction<<" buffer length "<<_idx);
+               <<" length="<<length<<" trame id="<<(int) transaction<<" buffer length "<<_idx<<std::hex<<" address of transaction "<<answer(transaction%255)<<std::dec);
+  uint8_t* rep=this->answer(transaction%255);
+  if (rep==NULL)
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" NULL ptr for answ "<<transaction);
+      
+    }
+  else
+    memcpy(rep,_buf,length);
 
-  memcpy(answer(transaction%255),_buf,length);
-
-#define DUMPREGREPN
-#ifdef DUMPREGRE
+#define DUMPREGREP
+#ifdef DUMPREGREP
   fprintf(stderr,"\n REGISTER RC ==> ");
   for (int i=0;i<_idx-1;i++)
     {
@@ -138,4 +156,5 @@ bool c4i::registerHandler::processPacket()
     }
   fprintf(stderr,"\n");
 #endif
+  return true;
 }

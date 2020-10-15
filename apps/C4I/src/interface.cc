@@ -69,13 +69,22 @@ void c4i::Interface::initialise()
 }
 void c4i::Interface:: addDevice(std::string address)
 {
+  fprintf(stderr,"Creating Board at address %s  \n",address.c_str());
+
   c4i::board* b= new c4i::board(address);
+
+  fprintf(stderr,"Adding registeraccess socket  \n");
   _group->add(b->reg()->socket());
+  fprintf(stderr,"Adding slcaccess socket  \n");
   _group->add(b->slc()->socket());
+  fprintf(stderr,"Adding dataaccess socket  \n");
   _group->add(b->data()->socket());
 
+    fprintf(stderr,"Binding reg  \n");
   _msh->addHandler(b->reg()->id(),boost::bind(&c4i::socketHandler::processBuffer,b->reg(),_1,_2,_3));
+  fprintf(stderr,"Binding slc  \n");
   _msh->addHandler(b->slc()->id(),boost::bind(&c4i::socketHandler::processBuffer,b->slc(),_1,_2,_3));
+  fprintf(stderr,"Binding data  \n");
   _msh->addHandler(b->data()->id(),boost::bind(&c4i::socketHandler::processBuffer,b->data(),_1,_2,_3));
 		   
   std::pair<std::string, c4i::board*> p1(address,b);

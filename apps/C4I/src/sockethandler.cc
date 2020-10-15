@@ -56,6 +56,7 @@ uint32_t c4i::socketHandler::sendMessage(c4i::Message* m)
   try
   {
     m->ptr()[c4i::Message::Fmt::TRANS]=(_transaction++)%255;
+    _answ[_transaction-1][c4i::Message::Fmt::CMD]=0;
     
     _sock->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
 

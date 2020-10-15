@@ -92,8 +92,8 @@ namespace lydaq
       NL::Socket* socket(){return _sock;}
       uint64_t id() {return _id;}
       uint32_t ipid() {return (_id>>32)&0xFFFFFFFF;}
-      uint32_t sourceid() {return (ipid()>>16)&0XFFFF;}
-
+      //uint32_t sourceid() {return (ipid()>>16)&0XFFFF;}
+      uint32_t sourceid() {return ipid();}
       inline uint8_t* answer(uint8_t tr){return _answ[tr];}
       uint32_t transaction() {return _transaction;}
 
@@ -148,7 +148,7 @@ namespace lydaq
       inline void setTriggerId(uint8_t i) {_triggerId=i;}
 
       inline uint32_t detectorId(){return _detId;}
-      inline uint32_t difId(){return ((this->id()>>32)&0xFFFF);}
+      inline uint32_t difId(){return ((this->id()>>48)&0xFFFF);}
       inline uint64_t abcid(){return _lastABCID;}
       inline uint32_t gtc(){return _lastGTC;}
       inline uint32_t packets(){return _nProcessed;}

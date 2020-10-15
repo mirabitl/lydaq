@@ -34,6 +34,9 @@ void c4i::slcHandler::sendSlowControl(uint8_t* slc,uint16_t lenbytes)
   uint16_t hrlen=lenbytes;
   uint16_t cpl32bit=4-hrlen%4;
   uint16_t len=hrlen+cpl32bit+c4i::Message::Fmt::PAYLOAD+1;
+  // Hardcode dasn le firmware
+  hrlen=109;
+  len=118;
   _msg->setAddress(id());
   _msg->setLength(len);
   uint16_t* sp=(uint16_t*) &(_msg->ptr()[c4i::Message::Fmt::LEN]);
@@ -55,15 +58,15 @@ bool c4i::slcHandler::processPacket()
   
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"SLC data answer="<<transaction<<" length="<<length);
   fprintf(stderr,"\nSLC RC ==> ");
-     for (int i=0;i<_idx;i++)
-       {
-         fprintf(stderr,"%.2x ",(_buf[i]));
-         
-         if (i%16==15)
-           {
-             fprintf(stderr,"\n==> ");
-           }
-       }
-     fprintf(stderr,"\n");
-
+  for (int i=0;i<_idx;i++)
+    {
+      fprintf(stderr,"%.2x ",(_buf[i]));
+      
+      if (i%16==15)
+	{
+	  fprintf(stderr,"\n==> ");
+	}
+    }
+  fprintf(stderr,"\n");
+  return true;
 }

@@ -479,7 +479,11 @@ uint32_t lydaq::C3iManager::readRegister(std::string host,uint32_t port,uint16_t
 }
 void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
-  uint16_t len=109+3+C3I_FMT_PAYLOAD+1;
+   uint16_t hrlen=109;
+   uint16_t cpl32bit=4-hrlen%4;
+   uint16_t len=hrlen+cpl32bit+C3I_FMT_PAYLOAD+1;
+   len =118; /// Hard code dasn le firmware
+   //uint16_t len=109+3+C3I_FMT_PAYLOAD+1;
   uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
   _msg->setAddress(( (uint64_t) adr<<32)|port);
   
@@ -490,7 +494,8 @@ void lydaq::C3iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* 
   _msg->ptr()[C3I_FMT_CMD]=lydaq::c3i::MpiMessage::command::SLC;
   memcpy(&(_msg->ptr()[C3I_FMT_PAYLOAD]),slc,109);
   _msg->ptr()[len-1]=')';
-  //fprintf(stderr,"Sending slow control %s %d  %x \n",host.c_str(),port,slc);
+  fprintf(stderr,"Sending slow control %s %d  %d  bytes\n",host.c_str(),port,len);
+  
   uint32_t tr=_mpi->sendSlcMessage(_msg);
   //fprintf(stderr,"processing reply slow control \n");
   this->processReply(adr,0,(uint8_t) lydaq::c3i::MpiMessage::command::SLC,0);
