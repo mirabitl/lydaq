@@ -26,7 +26,23 @@ using namespace lydaq;
 
 c4i::slcHandler::slcHandler(std::string ip) : socketHandler(ip,c4i::Interface::PORT::SLC)
 {
-  
+  _msg=new c4i::Message();
+}
+
+void c4i::slcHandler::sendSlowControl(uint8_t* slc,uint16_t lenbytes)
+{
+  uint16_t hrlen=lenbytes;
+  uint16_t cpl32bit=4-hrlen%4;
+  uint16_t len=hrlen+cpl32bit+c4i::Message::Fmt::PAYLOAD+1;
+  _msg->setAddress(id());
+  _msg->setLength(len);
+  uint16_t* sp=(uint16_t*) &(_msg->ptr()[c4i::Message::Fmt::LEN]);
+  _msg->ptr()[c4i::Message::Fmt::HEADER]='(';
+  sp[0]=htons(len);
+  _msg->ptr()[c4i::Message::Fmt::CMD]=lydaq::c4i::Message::command::SLC;
+  memcpy(&(_msg->ptr()[c4i::Message::Fmt::PAYLOAD]),slc,hrlen);
+  _msg->ptr()[len-1]=')';
+  uint32_t tr=this->sendMessage(_msg);
 }
 
 

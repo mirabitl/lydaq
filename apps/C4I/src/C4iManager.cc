@@ -342,26 +342,10 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
       std::map<uint32_t,std::string>::iterator idif=diflist.find(eip);
       if (idif==diflist.end()) continue;
       if ( std::find(vint.begin(), vint.end(), eip) != vint.end() ) continue;
-
+      
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New C4I found in db "<<std::hex<<eip<<std::dec);
       vint.push_back(eip);
-      lydaq::C4iMpi* _c4i=new lydaq::C4iMpi(eip);
-      std::pair<uint32_t,lydaq::C4iMpi*> p(eip,_c4i);
-      // REGISTER
-      _mpi->addRegister(idif->second,lydaq::c4i::MpiInterface::PORT::REGISTER);
-      _mpi->registerDataHandler(idif->second,lydaq::c4i::MpiInterface::PORT::REGISTER,boost::bind(&lydaq::C4iMpi::processBuffer, _c4i,_1,_2,_3));
-       
-      // DATA
-      _mpi->addDataTransfer(idif->second,lydaq::c4i::MpiInterface::PORT::DATA);
-      _mpi->registerDataHandler(idif->second,lydaq::c4i::MpiInterface::PORT::DATA,boost::bind(&lydaq::C4iMpi::processBuffer, _c4i,_1,_2,_3));
-
-      //   SLC
-      _mpi->addSlcTransfer(idif->second,lydaq::c4i::MpiInterface::PORT::SLC);
-      _mpi->registerDataHandler(idif->second,lydaq::c4i::MpiInterface::PORT::SLC,boost::bind(&lydaq::C4iMpi::processBuffer, _c4i,_1,_2,_3));
-
-      _vC4i.push_back(_c4i);
-      _mC4i.insert(p);
-       
+      _mpi->addDevice(idif->second);
       LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<eip);
     }
   //std::string network=
@@ -379,8 +363,8 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
       LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No publish tag found ");
       return;
     }
-  for (auto x:_vC4i)
-    x->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
+  for (auto x:_mpi->boards())
+    x->data()->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
   //x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All C4i sockets
@@ -389,94 +373,6 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
-void lydaq::C4iManager::processReply(uint32_t adr,uint32_t tr,uint8_t command,uint32_t* reply)
-{
-  uint8_t b[0x4000];
-  for (auto x:_vC4i)
-    {
-      if (x->address()!=adr) continue;
-
-      uint8_t* rep=x->answer(tr%255);
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<adr<<" Trame "<<tr<<" Command "<<command<<" "<<rep[0]<<" C "<<rep[4]);
-      int cnt=0;
-      while (rep[C4I_FMT_CMD]!=lydaq::c4i::MpiMessage::ACKNOWLEDGE )
-	{
-	  usleep(1000);
-	  cnt++;
-	  if (cnt>1000)
-	    {
-	      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" no return after "<<cnt);
-	      break;
-	    }
-	}
-
-      // Dump returned buffer
-      memcpy(b,rep,0x4000);
-      uint16_t* _sBuf= (uint16_t*) &b[C4I_FMT_LEN];
-      uint16_t length=ntohs(_sBuf[0]); // Header
-      uint8_t trame=b[C4I_FMT_TRANS];
-      uint8_t command=b[C4I_FMT_CMD];
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" REPLY command ="<<(int) command<<" length="<<length<<" trame id="<<(int) trame);
-      
-      fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-      
-      for (int i=C4I_FMT_PAYLOAD;i<length-1;i++)
-	{
-	  fprintf(stderr,"%.2x ",(b[i]));
-	  
-	  if ((i-4)%16==15)
-	    {
-	      fprintf(stderr,"\n");
-	    }
-	}
-      fprintf(stderr,"\n<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-
-        if (reply!=0) //special case for read register
-    {
-      memcpy(reply,&rep[C4I_FMT_PAYLOAD+2],sizeof(uint32_t));
-      return;
-    }
-
-      break;
-    }
-
-}
-void lydaq::C4iManager::writeRegister(std::string host,uint32_t port,uint16_t address,uint32_t value)
-{
-  uint16_t len=16;
-  uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
-  _msg->setAddress(( (uint64_t) adr<<32)|port);
-  _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C4I_FMT_LEN]);
-  _msg->ptr()[C4I_FMT_HEADER]='(';
-  sp[0]=htons(len);
-  _msg->ptr()[C4I_FMT_CMD]=lydaq::c4i::MpiMessage::command::WRITEREG;
-  uint16_t radr=htons(address);uint32_t rval=htonl(value);
-  memcpy(&(_msg->ptr()[C4I_FMT_PAYLOAD]),&radr,2);
-  memcpy(&(_msg->ptr()[C4I_FMT_PAYLOAD+2]),&rval,4);
-  
-  _msg->ptr()[len-1]=')';    
-  uint32_t tr=_mpi->sendMessage(_msg);
-  this->processReply(adr,0,lydaq::c4i::MpiMessage::command::WRITEREG,0);
-}
-uint32_t lydaq::C4iManager::readRegister(std::string host,uint32_t port,uint16_t address)
-{
-  uint16_t len=16;
-  uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
-  _msg->setAddress(( (uint64_t) adr<<32)|port);
-  _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C4I_FMT_LEN]);
-  _msg->ptr()[C4I_FMT_HEADER]='(';
-  sp[0]=htons(len);
-  _msg->ptr()[C4I_FMT_CMD]=lydaq::c4i::MpiMessage::command::READREG;
-  uint16_t radr=htons(address);
-  memcpy(&(_msg->ptr()[C4I_FMT_PAYLOAD]),&radr,2);
-  _msg->ptr()[len-1]=')';    
-  uint32_t tr=_mpi->sendMessage(_msg);
-  uint32_t rep=0;
-  this->processReply(adr,0,lydaq::c4i::MpiMessage::command::READREG,&rep);
-  return ntohl(rep);
-}
 void lydaq::C4iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
 {
   uint16_t len=116;

@@ -118,10 +118,14 @@ namespace lydaq
     public:
       registerHandler(std::string);
       virtual bool processPacket();
+      void writeRegister(uint16_t address,uint32_t value);
+      uint32_t readRegister(uint16_t address);
+      void processReply(uint32_t tr,uint32_t* rep=0);
       inline uint32_t slcStatus(){return _slcStatus;}
       inline void setSlcStatus(uint32_t i){_slcStatus=i;}
     private:
       uint32_t _slcStatus;
+      c4i::Message* _msg;
     };
 
     // Gere la socket Slow control
@@ -130,6 +134,9 @@ namespace lydaq
     public:
       slcHandler(std::string);
       virtual bool processPacket();
+      void sendSlowControl(uint8_t* slc,uint16_t len_bytes=109);
+    private:
+      c4i::Message* _msg;
     };
 
     // gere la socket data et envoie les donnees a l'EVB
