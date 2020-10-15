@@ -71,7 +71,7 @@ lydaq::C4iManager::C4iManager(std::string name) : zdaq::baseApplication(name),_c
  
   // Initialise NetLink
 
-  _msg=new lydaq::c4i::Message();
+
 }
 void lydaq::C4iManager::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -83,15 +83,15 @@ void lydaq::C4iManager::c_status(Mongoose::Request &request, Mongoose::JsonRespo
     {
 
       Json::Value jt;
-      jt["detid"]=x->data()->detectorId();
+      jt["detid"]=x.second->data()->detectorId();
       std::stringstream sid;
-      sid<<std::hex<<x->datat()->difId()<<std::dec;
+      sid<<std::hex<<x.second->data()->difId()<<std::dec;
       jt["sourceid"]=sid.str();
-      jt["SLC"]=x->reg()->slcStatus();
-      jt["gtc"]=x->data()->gtc();
-      jt["abcid"]=(Json::Value::UInt64)x->data()->abcid();
-      jt["event"]=x->data()->event();
-      jt["triggers"]=x->data()->triggers();
+      jt["SLC"]=x.second->reg()->slcStatus();
+      jt["gtc"]=x.second->data()->gtc();
+      jt["abcid"]=(Json::Value::UInt64)x.second->data()->abcid();
+      jt["event"]=x.second->data()->event();
+      jt["triggers"]=x.second->data()->triggers();
       jl.append(jt);
     }
   response["C4ISTATUS"]=jl;
@@ -103,9 +103,9 @@ void lydaq::C4iManager::c_reset(Mongoose::Request &request, Mongoose::JsonRespon
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"RESET CMD called ");
   for (auto x:_mpi->boards())
     {
-      x->reg()->writeRegister(c4i::Message::Register::ACQ_RST,1);
+      x.second->reg()->writeRegister(c4i::Message::Register::ACQ_RST,1);
       ::usleep(1000);
-      x->reg()->writeRegister(c4i::Message::Register::ACQ_RST,0);
+      x.second->reg()->writeRegister(c4i::Message::Register::ACQ_RST,0);
     }
   response["STATUS"]="DONE"; 
 }
@@ -116,17 +116,17 @@ void lydaq::C4iManager::c_readbme(Mongoose::Request &request, Mongoose::JsonResp
   Json::Value r;
   for (auto x:_mpi->boards())
     {
-      r["CAL1"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL1);
-      r["CAL2"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL2);
-      r["CAL3"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL3);
-      r["CAL4"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL4);
-      r["CAL5"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL5);
-      r["CAL6"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL6);
-      r["CAL7"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL7);
-      r["CAL8"]=x->reg()->readRegister(c4i::Message::Register::BME_CAL8);
-      r["HUM"]=x->reg()->readRegister(c4i::Message::Register::BME_HUM);
-      r["PRES"]=x->reg()->readRegister(c4i::Message::Register::BME_PRES);
-      r["TEMP"]=x->reg()->readRegister(c4i::Message::Register::BME_TEMP);
+      r["CAL1"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL1);
+      r["CAL2"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL2);
+      r["CAL3"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL3);
+      r["CAL4"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL4);
+      r["CAL5"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL5);
+      r["CAL6"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL6);
+      r["CAL7"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL7);
+      r["CAL8"]=x.second->reg()->readRegister(c4i::Message::Register::BME_CAL8);
+      r["HUM"]=x.second->reg()->readRegister(c4i::Message::Register::BME_HUM);
+      r["PRES"]=x.second->reg()->readRegister(c4i::Message::Register::BME_PRES);
+      r["TEMP"]=x.second->reg()->readRegister(c4i::Message::Register::BME_TEMP);
     }
   response["STATUS"]=r; 
 }
@@ -159,9 +159,9 @@ void lydaq::C4iManager::c_readreg(Mongoose::Request &request, Mongoose::JsonResp
   Json::Value r;
   for (auto x:_mpi->boards())
     {    
-      uint32_t value=x->reg()->readRegister(adr);
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Read reg "<<x.second->hostTo()<<" "<<x.second->portTo()<<" Address "<<adr<<" Value "<<value);
-      r[x.second->hostTo()]=value;
+      uint32_t value=x.second->reg()->readRegister(adr);
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Read reg "<<x.second->ipAddress()<<" Address "<<adr<<" Value "<<value);
+      r[x.second->ipAddress()]=value;
     }
   
 
@@ -179,9 +179,9 @@ void lydaq::C4iManager::c_writereg(Mongoose::Request &request, Mongoose::JsonRes
   Json::Value r;
   for (auto x:_mpi->boards())
     {    
-      x->reg()->writeRegister(adr,val);
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Write reg "<<x.second->hostTo()<<" "<<x.second->portTo()<<" Address "<<adr<<" Value "<<val);
-      r[x.second->hostTo()]=val;
+      x.second->reg()->writeRegister(adr,val);
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Write reg "<<x.second->ipAddress()<<" Address "<<adr<<" Value "<<val);
+      r[x.second->ipAddress()]=val;
     }
   
 
@@ -364,7 +364,7 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
       return;
     }
   for (auto x:_mpi->boards())
-    x->data()->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
+    x.second->data()->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
   //x->connect(_context,this->parameters()["publish"].asString());
 
   // Listen All C4i sockets
@@ -373,57 +373,42 @@ void lydaq::C4iManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Init done  "); 
 }
 
-void lydaq::C4iManager::sendSlowControl(std::string host,uint32_t port,uint8_t* slc)
-{
-  uint16_t len=116;
-  uint32_t adr= mpi::MpiMessageHandler::convertIP(host);
-  _msg->setAddress(( (uint64_t) adr<<32)|port);
-  
-  _msg->setLength(len);
-  uint16_t* sp=(uint16_t*) &(_msg->ptr()[C4I_FMT_LEN]);
-  _msg->ptr()[C4I_FMT_HEADER]='(';
-  sp[0]=htons(len);
-  _msg->ptr()[C4I_FMT_CMD]=lydaq::c4i::MpiMessage::command::SLC;
-  memcpy(&(_msg->ptr()[C4I_FMT_PAYLOAD]),slc,109);
-  _msg->ptr()[len-1]=')';
-  //fprintf(stderr,"Sending slow control %s %d  %x \n",host.c_str(),port,slc);
-  uint32_t tr=_mpi->sendSlcMessage(_msg);
-  //fprintf(stderr,"processing reply slow control \n");
-  this->processReply(adr,0,(uint8_t) lydaq::c4i::MpiMessage::command::SLC,0);
-}
 void lydaq::C4iManager::configureHR2()
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" COnfigure the chips ");
 
-  // Turn On SLC Mode
-    for (auto x:_mpi->controlSockets())
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c4i::MpiMessage::Register::SLC_CTRL,1);
+  // Turn Off/ On SLC Mode
+  for (auto x:_mpi->boards())
+    x.second->reg()->writeRegister(lydaq::c4i::Message::Register::SLC_CTRL,0);
+  usleep(100);
+  for (auto x:_mpi->boards())
+    x.second->reg()->writeRegister(lydaq::c4i::Message::Register::SLC_CTRL,1);
 
   // Now loop on slowcontrol socket
-    fprintf(stderr,"Loop on socket for Sending slow control \n");
-  for (auto x:_mpi->slcSockets())
+  fprintf(stderr,"Loop on socket for Sending slow control \n");
+  for (auto x:_mpi->boards())
     {
-      _hca->prepareSlowControl(x.second->hostTo());
-      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+      _hca->prepareSlowControl(x.second->ipAddress());
+      x.second->slc()->sendSlowControl(_hca->slcBuffer());
     }
   
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
-  for (auto x:_mpi->controlSockets())
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c4i::MpiMessage::Register::SLC_CTRL,2);
+  for (auto x:_mpi->boards())
+    x.second->reg()->writeRegister(lydaq::c4i::Message::Register::SLC_SIZE,109);
+  for (auto x:_mpi->boards())
+    x.second->reg()->writeRegister(lydaq::c4i::Message::Register::SLC_CTRL,2);
 
+  usleep(100000);
   // Turn off SLC
-
-  for (auto x:_mpi->controlSockets())
-    this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c4i::MpiMessage::Register::SLC_CTRL,0);
+  for (auto x:_mpi->boards())
+    x.second->reg()->writeRegister(lydaq::c4i::Message::Register::SLC_CTRL,0);
 
   // Read SLC status
-
-  for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->boards())
     {
-      uint32_t status=x->reg()->readRegister(c4i::Message::Register::SLC_STATUS);
-      uint32_t adr= mpi::MpiMessageHandler::convertIP(x.second->hostTo());
-      if (auto ic3=_mC4i.find(adr)!=_mC4i.end())
-	_mC4i[adr]->setSlcStatus(status);
+      uint32_t status=x.second->reg()->readRegister(lydaq::c4i::Message::Register::SLC_STATUS);
+
+      x.second->reg()->setSlcStatus(status);
     }
 
 }
@@ -515,27 +500,25 @@ void lydaq::C4iManager::start(zdaq::fsmmessage* m)
   _run=jc["run"].asInt();
 
   // Clear buffers
-  for (auto x:_vC4i)
+  for (auto x:_mpi->boards())
     {
-      x->clear();
+      x.second->data()->clear();
     }
 
   // Turn run type on
-  for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c4i::MpiMessage::Register::ACQ_CTRL,1);
+      x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_CTRL,1);
     }
 }
 void lydaq::C4iManager::stop(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
-  //std::cout<<m->command()<<std::endl<<m->content()<<std::endl;
-  for (auto x:_mpi->controlSockets())
+  for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , disabled (Bit 0 a 0)
-      this->writeRegister(x.second->hostTo(),x.second->portTo(),lydaq::c4i::MpiMessage::Register::ACQ_CTRL,0);
-
+      x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_CTRL,0);
     }
   ::sleep(2);
 
@@ -545,14 +528,17 @@ void lydaq::C4iManager::destroy(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CLOSE called ");
+  
   _mpi->close();
+  for (auto x:_mpi->boards())
+    delete x.second;
+  _mpi->boards().clear();
   delete _mpi;
   _mpi=0;
-  for (auto x:_vC4i)
-    delete x;
+
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Data sockets deleted");
-  _vC4i.clear();
-  _mC4i.clear();
+
+
 
   // To be done: _c4i->clear();
 }

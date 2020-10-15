@@ -110,7 +110,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc','src/WiznetManager.cc']
-LIBRARY_SOURCES=['src/board.cc','src/sockethandler.cc','src/datahandler.cc','src/slchandler.cc','src/registerhandler.cc','src/interface.cc']
+LIBRARY_SOURCES=['src/board.cc','src/sockethandler.cc','src/datahandler.cc','src/slchandler.cc','src/registerhandler.cc','src/interface.cc','src/C4iManager.cc']
 
 print LIBRARY_SOURCES
 
@@ -131,9 +131,9 @@ EXE_LIBS.append("lydaq_app_"+package)
 plist=[]
 
 
-#tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/C4iDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
+tdcd=env.Program("bin/lydaq_daemon_"+package,source="src/C4iDaemon.cxx",LIBPATH=EXE_LIBPATH,LIBS=EXE_LIBS)
 
-#plist.append(tdcd)
+plist.append(tdcd)
 
 myinc=[]
 #for x in Glob("include/*.hh"):
