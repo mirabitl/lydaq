@@ -57,7 +57,7 @@ package=os.path.basename(os.getcwd())
 Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
 
 # includes
-INCLUDES=['include',LYDAQROOT+"/drivers/MgRoc/include",LYDAQROOT+"/drivers/MPI/include",LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include"]
+INCLUDES=['include',LYDAQROOT+"/drivers/MgRoc/include",LYDAQROOT+"/drivers/MPI/include",LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include",LYDAQROOT+"/drivers/utils/netLink/include"]
   
 CPPFLAGS=["-pthread","-O4","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
 if (Arm or NOOCCI):
