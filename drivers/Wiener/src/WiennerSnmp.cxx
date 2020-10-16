@@ -96,7 +96,7 @@ float lydaq::WienerSnmp::getOutputMeasurementSenseVoltage(uint32_t module,uint32
 float lydaq::WienerSnmp::getOutputMeasurementCurrent(uint32_t module,uint32_t voie)
 {
   std::stringstream sc;
-  sc<<"snmpget -v 2c -m +WIENER-CRATE-MIB -c public ";
+  sc<<"snmpget -v 2c -O p12.9 -m +WIENER-CRATE-MIB -c public ";
   sc<<_ip<<" outputMeasurementCurrent.u"<<100*module+voie;
   std::string res=exec(sc.str().c_str());
   //std::cout<<__PRETTY_FUNCTION__<<res<<std::endl;
