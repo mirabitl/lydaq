@@ -92,8 +92,8 @@ namespace lydaq
       NL::Socket* socket(){return _sock;}
       uint64_t id() {return _id;}
       uint32_t ipid() {return (_id>>32)&0xFFFFFFFF;}
-      //uint32_t sourceid() {return (ipid()>>16)&0XFFFF;}
-      uint32_t sourceid() {return ipid();}
+      uint32_t sourceid() {return (ipid()>>16)&0XFFFF;}
+      //uint32_t sourceid() {return ipid();}
       inline uint8_t* answer(uint8_t tr){return _answ[tr];}
       uint32_t transaction() {return _transaction;}
 
@@ -123,9 +123,11 @@ namespace lydaq
       void processReply(uint32_t tr,uint32_t* rep=0);
       inline uint32_t slcStatus(){return _slcStatus;}
       inline void setSlcStatus(uint32_t i){_slcStatus=i;}
+      inline void useTransactionId(){_noTransReply=false;}
     private:
       uint32_t _slcStatus;
       c4i::Message* _msg;
+      bool _noTransReply;
     };
 
     // Gere la socket Slow control

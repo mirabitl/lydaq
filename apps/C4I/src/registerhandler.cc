@@ -24,7 +24,8 @@
 
 using namespace lydaq;
 
-c4i::registerHandler::registerHandler(std::string ip) : socketHandler(ip,c4i::Interface::PORT::REGISTER)
+c4i::registerHandler::registerHandler(std::string ip) : socketHandler(ip,c4i::Interface::PORT::REGISTER),_noTransReply(true)
+
 {
   _msg= new c4i::Message();
 }
@@ -44,7 +45,8 @@ void c4i::registerHandler::writeRegister(uint16_t address,uint32_t value)
   
   _msg->ptr()[len-1]=')';    
   uint32_t tr=this->sendMessage(_msg);
-  this->processReply(0);
+  if (_noTransReply) tr=0;
+  this->processReply(tr);
 }
 uint32_t c4i::registerHandler::readRegister(uint16_t address)
 {
@@ -66,7 +68,8 @@ uint32_t c4i::registerHandler::readRegister(uint16_t address)
   uint32_t tr=this->sendMessage(_msg);
   uint32_t rep=0;
  fprintf(stderr,"Waiting PROCESSREPLY\n");
-  this->processReply(0,&rep);
+ if (_noTransReply) tr=0;
+  this->processReply(tr,&rep);
   return ntohl(rep);
 }
 
