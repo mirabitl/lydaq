@@ -24,7 +24,7 @@
 
 using namespace lydaq;
 
-c4i::registerHandler::registerHandler(std::string ip) : socketHandler(ip,c4i::Interface::PORT::REGISTER),_noTransReply(true)
+c4i::registerHandler::registerHandler(std::string ip) : socketHandler(ip,c4i::Interface::PORT::REGISTER),_noTransReply(false)
 
 {
   _msg= new c4i::Message();

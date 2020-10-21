@@ -450,6 +450,7 @@ void lydaq::C4iManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32
       it->second.setB1(b1);
       it->second.setB2(b2);
       //it->second.setHEADER(0x56);
+      it->second.dumpBinary();
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
