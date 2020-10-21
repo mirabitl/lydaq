@@ -38,6 +38,7 @@ public:
 
 
   void c_pulse(Mongoose::Request &request, Mongoose::JsonResponse &response);
+  void c_close(Mongoose::Request &request, Mongoose::JsonResponse &response);
 
   void initialise(zdaq::fsmmessage* m);
   void configureHR2();

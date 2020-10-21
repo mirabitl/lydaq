@@ -46,23 +46,19 @@ lydaq::Gricv0Manager::Gricv0Manager(std::string name) : zdaq::baseApplication(na
   //_fsm->addCommand("JOBLOG",boost::bind(&lydaq::Gricv0Manager::c_joblog,this,_1,_2));
   _fsm->addCommand("STATUS",boost::bind(&lydaq::Gricv0Manager::c_status,this,_1,_2));
   _fsm->addCommand("RESET",boost::bind(&lydaq::Gricv0Manager::c_reset,this,_1,_2));
-  _fsm->addCommand("STARTACQ",boost::bind(&lydaq::GricManager::c_startacq,this,_1,_2));
-  _fsm->addCommand("STOPACQ",boost::bind(&lydaq::GricManager::c_stopacq,this,_1,_2));
-  _fsm->addCommand("RESET",boost::bind(&lydaq::GricManager::c_reset,this,_1,_2));
-  _fsm->addCommand("STORESC",boost::bind(&lydaq::GricManager::c_storesc,this,_1,_2));
-  _fsm->addCommand("LOADSC",boost::bind(&lydaq::GricManager::c_loadsc,this,_1,_2));
-  _fsm->addCommand("READSC",boost::bind(&lydaq::GricManager::c_readsc,this,_1,_2));
-  _fsm->addCommand("LASTABCID",boost::bind(&lydaq::GricManager::c_lastabcid,this,_1,_2));
-  _fsm->addCommand("LASTGTC",boost::bind(&lydaq::GricManager::c_lastgtc,this,_1,_2));
+  _fsm->addCommand("STARTACQ",boost::bind(&lydaq::Gricv0Manager::c_startacq,this,_1,_2));
+  _fsm->addCommand("STOPACQ",boost::bind(&lydaq::Gricv0Manager::c_stopacq,this,_1,_2));
+  _fsm->addCommand("RESET",boost::bind(&lydaq::Gricv0Manager::c_reset,this,_1,_2));
+  _fsm->addCommand("STORESC",boost::bind(&lydaq::Gricv0Manager::c_storesc,this,_1,_2));
+  _fsm->addCommand("LOADSC",boost::bind(&lydaq::Gricv0Manager::c_loadsc,this,_1,_2));
+  _fsm->addCommand("READSC",boost::bind(&lydaq::Gricv0Manager::c_readsc,this,_1,_2));
+  _fsm->addCommand("LASTABCID",boost::bind(&lydaq::Gricv0Manager::c_lastabcid,this,_1,_2));
+  _fsm->addCommand("LASTGTC",boost::bind(&lydaq::Gricv0Manager::c_lastgtc,this,_1,_2));
   _fsm->addCommand("SETTHRESHOLDS",boost::bind(&lydaq::Gricv0Manager::c_setthresholds,this,_1,_2));
   _fsm->addCommand("SETPAGAIN",boost::bind(&lydaq::Gricv0Manager::c_setpagain,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::Gricv0Manager::c_setmask,this,_1,_2));
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::Gricv0Manager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::Gricv0Manager::c_downloadDB,this,_1,_2));
-  _fsm->addCommand("READREG",boost::bind(&lydaq::Gricv0Manager::c_readreg,this,_1,_2));
-  _fsm->addCommand("WRITEREG",boost::bind(&lydaq::Gricv0Manager::c_writereg,this,_1,_2));
-
-  _fsm->addCommand("READBME",boost::bind(&lydaq::Gricv0Manager::c_readbme,this,_1,_2));
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
   char* wp=getenv("WEBPORT");
@@ -143,8 +139,8 @@ void lydaq::Gricv0Manager::c_storesc(Mongoose::Request &request, Mongoose::JsonR
 
   for (auto x:_mpi->boards())
     {
-      _hca->prepareSlowControl(x.second->hostTo());
-      this->sendSlowControl(x.second->hostTo(),x.second->portTo(),_hca->slcBuffer());
+      _hca->prepareSlowControl(x.second->ipAddress());
+      x.second->reg()->sendSlowControl(_hca->slcBuffer());
     }
   response["STATUS"]="DONE";
 }
@@ -219,14 +215,14 @@ void lydaq::Gricv0Manager::c_pulse(Mongoose::Request &request, Mongoose::JsonRes
 {
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Pulse called ");
   response["STATUS"]="DONE";
-
+  uint32_t p0=atol(request.get("value","0").c_str());
  for (auto x:_mpi->boards())
     {
-      x.second->reg()->sendParameter(lydaq::gricv0::Message::command::PULSE,b0);
+      x.second->reg()->sendParameter(lydaq::gricv0::Message::command::PULSE,p0);
     }
   
-  uint32_t p0=atol(request.get("value","0").c_str());
-  response["NPULSE"]=b0&0xFF;
+
+  response["NPULSE"]=p0&0xFF;
 
 }
 
@@ -426,13 +422,13 @@ void lydaq::Gricv0Manager::configureHR2()
   for (auto x:_mpi->boards())
     {
       _hca->prepareSlowControl(x.second->ipAddress());
-      x.second->slc()->sendSlowControl(_hca->slcBuffer());
+      x.second->reg()->sendSlowControl(_hca->slcBuffer());
     }
   
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Maintenant on charge ");
   for (auto x:_mpi->boards())
     {
-      uint32_t status=x.second->reg()->sendCommand(lydaq::gricv0::Message::Register::LOADSC);
+      uint32_t status=x.second->reg()->sendCommand(lydaq::gricv0::Message::command::LOADSC);
       x.second->reg()->setSlcStatus(status);
     }
 
@@ -534,7 +530,7 @@ void lydaq::Gricv0Manager::start(zdaq::fsmmessage* m)
   for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)
-      x.second->reg()->sendCommand(lydaq::gricv0::Message::Register::STARTACQ);
+      x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STARTACQ);
     }
 }
 void lydaq::Gricv0Manager::stop(zdaq::fsmmessage* m)
@@ -543,7 +539,7 @@ void lydaq::Gricv0Manager::stop(zdaq::fsmmessage* m)
   for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , disabled (Bit 0 a 0)
-      x.second->reg()->sendCommand(lydaq::gricv0::Message::Register::STOPACQ);
+      x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STOPACQ);
     }
   ::sleep(2);
 
@@ -557,7 +553,7 @@ void lydaq::Gricv0Manager::destroy(zdaq::fsmmessage* m)
   for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , disabled (Bit 0 a 0)
-      x.second->reg()->sendCommand(lydaq::gricv0::Message::Register::CLOSE);
+      x.second->reg()->sendCommand(lydaq::gricv0::Message::command::CLOSE);
     }
 
   _mpi->close();
