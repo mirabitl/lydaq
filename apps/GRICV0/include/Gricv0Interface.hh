@@ -12,7 +12,7 @@
 #define MAX_BUFFER_LEN 0x4000
 #include "zmSender.hh"
 #define C3I_VERSION 145
-#define MBSIZE 0x100000
+#define MBSIZE 0x40000
 
 namespace lydaq
 {
@@ -97,7 +97,7 @@ namespace lydaq
       
       NL::Socket* _sock;
       // temporary buffer to collect reply
-      uint8_t _b[0x1000000];
+      uint8_t _b[MBSIZE];
       // Command answers pointers
       std::map<uint8_t,uint8_t*> _answ;
       uint32_t _transaction;

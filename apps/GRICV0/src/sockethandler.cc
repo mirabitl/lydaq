@@ -27,7 +27,7 @@ using namespace lydaq;
 gricv0::socketHandler::socketHandler(std::string ip,uint32_t port) : _idx(0),_transaction(0)
 {
   memset(_buf,0,MBSIZE);
-  memset(_b,0,0x1000000);
+  memset(_b,0,MBSIZE);
   // initialise answer storage
   for (int i=0;i<255;i++)
     {
@@ -83,7 +83,7 @@ int16_t gricv0::socketHandler::checkBuffer(uint8_t* b,uint32_t maxidx)
      uint16_t* _sBuf= (uint16_t*) &b[1];
      elen=ntohs(_sBuf[0]); // Header
 
-     LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header ELEN "<<elen<<" MAXID "<<maxidx);
+     LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header ELEN "<<elen<<" MAXID "<<maxidx);
      //fprintf(stderr,"d %d %c\n",__LINE__,b[elen-1]);
      if (elen>maxidx)
        {
@@ -112,7 +112,7 @@ void gricv0::socketHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
   //memcpy(_b,bb,l);
   memcpy(&_buf[_idx],bb,l);
   _idx+=l;
-#define DEBUGPACKET
+#define DEBUGPACKETN
 #ifdef DEBUGPACKET
   fprintf(stderr,"\n DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
      for (int i=0;i<_idx;i++)

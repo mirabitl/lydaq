@@ -12,7 +12,7 @@
 #define MAX_BUFFER_LEN 0x4000
 #include "zmSender.hh"
 #define C3I_VERSION 145
-#define MBSIZE 0x100000
+#define MBSIZE 0x40000
 
 namespace lydaq
 {
@@ -106,7 +106,7 @@ namespace lydaq
       
       NL::Socket* _sock;
       // temporary buffer to collect reply
-      uint8_t _b[0x1000000];
+      uint8_t _b[MBSIZE];
       // Command answers pointers
       std::map<uint8_t,uint8_t*> _answ;
       uint32_t _transaction;
@@ -161,7 +161,7 @@ namespace lydaq
       void autoRegister(zmq::context_t* c,Json::Value config,std::string appname,std::string portname);
     private:
       uint64_t _lastABCID;
-      uint32_t _lastGTC,_lastBCID,_event,_detid,_ntrg,_expectedLength;
+      uint32_t _lastGTC,_lastBCID,_event,_ntrg,_expectedLength;
       uint32_t _nProcessed;
       zdaq::zmSender* _dsData;
       uint8_t _triggerId;

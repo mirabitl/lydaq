@@ -27,7 +27,7 @@ using namespace lydaq;
 c4i::socketHandler::socketHandler(std::string ip,uint32_t port) : _idx(0),_transaction(0)
 {
   memset(_buf,0,MBSIZE);
-  memset(_b,0,0x1000000);
+  memset(_b,0,MBSIZE);
   // initialise answer storage
   for (int i=0;i<255;i++)
     {

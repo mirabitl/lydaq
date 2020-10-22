@@ -31,7 +31,7 @@ void c4i::dataHandler::connect(zmq::context_t* c,std::string dest)
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
+  _dsData = new zdaq::zmSender(c,_detId,this->sourceid());
   _dsData->connect(dest);
 }
 void c4i::dataHandler::clear()
@@ -52,7 +52,7 @@ void c4i::dataHandler::autoRegister(zmq::context_t* c,Json::Value config,std::st
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
+  _dsData = new zdaq::zmSender(c,_detId,this->sourceid());
   _dsData->autoDiscover(config,appname,portname);//
   //for (uint32_t i=0;i<_mStream.size();i++)
   //        ds->connect(_mStream[i]);

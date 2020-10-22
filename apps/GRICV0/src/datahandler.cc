@@ -23,7 +23,7 @@
 
 using namespace lydaq;
 
-gricv0::dataHandler::dataHandler(std::string ip) : socketHandler(ip,gricv0::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(160)
+gricv0::dataHandler::dataHandler(std::string ip) : socketHandler(ip,gricv0::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(140)
 {
   
 }
@@ -31,7 +31,7 @@ void gricv0::dataHandler::connect(zmq::context_t* c,std::string dest)
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
+  _dsData = new zdaq::zmSender(c,_detId,this->sourceid());
   _dsData->connect(dest);
 }
 void gricv0::dataHandler::clear()
@@ -52,7 +52,7 @@ void gricv0::dataHandler::autoRegister(zmq::context_t* c,Json::Value config,std:
 {
   if (_dsData!=NULL)
     delete _dsData;
-  _dsData = new zdaq::zmSender(c,_detid,this->sourceid());
+  _dsData = new zdaq::zmSender(c,_detId,this->sourceid());
   _dsData->autoDiscover(config,appname,portname);//
   //for (uint32_t i=0;i<_mStream.size();i++)
   //        ds->connect(_mStream[i]);
