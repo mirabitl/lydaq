@@ -139,7 +139,7 @@ void febv1::registerHandler::processReply(uint32_t tr,uint32_t* reply)
   // Dump returned buffer
   if (reply!=0) //special case for read register
     {
-      memcpy(reply,&rep[0],sizeof(uint32_t));
+      memcpy(reply,&rep[3],sizeof(uint32_t));
       return;
     }
 
@@ -154,9 +154,16 @@ bool febv1::registerHandler::processPacket()
       
     }
   else
-    memcpy(rep,_buf,_idx);
-
-#define DUMPREGREP
+    {
+      uint16_t len=_idx+4;
+      rep[0]='(';
+      uint16_t* sb=(uint16_t*) &rep[1];
+      sb[0]=len&0XFFFF;
+      rep[len-1]=')';
+	
+      memcpy(&rep[3],_buf,_idx);
+    }
+#define DUMPREGREPN
 #ifdef DUMPREGREP
   fprintf(stderr,"\n REGISTER RC ==> ");
   for (int i=0;i<_idx-1;i++)
@@ -171,4 +178,16 @@ bool febv1::registerHandler::processPacket()
   fprintf(stderr,"\n");
 #endif
   return true;
+}
+void febv1::registerHandler::dumpAnswer(uint32_t tr)
+{
+   uint8_t* rep=this->answer(tr);
+   uint16_t* sb=(uint16_t*) &rep[1];
+   fprintf(stderr,"Answer Length ==> %d \n",sb[0]);
+   for (int i=0;i<sb[0];i++)
+    {
+      fprintf(stderr,"%.2x ",(rep[i+3]));
+      if (i%16==15) fprintf(stderr,"\n");
+    }
+  fprintf(stderr,"\n");
 }

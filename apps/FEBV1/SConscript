@@ -110,7 +110,7 @@ env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIB
 
 #print LIBRARY_SOURCES
 #LIBRARY_SOURCES=['src/MessageHandler.cc','src/MpiMessageHandler.cc','src/MpiInterface.cc','src/HR2ConfigAccess.cc','src/GricMpi.cc','src/WiznetManager.cc']
-LIBRARY_SOURCES=['src/board.cc','src/sockethandler.cc','src/datahandler.cc','src/registerhandler.cc','src/interface.cc']
+LIBRARY_SOURCES=['src/board.cc','src/sockethandler.cc','src/datahandler.cc','src/registerhandler.cc','src/interface.cc','src/Febv1Manager.cc']
 #,'src/C4iManager.cc']
 
 print LIBRARY_SOURCES

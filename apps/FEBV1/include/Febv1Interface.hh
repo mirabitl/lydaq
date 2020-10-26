@@ -122,6 +122,7 @@ namespace lydaq
       inline uint32_t slcStatus(){return _slcStatus;}
       inline void setSlcStatus(uint32_t i){_slcStatus=i;}
       inline void useTransactionId(){_noTransReply=false;}
+      void dumpAnswer(uint32_t tr);
     private:
       uint32_t _slcStatus;
       febv1::Message* _msg;
