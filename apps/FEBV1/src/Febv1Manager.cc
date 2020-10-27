@@ -400,12 +400,8 @@ void lydaq::Febv1Manager::initialise(zdaq::fsmmessage* m)
     {
       this->parameters()["publish"]=m->content()["publish"];
     }
-  if (!this->parameters().isMember("publish"))
-    {
-      
-      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No publish tag found ");
-      return;
-    }
+
+  
   for (auto x:_mpi->boards())
     x.second->data()->autoRegister(_context,this->configuration(),"BUILDER","collectingPort");
   //x->connect(_context,this->parameters()["publish"].asString());
@@ -426,6 +422,7 @@ void lydaq::Febv1Manager::configurePR2()
     {
       _tca->prepareSlowControl(x.second->ipAddress());
       x.second->reg()->writeRam(_tca->slcAddr(), _tca->slcBuffer(), _tca->slcBytes());
+      x.second->reg()->dumpAnswer(0);
     }
 }
 void lydaq::Febv1Manager::configure(zdaq::fsmmessage* m)
@@ -648,10 +645,10 @@ void lydaq::Febv1Manager::setMeasurementMask(uint64_t mask,uint32_t feb)
     if (feb!=255)
       {
 	std::stringstream ip;
-	ip <<this->parameters()["febv1"]["network"]<< feb;
+	ip <<this->parameters()["febv1"]["network"].asString()<< feb;
 	if (ip.str().compare(x.second->ipAddress())!=0)
 	  {
-	    LOG4CXX_INFO(_logFeb, " setMeasurementMask " << std::hex << mask << std::dec << " skipping"<<feb);
+	    LOG4CXX_INFO(_logFeb, " setMeasurementMask " <<x.second->ipAddress()<< " skipped for FEB "<<feb);
 	    continue;
 	  }
       }

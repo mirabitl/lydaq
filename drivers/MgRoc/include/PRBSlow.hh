@@ -620,17 +620,17 @@ public:
   /// Fill address & value for FEB slow control
   void prepare4Tdc(uint16_t *adr, uint16_t *val, uint16_t offset = 0,uint16_t len=SLC_BYTES_LENGTH)
   {
-    std::stringstream sbits;
+    //std::stringstream sbits;
     uint8_t *b = (uint8_t *)_l;
     for (int i = 0; i < len; i++)
     {
       adr[i + offset] = i + offset;
       val[i + offset] = b[len-1 - i];
-      printf("%d %x \n", adr[i + offset], val[i + offset]);
+      //printf("%d %x \n", adr[i + offset], val[i + offset]);
       std::bitset<8> sb(b[len-1 - i]);
-      sbits << sb << " ";
+      //sbits << sb << " ";
     }
-    std::cout << sbits.str() << std::endl;
+    //std::cout << sbits.str() << std::endl;
   }
 
   /// Return JSON value

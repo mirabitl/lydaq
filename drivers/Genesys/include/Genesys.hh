@@ -49,8 +49,8 @@ namespace lydaq
   private:
 
 
-    int fd1;
-
+    int fd1,portstatus;
+    
     unsigned char buff[1024];
     std::string _value;
     int wr,rd,nbytes,tries;

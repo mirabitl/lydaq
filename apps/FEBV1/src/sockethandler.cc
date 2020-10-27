@@ -51,17 +51,17 @@ void febv1::socketHandler::clear()
 }
 uint32_t febv1::socketHandler::sendMessage(febv1::Message* m)
 {
-  
+  LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
   // Send the Buffer
   try
   {
     //m->ptr()[febv1::Message::Fmt::TRANS]=(_transaction++)%NREP;
     // Clear the ack tag for reply
-    memset(&_answ[0],0,0x4000);
+    memset(_answ[0],0,0x4000);
     _transaction=0;
     _sock->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
 
-    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
+    LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
 
     return (0);
   }
@@ -131,55 +131,62 @@ int16_t febv1::socketHandler::checkBuffer(uint8_t* b,uint32_t maxidx)
 void febv1::socketHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
 {
   LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"Entering procesBuffer "<<std::hex<<id<<std::dec<<" Length "<<l);
-  //if (l>16) getchar();
-  //memcpy(_b,bb,l);
-  memcpy(&_buf[_idx],bb,l);
-  _idx+=l;
-#define DEBUGPACKET
-#ifdef DEBUGPACKET
-  fprintf(stderr,"\n DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
-     for (int i=0;i<_idx;i++)
-       {
-	 fprintf(stderr,"%.2x ",((uint8_t) _buf[i]));
-	 
-	 if (i%16==15)
-	   {
-	     fprintf(stderr,"\n");
-	   }
-       }
-     fprintf(stderr,"\n END PACKET \n");
+for (uint16_t ibx = 0; ibx < l; ibx++)
+  {
+    int16_t tag = checkBuffer((uint8_t *)&bb[ibx], l - ibx + 1);
+    if (tag > 0)
+    {
+      bool ok = processPacket();
+      if (ok)
+      {
+        _idx = 0;
+      }
+    }
+    else
+    {
+#undef LUT
+#ifdef LUT
+      if (ibx == 0)
+      {
+        printf("LUT content \n==> ");
+        for (int i = 0; i < l; i++)
+        {
+          printf("%.2x ", ((uint8_t)bb[i]));
+
+          if (i % 16 == 15)
+          {
+            printf("\n==> ");
+          }
+        }
+        printf("\n");
+      }
 #endif
-     uint32_t a=l;
- checkpoint:
-     int16_t tag = checkBuffer(_buf,_idx);
-     if (tag>0)
-       {
-	 bool ok=processPacket();
-	 if (tag<_idx)
-	   {
-	     memcpy(_b,&_buf[tag],_idx-tag);
-	     _idx=_idx-tag;
-	     memset(_buf,0,MBSIZE);
-	     memcpy(_buf,_b,_idx);
-	     goto checkpoint;
-	   }
-	 if (tag==_idx) _idx=0;
-	   
-	  return;
-       }
-     else
-       if (tag==0)
-	 {
-	   processPacket();
-	   _idx=0;
-	 }
-	 
-  
+      if (tag < 0)
+      {
+        LOG4CXX_DEBUG(_logFeb, __PRETTY_FUNCTION__ << _id << "StructError Tag=" << tag << " ibx=" << ibx << " _idx=" << _idx);
+      }
+    }
+    _buf[_idx] = bb[ibx];
+    _idx++;
+  }
+ return;
 
-     //DEBUG_PRINT("Exiting procesBuffer %llx %d  IDX %d \n",id,l,_idx);
-  return;
-  
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 }
 void febv1::socketHandler::purgeBuffer()
 {

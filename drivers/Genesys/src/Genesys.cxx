@@ -81,8 +81,8 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   if (fd1 == -1 )
 
     {
-      LOG4CXX_FATAL(_logGenesys,__PRETTY_FUNCTION__<<"  Unable to open "<<device);
-  
+      LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<"  Unable to open "<<device);
+      return;
     }
 
   else
@@ -94,7 +94,7 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
       //fprintf(stderr,"Port %d has been sucessfully opened and %d is the file description\n",address,fd1);
     }
 
-  int portstatus = 0;
+  portstatus = 0;
 #define OLDWAY
 #ifdef OLDWAY
   struct termios options;
@@ -116,8 +116,9 @@ lydaq::Genesys::Genesys(std::string device,uint32_t address)
   if (error==-1)
     {
       //fprintf(stderr,"Cannot set options \n");
-      LOG4CXX_FATAL(_logGenesys,__PRETTY_FUNCTION__<<" Cannot set RS232 options ");
+      LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" Cannot set RS232 options ");
       portstatus=-1;
+      return;
     }
   else
     portstatus=1;
@@ -171,6 +172,11 @@ void lydaq::Genesys::OFF()
 
 void lydaq::Genesys::readCommand(std::string cmd)
 {
+  if (fd1<0 || portstatus!=1)
+    {
+      LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" Device not open ");
+      return;
+    }
   //fprintf(stderr,"%s %s \n",__PRETTY_FUNCTION__,cmd.c_str());
   LOG4CXX_DEBUG(_logGenesys,__PRETTY_FUNCTION__<<" command "<<cmd);
   memset(buff,0,1024);
@@ -203,7 +209,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
   //sleep((int) 1);
   for (int i=0;i<80;i++) usleep(1000);
   memset(buff,0,1024);
-  int32_t nchar=0,rd=0;
+  int32_t nchar=0,rd=0,ntry=0;
   while (1)
     {
       FD_ZERO(&set); /* clear the set */
@@ -214,6 +220,8 @@ void lydaq::Genesys::readCommand(std::string cmd)
 
       //  fprintf(stderr,"waiting for select \n");
       rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
+      ntry++;
+      if (ntry>10) break;
       if(rv == -1)
 	{
 	  LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select failed");
@@ -222,7 +230,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
 	}
       else if(rv == 0)
 	{
-	  LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select empty ");
+	  LOG4CXX_ERROR(_logGenesys,__PRETTY_FUNCTION__<<" select empty "<<ntry);
 	  //fprintf(stderr,"Nothing in select \n"); /* a timeout occured */
 	  break;
 	}
@@ -235,6 +243,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
 	    nchar+=rd;
 	}
       usleep(1);
+     
     }
 
     
@@ -253,9 +262,12 @@ void lydaq::Genesys::readCommand(std::string cmd)
 }
 void lydaq::Genesys::INFO()
 {
+  int ntry=0;
   do
     {
       this->readCommand("IDN?\r");
+      ntry++;
+      if (ntry>10) return;
       //std::cout<<boost::format(" Device %s \n") % _value;
     } while (_value.compare("LAMBDA,GEN6-200")!=0);
 

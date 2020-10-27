@@ -104,6 +104,9 @@ uint32_t febv1::registerHandler::writeLongWord(uint16_t addr,uint64_t val,bool w
   sb[7] = htons((val >> 32) & 0xFFFF);
   sb[8] = htons(addr + 3);
   sb[9] = htons((val >> 48) & 0xFFFF);
+
+  //LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Sending message "<<this->id());
+  
   uint32_t tr=this->sendMessage(_msg);
   uint32_t rep=0;
   if (waitreply)
@@ -190,4 +193,56 @@ void febv1::registerHandler::dumpAnswer(uint32_t tr)
       if (i%16==15) fprintf(stderr,"\n");
     }
   fprintf(stderr,"\n");
+}
+
+void febv1::registerHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
+{
+  //if (l>16) getchar();
+  //memcpy(_b,bb,l);
+  memcpy(&_buf[_idx],bb,l);
+  _idx+=l;
+#define DEBUGPACKETN
+#ifdef DEBUGPACKET
+  fprintf(stderr,"\n DEBUG PACKET IDX %d L %d  ID %lx \n",_idx,l,id);
+     for (int i=0;i<_idx;i++)
+       {
+	 fprintf(stderr,"%.2x ",((uint8_t) _buf[i]));
+	 
+	 if (i%16==15)
+	   {
+	     fprintf(stderr,"\n");
+	   }
+       }
+     fprintf(stderr,"\n END PACKET \n");
+#endif
+     uint32_t a=l;
+ checkpoint:
+     int16_t tag = checkBuffer(_buf,_idx);
+     if (tag>0)
+       {
+	 bool ok=processPacket();
+	 if (tag<_idx)
+	   {
+	     memcpy(_b,&_buf[tag],_idx-tag);
+	     _idx=_idx-tag;
+	     memset(_buf,0,MBSIZE);
+	     memcpy(_buf,_b,_idx);
+	     goto checkpoint;
+	   }
+	 if (tag==_idx) _idx=0;
+	   
+	  return;
+       }
+     else
+       if (tag==0)
+	 {
+	   processPacket();
+	   _idx=0;
+	 }
+	 
+  
+
+     //DEBUG_PRINT("Exiting procesBuffer %llx %d  IDX %d \n",id,l,_idx);
+  return;
+  
 }
