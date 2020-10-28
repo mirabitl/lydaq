@@ -23,7 +23,7 @@
 
 using namespace lydaq;
 
-febv1::dataHandler::dataHandler(std::string ip) : socketHandler(ip,febv1::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(160),_lastGTC(0),_lastABCID(0),_chlines(0)
+febv1::dataHandler::dataHandler(std::string ip) : socketHandler(ip,febv1::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(130),_lastGTC(0),_lastABCID(0),_chlines(0)
 {
   
 }
