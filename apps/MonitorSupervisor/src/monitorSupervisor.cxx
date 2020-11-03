@@ -19,8 +19,8 @@ lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplic
   this->fsm()->addTransition("DESTROY","PAUSED","CREATED",boost::bind(&lydaq::monitorSupervisor::destroy, this,_1));
 
   
- this->fsm()->addCommand("STATUS",boost::bind(&lydaq::monitorSupervisor::c_status,this,_1,_2));
- this->fsm()->addCommand("ITEM",boost::bind(&lydaq::monitorSupervisor::c_item,this,_1,_2));
+  this->fsm()->addCommand("STATUS",boost::bind(&lydaq::monitorSupervisor::c_status,this,_1,_2));
+  this->fsm()->addCommand("ITEM",boost::bind(&lydaq::monitorSupervisor::c_item,this,_1,_2));
 
   
 
@@ -28,21 +28,19 @@ lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplic
   if (wp!=NULL)
     {
       std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
-    this->fsm()->start(atoi(wp));
+      this->fsm()->start(atoi(wp));
     }
 }
 void lydaq::monitorSupervisor::clear()
 {
   if (_context==0) return;
-  for (auto x:_subscribers)
-    delete x;
   _subscribers.clear();
   delete _context;
   _context=0;
   if (_collitems)
-    mongoc_collection_destroy (_collitems);
+    {mongoc_collection_destroy (_collitems);_collitems=0;}
   if (_database)
-    mongoc_database_destroy (_database);
+    {mongoc_database_destroy (_database);_database=0;}
   if (_uri)
     mongoc_uri_destroy (_uri);
   if (_client)
@@ -69,8 +67,8 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
     login=std::string(wp);
   else
     {
-       LOG4CXX_ERROR(_logLdaq," MGDBLOGIN is not set");
-       return EXIT_FAILURE;
+      LOG4CXX_ERROR(_logLdaq," MGDBLOGIN is not set");
+      return EXIT_FAILURE;
     }
   std::size_t current, previous = 0;
   current = str.find("@");
@@ -131,7 +129,7 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
    * Get a handle on the database "db_name" and collection "coll_name"
    */
   _database = mongoc_client_get_database (_client,_dbname);
-  _collitems = mongoc_client_get_collection (_client,_dbname,"ITEMS");
+  _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
 
   /*
    * Do work. This example pings the database, prints the result as JSON and
@@ -140,7 +138,7 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
   command = BCON_NEW ("ping", BCON_INT32 (1));
 
   int32_t retval = mongoc_client_command_simple (
-					 _client, "admin", command, NULL, &reply, &error);
+						 _client, "admin", command, NULL, &reply, &error);
 
   if (!retval) {
     fprintf (stderr, "%s\n", error.message);
@@ -156,6 +154,41 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
   return retval;
 
 }
+void lydaq::monitorSupervisor::start(zdaq::fsmmessage* m)
+{
+  LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
+  _subscribers.clear();
+  if (!_collitems)
+    _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
+  // Find running items
+  Json::Value jitems=this->listItems();
+  
+  for (...)
+    {
+      Json::Value jitem;
+      if (jitem["state"].asString().compare("PUBLISHING")!=0)
+	continue;
+      std::stringstream sit;
+      sit<<"tcp://"<<jitem["host"]<<":"<<jitem["pubport"];
+      _subscribers.addStream(sit.str());
+    }
+  _subscribers->addHandler(boost::bind(&lydaq::monitorSupervisor::processItems, this,_1));
+  _subscribers->start();
+}
+void lydaq::monitorSupervisor::stop(zdaq::fsmmessage* m)
+{
+  _subscribers->stop();
+}
+void lydaq::monitorSupervisor::processItems(std::vector<zdaq::mon::publishedItem*>& vitems)
+{
+  if (!_measitems)
+      _measitems = mongoc_client_get_collection (_client,_dbname,"MEASURED_ITEMS");
+
+  for (auto x:vitems)
+    {
+      std::cout<<x->location()<<" "<<x->hardware()<<" "<<x->status()<<std::endl;
+    }
+}
 void lydaq::monitorSupervisor::initialise(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
@@ -163,7 +196,7 @@ void lydaq::monitorSupervisor::initialise(zdaq::fsmmessage* m)
   
   if (m->content().isMember("dbaccount"))
     { 
-        this->parameters()["dbaccount"]=m->content()["dbaccount"];
+      this->parameters()["dbaccount"]=m->content()["dbaccount"];
     }
   if (this->parameters().isMember("dbaccount"))
     {
@@ -180,20 +213,7 @@ void lydaq::monitorSupervisor::c_status(Mongoose::Request &request, Mongoose::Js
 {
   //  LOG4CXX_INFO(_logLdaq," Trig ext setting called ");
 
-  Json::Value array_keys;
-
-  for (auto x:_items)
-    {
-       Json::Value rc;
-      
-       rc["VALUE"]=x->status();
-       rc["HARDWARE"]=x->hardware();
-       rc["LOCATION"]=x->location();
-       rc["TIME"]=(uint32_t) x->time();
-       array_keys.append(rc);
-
-    }
-  response["STATUS"]=array_keys;
+  response["items"]=this->listItems();
 } 
 void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -213,7 +233,8 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
     }
 
   // Now query the item in the DB and find the last one
-  mongoc_collection_t *colitems = mongoc_client_get_collection (_client,_dbname,"items");
+    if (!_collitems)
+      _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
   std::stringstream sal("");
   sal<<"{\"location\":\""<<location<<"\""
      <<",\"host\":\""<<host<<"\""
@@ -221,23 +242,23 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
      <<",\"webport\":"<<webport
      <<",\"pubport\":"<<pubport<<"}";
   bson_t* queryitems=bson_new_from_json ((const uint8_t *)sal.str().c_str(), -1, &error);
-  mongoc_cursor_t *citem = mongoc_collection_find_with_opts (colitems, queryitems, NULL, NULL);
+  mongoc_cursor_t *citem = mongoc_collection_find_with_opts (_collitems, queryitems, NULL, NULL);
   const bson_t *docitems;
   Json::Value vcitem,vclast;
   time_t tlast=0;
   while (mongoc_cursor_next (citem, &docitems))
-      {
-	char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
-	printf ("\t ===>\n");
-	Json::Reader readera;
-	bool parsinga =reader.parse(stritem,vcitem);
-	std::cout<<vcitem["time"].asUInt()<<":"<<vcitem["host"]<<":"<<vcitem["state"]<<std::endl;
-	if (vcitem["time"].asUInt()>tlast)
-	  {tlast=vcitem["time"].asUInt();vclast=vcitem;}
-	bson_free(stritem);
-      }
-   bson_destroy(queryitems);
-   mongoc_cursor_destroy(citem);
+    {
+      char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
+      printf ("\t ===>\n");
+      Json::Reader readera;
+      bool parsinga =reader.parse(stritem,vcitem);
+      std::cout<<vcitem["time"].asUInt()<<":"<<vcitem["host"]<<":"<<vcitem["state"]<<std::endl;
+      if (vcitem["time"].asUInt()>tlast)
+	{tlast=vcitem["time"].asUInt();vclast=vcitem;}
+      bson_free(stritem);
+    }
+  bson_destroy(queryitems);
+  mongoc_cursor_destroy(citem);
   if (tlast!=0)
     {
       if (vclast["state"].asString().compare(state)==0)
@@ -251,15 +272,15 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
       sal<<"{\"_id\":{\"$in\":"<<vclast["_id"]<<"}}";
       bson_t* querya=bson_new_from_json ((const uint8_t *)sal.str().c_str(), -1, &error);
       bson_t *update = BCON_NEW ("$set",
-                      "{",
-                      "state",
-		      BCON_UTF8 (state.c_str()),
-		      "time",
-		      BCON_INT32 (time(0)),
-                      "}");
+				 "{",
+				 "state",
+				 BCON_UTF8 (state.c_str()),
+				 "time",
+				 BCON_INT32 (time(0)),
+				 "}");
 
       if (!mongoc_collection_update_one (
-					 colitems, query, update, NULL, NULL, &error)) {
+					 _collitems, query, update, NULL, NULL, &error)) {
 	fprintf (stderr, "%s\n", error.message);
 	if (querya)
 	  bson_destroy (querya);
@@ -274,12 +295,13 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
 	bson_destroy (querya);
       if (update)
 	bson_destroy (update);
-      mongoc_collection_destroy (colitems);
+
       response["STATUS"]="DONE";
       return;
     }
   else
     {
+      // Create the item
       vcitem["time"]=time(0);
       vcitem["state"]=state;
       vcitem["location"]=location;
@@ -298,34 +320,42 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
 	response["STATUS"]="CANNOTPARSE";
 	return;
       }
-      if (!mongoc_collection_insert_one (colitems, doc, NULL, NULL, &error)) {
+      if (!mongoc_collection_insert_one (_collitems, doc, NULL, NULL, &error)) {
 	LOG4CXX_ERROR(_logLdaq,"Cannot insert doc "<<error.message);
 	response["STATUS"]="CANNOTINSERT";
 	return;
       }
       bson_destroy (doc);
-      mongoc_collection_destroy (colitems);
+
       response["VALUE"]=vcitem;
       response["STATUS"]="DONE";
       return;
     }
+  response["STATUS"]=this->listItems();
 
-  
+ } 
+Json::Value lydaq::monitorSupervisor::listItems()
+{
+
+  bson_t* queryitems=bson_new_from_json ("{}", -1, &error);
+  mongoc_cursor_t *citem = mongoc_collection_find_with_opts (_collitems, queryitems, NULL, NULL);
+  const bson_t *docitems;
   Json::Value array_keys;
-
-  for (auto x:_items)
+  Json::Reader readera;
+  while (mongoc_cursor_next (citem, &docitems))
     {
-       Json::Value rc;
-      
-       rc["VALUE"]=x->status();
-       rc["HARDWARE"]=x->hardware();
-       rc["LOCATION"]=x->location();
-       rc["TIME"]=(uint32_t) x->time();
-       array_keys.append(rc);
-
+      char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
+      Json::Value vcitem;
+      bool parsinga =reader.parse(stritem,vcitem);
+      if (parsinga)
+	array_keys.append(vcitem);
+      bson_free(stritem);
     }
-  response["STATUS"]=array_keys;
-} 
+  bson_destroy(queryitems);
+  mongoc_cursor_destroy(citem);
+  
+  return array_keys;
+}
 
 #ifdef OLDEXAMPLE
 #include "zhelpers.hpp"
@@ -337,105 +367,105 @@ Json::Value toJson(std::string s)
   return jsta;
 }
 int main () {
-    //  Prepare our context and subscriber
-    zmq::context_t context(1);
-    zmq::socket_t subscriber (context, ZMQ_SUB);
-    subscriber.connect("tcp://lyosdhcal7:5600");
-    subscriber.setsockopt( ZMQ_SUBSCRIBE, "", 0);
-    zmq::socket_t subscriber1 (context, ZMQ_SUB);
-    subscriber1.connect("tcp://lyoilcrpi13:5600");
-    subscriber1.setsockopt( ZMQ_SUBSCRIBE, "", 0);
-    zmq::socket_t subscriber2 (context, ZMQ_SUB);
-    subscriber2.connect("tcp://lyoilcrpi24:5600");
-    subscriber2.setsockopt( ZMQ_SUBSCRIBE, "", 0);
-//  Initialize poll set
-    zmq::pollitem_t items [] = {
-        { subscriber, 0, ZMQ_POLLIN, 0 },
-	{ subscriber1, 0, ZMQ_POLLIN, 0 },
-	{ subscriber2, 0, ZMQ_POLLIN, 0 }
-    };
-    std::vector<std::string> strs;
-    while (1) {
+  //  Prepare our context and subscriber
+  zmq::context_t context(1);
+  zmq::socket_t subscriber (context, ZMQ_SUB);
+  subscriber.connect("tcp://lyosdhcal7:5600");
+  subscriber.setsockopt( ZMQ_SUBSCRIBE, "", 0);
+  zmq::socket_t subscriber1 (context, ZMQ_SUB);
+  subscriber1.connect("tcp://lyoilcrpi13:5600");
+  subscriber1.setsockopt( ZMQ_SUBSCRIBE, "", 0);
+  zmq::socket_t subscriber2 (context, ZMQ_SUB);
+  subscriber2.connect("tcp://lyoilcrpi24:5600");
+  subscriber2.setsockopt( ZMQ_SUBSCRIBE, "", 0);
+  //  Initialize poll set
+  zmq::pollitem_t items [] = {
+    { subscriber, 0, ZMQ_POLLIN, 0 },
+    { subscriber1, 0, ZMQ_POLLIN, 0 },
+    { subscriber2, 0, ZMQ_POLLIN, 0 }
+  };
+  std::vector<std::string> strs;
+  while (1) {
   
 
 	  
-	  //std::cout<<contents.length()<<" string len "<<std::endl;
-	  //= s_recv (subscriber);
- 	  std::stringstream meas;
-	  meas << "|" <<time(0)<<"|"<< address;
+    //std::cout<<contents.length()<<" string len "<<std::endl;
+    //= s_recv (subscriber);
+    std::stringstream meas;
+    meas << "|" <<time(0)<<"|"<< address;
 
 
 	  
-	  Json::Value jcaen=toJson(contents);
-	  const Json::Value& jdevs= jcaen["channels"];
-	  for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
-	    {
-	           //TB_DIFStatus_->elementAt(irow, 0)->addWidget();
-	      meas<<"|"<< (*jt)["id"].asUInt();
-	      meas<<"|"<< (*jt)["status"].asUInt();
-	      meas<<"|"<< (*jt)["vset"].asFloat();
-	      meas<<"|"<< (*jt)["iset"].asFloat();
-	      meas<<"|"<< (*jt)["vout"].asFloat();
-	      meas<<"|"<< (*jt)["iout"].asFloat();
-	      // std::string status=(*jt)["status"].asString();
-	      // std::size_t found = status.find("=");
+    Json::Value jcaen=toJson(contents);
+    const Json::Value& jdevs= jcaen["channels"];
+    for (Json::ValueConstIterator jt = jdevs.begin(); jt != jdevs.end(); ++jt)
+      {
+	//TB_DIFStatus_->elementAt(irow, 0)->addWidget();
+	meas<<"|"<< (*jt)["id"].asUInt();
+	meas<<"|"<< (*jt)["status"].asUInt();
+	meas<<"|"<< (*jt)["vset"].asFloat();
+	meas<<"|"<< (*jt)["iset"].asFloat();
+	meas<<"|"<< (*jt)["vout"].asFloat();
+	meas<<"|"<< (*jt)["iout"].asFloat();
+	// std::string status=(*jt)["status"].asString();
+	// std::size_t found = status.find("=");
 	      
-	      // printf("%3d %5.1f %5.1e %5.1f %7.2f %5.1f %s \n",
-	      // 	     (*jt)["id"].asUInt(),
-	      // 	     (*jt)["vset"].asFloat(),
-	      // 	     (*jt)["iset"].asFloat(),
-	      // 	     (*jt)["vout"].asFloat(),
-	      // 	     (*jt)["iout"].asFloat(),
-	      // 	     (*jt)["rampup"].asFloat(),
-	      // 	     status.substr(found+1,status.length()-found-2).c_str());
+	// printf("%3d %5.1f %5.1e %5.1f %7.2f %5.1f %s \n",
+	// 	     (*jt)["id"].asUInt(),
+	// 	     (*jt)["vset"].asFloat(),
+	// 	     (*jt)["iset"].asFloat(),
+	// 	     (*jt)["vout"].asFloat(),
+	// 	     (*jt)["iout"].asFloat(),
+	// 	     (*jt)["rampup"].asFloat(),
+	// 	     status.substr(found+1,status.length()-found-2).c_str());
 
-	    }
-	  std::cout<<meas.str()<<"|"<<std::endl;
-	  fflush(stdout);
-            //  Process task
-        }
-        if (items [1].revents & ZMQ_POLLIN) {
-	  std::string address = s_recv (subscriber1);
-	  //  Read message contents
-	  std::string contents = s_recv (subscriber1);
+      }
+    std::cout<<meas.str()<<"|"<<std::endl;
+    fflush(stdout);
+    //  Process task
+  }
+  if (items [1].revents & ZMQ_POLLIN) {
+    std::string address = s_recv (subscriber1);
+    //  Read message contents
+    std::string contents = s_recv (subscriber1);
 	  
-	  //std::cout << "|" << time(0)<<"|"<<address << "|" << contents ;
-	  std::stringstream meas;
-	  meas << "|" <<time(0)<<"|"<< address;
-	  Json::Value jhum=toJson(contents);
-	  meas<<"|"<<jhum["humidity0"].asFloat();
-	  meas<<"|"<<jhum["temperature0"].asFloat();
-	  meas<<"|"<<jhum["humidity11"].asFloat();
-	  meas<<"|"<<jhum["temperature1"].asFloat();
-	  std::cout<<meas.str()<<"|"<<std::endl;
-	  fflush(stdout);
-            //  Process weather update
-        }
-        if (items [2].revents & ZMQ_POLLIN) {
-	  std::string address = s_recv (subscriber2);
-	  //  Read message contents
-	  std::string contents = s_recv (subscriber2);
-	  //std::cout << "|" << time(0)<<"|"<<address << "|" << contents;
+    //std::cout << "|" << time(0)<<"|"<<address << "|" << contents ;
+    std::stringstream meas;
+    meas << "|" <<time(0)<<"|"<< address;
+    Json::Value jhum=toJson(contents);
+    meas<<"|"<<jhum["humidity0"].asFloat();
+    meas<<"|"<<jhum["temperature0"].asFloat();
+    meas<<"|"<<jhum["humidity11"].asFloat();
+    meas<<"|"<<jhum["temperature1"].asFloat();
+    std::cout<<meas.str()<<"|"<<std::endl;
+    fflush(stdout);
+    //  Process weather update
+  }
+  if (items [2].revents & ZMQ_POLLIN) {
+    std::string address = s_recv (subscriber2);
+    //  Read message contents
+    std::string contents = s_recv (subscriber2);
+    //std::cout << "|" << time(0)<<"|"<<address << "|" << contents;
 
-	  std::stringstream meas;
-	  meas << "|" <<time(0)<<"|"<< address;
-	  Json::Value jbmp=toJson(contents);
-	  meas<<"|"<<jbmp["pressure"].asFloat();
-	  meas<<"|"<<jbmp["temperature"].asFloat()+273.15;
-	  std::cout<<meas.str()<<"|"<<std::endl;
+    std::stringstream meas;
+    meas << "|" <<time(0)<<"|"<< address;
+    Json::Value jbmp=toJson(contents);
+    meas<<"|"<<jbmp["pressure"].asFloat();
+    meas<<"|"<<jbmp["temperature"].asFloat()+273.15;
+    std::cout<<meas.str()<<"|"<<std::endl;
 
 	  
-	  /*std::cout << "BMP->[" << address << "] " << std::endl;
-	  Json::Value jbmp=toJson(contents);
-	  printf("%7.2f %7.2f \n",
-		 jbmp["pressure"].asFloat(),jbmp["temperature"].asFloat()+273.15);
-	  */
-	  fflush(stdout);
-            //  Process weather update
-        }
-        //  Read envelope with address
+    /*std::cout << "BMP->[" << address << "] " << std::endl;
+      Json::Value jbmp=toJson(contents);
+      printf("%7.2f %7.2f \n",
+      jbmp["pressure"].asFloat(),jbmp["temperature"].asFloat()+273.15);
+    */
+    fflush(stdout);
+    //  Process weather update
+  }
+  //  Read envelope with address
         
-    }
-    return 0;
+}
+return 0;
 }
 #endif
