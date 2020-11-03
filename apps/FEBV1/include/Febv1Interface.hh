@@ -83,7 +83,7 @@ namespace lydaq
       socketHandler(std::string,uint32_t port);
       int16_t checkBuffer(uint8_t* b,uint32_t maxidx);
       uint32_t sendMessage(febv1::Message* wmsg);
-      void processBuffer(uint64_t id, uint16_t l,char* b);
+      virtual void processBuffer(uint64_t id, uint16_t l,char* b);
       void purgeBuffer();
       virtual bool processPacket()=0;
       NL::Socket* socket(){return _sock;}
@@ -98,12 +98,14 @@ namespace lydaq
     protected:
       uint32_t _idx;
       uint8_t _buf[MBSIZE];
+    protected:
+            // temporary buffer to collect reply
+      uint8_t _b[MBSIZE];
+
     private:
       uint64_t _id;
       
       NL::Socket* _sock;
-      // temporary buffer to collect reply
-      uint8_t _b[MBSIZE];
       // Command answers pointers
       std::map<uint8_t,uint8_t*> _answ;
       uint32_t _transaction;
@@ -122,6 +124,9 @@ namespace lydaq
       inline uint32_t slcStatus(){return _slcStatus;}
       inline void setSlcStatus(uint32_t i){_slcStatus=i;}
       inline void useTransactionId(){_noTransReply=false;}
+      void dumpAnswer(uint32_t tr);
+      virtual void processBuffer(uint64_t id, uint16_t l,char* b);
+
     private:
       uint32_t _slcStatus;
       febv1::Message* _msg;

@@ -23,7 +23,7 @@
 
 using namespace lydaq;
 
-febv1::dataHandler::dataHandler(std::string ip) : socketHandler(ip,febv1::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(160),_lastGTC(0),_lastABCID(0),_chlines(0)
+febv1::dataHandler::dataHandler(std::string ip) : socketHandler(ip,febv1::Interface::PORT::DATA),_ntrg(0),_dsData(NULL),_triggerId(0),_detId(130),_lastGTC(0),_lastABCID(0),_chlines(0)
 {
   
 }
@@ -41,10 +41,6 @@ void febv1::dataHandler::clear()
   _lastABCID=0;
   _lastBCID=0;
   _event=0;
-  for (int i=0;i<255;i++)
-    {
-      memset(this->answer(i),0,MAX_BUFFER_LEN);
-    }
 }
 
 
@@ -98,7 +94,7 @@ bool febv1::dataHandler::processPacket()
       _lastGTC = gtc;
       _lastABCID = abcid;
       //INFO_PRINT(" New Event Header  %d Packets %d GTC %d ABCID %llu Size %d\n", _event, _nProcessed, gtc, abcid, _idx);
-#undef DEBUGPACKET
+#define DEBUGPACKETN
 #ifdef DEBUGPACKET
       printf("\n==> ");
       for (int i = 0; i < _idx; i++)
