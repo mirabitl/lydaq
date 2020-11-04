@@ -4,10 +4,12 @@
 #include <string>
 #include "zhelpers.hpp"
 #include <boost/algorithm/string.hpp>
+#include <mongoc.h>
+
 using namespace zdaq;
 using namespace zdaq::mon;
 
-lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplication(name),_dbaccount(""),_context(0),_uri(0),_client(0),_database(0),_collitems(0)
+lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplication(name),_dbaccount(""),_context(0),_uri(0),_client(0),_database(0),_collitems(0),_measitems(0),_subscribers(0)
 {
   //_fsm=this->fsm();
   this->fsm()->addState("PAUSED");
@@ -23,22 +25,19 @@ lydaq::monitorSupervisor::monitorSupervisor(std::string name) : zdaq::baseApplic
   this->fsm()->addCommand("ITEM",boost::bind(&lydaq::monitorSupervisor::c_item,this,_1,_2));
 
   
+  this->fsm()->start(9998);
 
-  char* wp=getenv("WEBPORT");
-  if (wp!=NULL)
-    {
-      std::cout<<"Service "<<name<<" started on port "<<atoi(wp)<<std::endl;
-      this->fsm()->start(atoi(wp));
-    }
 }
 void lydaq::monitorSupervisor::clear()
 {
   if (_context==0) return;
-  _subscribers.clear();
+  _subscribers->clear();
   delete _context;
   _context=0;
   if (_collitems)
     {mongoc_collection_destroy (_collitems);_collitems=0;}
+  if (_measitems)
+    {mongoc_collection_destroy (_measitems);_measitems=0;}
   if (_database)
     {mongoc_database_destroy (_database);_database=0;}
   if (_uri)
@@ -52,12 +51,12 @@ void lydaq::monitorSupervisor::clear()
   mongoc_cleanup ();
   
 }
-int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
+int32_t lydaq::monitorSupervisor::connectDb(std::string dbaccount)
 {
   bson_t *command, reply;
   bson_error_t error;
   char *str;
-  bool retval;
+  //  bool retval;
   // Find loggin
 
 
@@ -70,16 +69,17 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
       LOG4CXX_ERROR(_logLdaq," MGDBLOGIN is not set");
       return EXIT_FAILURE;
     }
+  
   std::size_t current, previous = 0;
-  current = str.find("@");
+  current = login.find("@");
   std::vector<string> cont;
   while (current != std::string::npos) {
-    cont.push_back(str.substr(previous, current - previous));
+    cont.push_back(login.substr(previous, current - previous));
     previous = current + 1;
-    current = str.find("@", previous);
+    current = login.find("@", previous);
   }
 
-  cont.push_back(str.substr(previous, current - previous));
+  cont.push_back(login.substr(previous, current - previous));
   std::string userinfo=cont[0];
   std::stringstream hostinfo("");
   hostinfo<<"mongodb://"<<cont[1];
@@ -101,12 +101,12 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
   //find uri and dbname
 
   
-  _uri = mongoc_uri_new_with_error (uri_string, &error);
+  _uri = mongoc_uri_new_with_error (uri_string.c_str(), &error);
   if (!_uri) {
     fprintf (stderr,
 	     "failed to parse URI: %s\n"
 	     "error message:       %s\n",
-	     uri_string,
+	     uri_string.c_str(),
 	     error.message);
     return EXIT_FAILURE;
   }
@@ -128,8 +128,8 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
   /*
    * Get a handle on the database "db_name" and collection "coll_name"
    */
-  _database = mongoc_client_get_database (_client,_dbname);
-  _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
+  _database = mongoc_client_get_database (_client,_dbname.c_str());
+  _collitems = mongoc_client_get_collection (_client,_dbname.c_str(),"MONITORED_ITEMS");
 
   /*
    * Do work. This example pings the database, prints the result as JSON and
@@ -157,20 +157,21 @@ int32_t lydaq:::monitorSupervisor::connectDb(std::string dbaccount)
 void lydaq::monitorSupervisor::start(zdaq::fsmmessage* m)
 {
   LOG4CXX_INFO(_logLdaq," CMD: "<<m->command());
-  _subscribers.clear();
+  _subscribers->clear();
   if (!_collitems)
-    _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
+    _collitems = mongoc_client_get_collection (_client,_dbname.c_str(),"MONITORED_ITEMS");
   // Find running items
   Json::Value jitems=this->listItems();
   
-  for (...)
-    {
-      Json::Value jitem;
-      if (jitem["state"].asString().compare("PUBLISHING")!=0)
-	continue;
-      std::stringstream sit;
-      sit<<"tcp://"<<jitem["host"]<<":"<<jitem["pubport"];
-      _subscribers.addStream(sit.str());
+
+  for (Json::ValueConstIterator it = jitems.begin(); it != jitems.end(); ++it)
+        {
+          const Json::Value& jitem = *it;
+	  if (jitem["state"].asString().compare("PUBLISHING")!=0)
+	    continue;
+	  std::stringstream sit;
+	  sit<<"tcp://"<<jitem["host"]<<":"<<jitem["pubport"];
+	  _subscribers->addStream(sit.str());
     }
   _subscribers->addHandler(boost::bind(&lydaq::monitorSupervisor::processItems, this,_1));
   _subscribers->start();
@@ -182,7 +183,7 @@ void lydaq::monitorSupervisor::stop(zdaq::fsmmessage* m)
 void lydaq::monitorSupervisor::processItems(std::vector<zdaq::mon::publishedItem*>& vitems)
 {
   if (!_measitems)
-      _measitems = mongoc_client_get_collection (_client,_dbname,"MEASURED_ITEMS");
+    _measitems = mongoc_client_get_collection (_client,_dbname.c_str(),"MEASURED_ITEMS");
 
   for (auto x:vitems)
     {
@@ -207,7 +208,8 @@ void lydaq::monitorSupervisor::initialise(zdaq::fsmmessage* m)
   else
     LOG4CXX_ERROR(_logLdaq," dbaccount not set. Nothing initialised ");
 
-  
+  _context=new zmq::context_t(1);
+  _subscribers=new zdaq::mon::zSubscriber(_context);
 }
 void lydaq::monitorSupervisor::c_status(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
@@ -217,6 +219,9 @@ void lydaq::monitorSupervisor::c_status(Mongoose::Request &request, Mongoose::Js
 } 
 void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::JsonResponse &response)
 {
+  bson_error_t error;
+  Json::Reader reader;
+
   LOG4CXX_INFO(_logLdaq," Registering item status ");
 
   std::string location=request.get("location","");
@@ -234,7 +239,7 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
 
   // Now query the item in the DB and find the last one
     if (!_collitems)
-      _collitems = mongoc_client_get_collection (_client,_dbname,"MONITORED_ITEMS");
+      _collitems = mongoc_client_get_collection (_client,_dbname.c_str(),"MONITORED_ITEMS");
   std::stringstream sal("");
   sal<<"{\"location\":\""<<location<<"\""
      <<",\"host\":\""<<host<<"\""
@@ -248,7 +253,7 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
   time_t tlast=0;
   while (mongoc_cursor_next (citem, &docitems))
     {
-      char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
+      char* stritem = bson_as_relaxed_extended_json (docitems, NULL);
       printf ("\t ===>\n");
       Json::Reader readera;
       bool parsinga =reader.parse(stritem,vcitem);
@@ -280,7 +285,7 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
 				 "}");
 
       if (!mongoc_collection_update_one (
-					 _collitems, query, update, NULL, NULL, &error)) {
+					 _collitems, querya, update, NULL, NULL, &error)) {
 	fprintf (stderr, "%s\n", error.message);
 	if (querya)
 	  bson_destroy (querya);
@@ -302,7 +307,7 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
   else
     {
       // Create the item
-      vcitem["time"]=time(0);
+      vcitem["time"]=(int32_t) time(0);
       vcitem["state"]=state;
       vcitem["location"]=location;
       vcitem["hardware"]=hardware;
@@ -333,20 +338,27 @@ void lydaq::monitorSupervisor::c_item(Mongoose::Request &request, Mongoose::Json
     }
   response["STATUS"]=this->listItems();
 
- } 
+ }
+void  lydaq::monitorSupervisor::destroy(zdaq::fsmmessage* m)
+{
+  this->clear();
+}
+
 Json::Value lydaq::monitorSupervisor::listItems()
 {
+  bson_error_t error;
 
-  bson_t* queryitems=bson_new_from_json ("{}", -1, &error);
+  std::string sq="{}";
+  bson_t* queryitems=bson_new_from_json ((const uint8_t*) sq.c_str(), -1, &error);
   mongoc_cursor_t *citem = mongoc_collection_find_with_opts (_collitems, queryitems, NULL, NULL);
   const bson_t *docitems;
   Json::Value array_keys;
   Json::Reader readera;
   while (mongoc_cursor_next (citem, &docitems))
     {
-      char* stritem = bson_as_relaxed_extended_json (docitem, NULL);
+      char* stritem = bson_as_relaxed_extended_json (docitems, NULL);
       Json::Value vcitem;
-      bool parsinga =reader.parse(stritem,vcitem);
+      bool parsinga =readera.parse(stritem,vcitem);
       if (parsinga)
 	array_keys.append(vcitem);
       bson_free(stritem);

@@ -32,15 +32,17 @@ namespace lydaq
     public:
       monitorSupervisor(std::string name);
       void clear();
-      void connectDb(std::string dbaccount);
+      int32_t connectDb(std::string dbaccount);
       void initialise(zdaq::fsmmessage* m);
       void destroy(zdaq::fsmmessage* m);
+      void start(zdaq::fsmmessage* m);
+      void stop(zdaq::fsmmessage* m);
       void c_status(Mongoose::Request &request, Mongoose::JsonResponse &response);
       void c_item(Mongoose::Request &request, Mongoose::JsonResponse &response);
-      void c_monitor(Mongoose::Request &request, Mongoose::JsonResponse &response);
+      Json::Value listItems();
       void processItems(std::vector<zdaq::mon::publishedItem*>& v);
     private:
-      std::map<std::string,zdaq::mon::zSubscriber*> _subscribers;
+      zdaq::mon::zSubscriber* _subscribers;
       std::string _dbaccount,_dbname;
       zmq::context_t* _context;
 
@@ -48,6 +50,7 @@ namespace lydaq
       mongoc_client_t *_client;
       mongoc_database_t *_database;
       mongoc_collection_t *_collitems;
+      mongoc_collection_t *_measitems;
       //boost::interprocess::interprocess_mutex _sem;
 
     };

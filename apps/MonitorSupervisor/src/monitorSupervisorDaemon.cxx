@@ -1,4 +1,4 @@
-#include "monitorSubscriber.hh"
+#include "monitorSupervisor.hh"
 #include <unistd.h>
 #include <stdint.h>
 #include <log4cxx/logger.h>
@@ -13,15 +13,7 @@ printf("parsing the config file \n");
 DOMConfigurator::configure("/etc/Log4cxxConfig.xml");
 //_logger->setLevel(log4cxx::Level::getInfo());
 LOG4CXX_INFO (_logLdaq, "this is a info message, after parsing configuration file")
-  std::stringstream s0;
-  uint32_t instance=0;
-  char* wp=getenv("INSTANCE");
-  if (wp!=NULL)      instance=atoi(wp);
-  s0<<"Monitor-"<<instance;
-  std::cout<<"Starting  "<<s0.str()<<std::endl;
-
-
-  lydaq::monitorSubscriber* s=new lydaq::monitorSubscriber(s0.str());
+  lydaq::monitorSupervisor* s=new lydaq::monitorSupervisor("MONITOR");
   while (true)
     sleep((unsigned int) 3);
 }
