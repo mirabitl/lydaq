@@ -73,12 +73,12 @@ bool c4i::dataHandler::processPacket()
   _lastGTC=((uint32_t) cdb[0] <<24)|((uint32_t) cdb[1] <<16)|((uint32_t) cdb[2] <<8)|((uint32_t) cdb[3]);
   _lastABCID = ((uint64_t) cdb[4] <<48)|((uint64_t) cdb[5] <<32)|((uint64_t) cdb[6] <<24)|((uint64_t) cdb[7] <<16)|((uint64_t) cdb[8] <<8)|((uint64_t) cdb[9]);
   _lastBCID=((uint32_t) cdb[10] <<24)|((uint32_t) cdb[11] <<16)|((uint32_t) cdb[12] <<8)|((uint32_t) cdb[13]);
-  LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx);
 
-#define DEBUGEVENTN
+#define DEBUGEVENT
 #ifdef DEBUGEVENT  
-  fprintf(stderr,"Length %d \n==> ",_idx);
-  for (int i=c4i::Message::Fmt::PAYLOAD;i<_idx;i++)
+  fprintf(stderr,"Length %d \n==> ",length);
+  for (int i=c4i::Message::Fmt::PAYLOAD;i<length;i++)
     {
       fprintf(stderr,"%.2x ",(_buf[i]));
       
@@ -113,4 +113,139 @@ bool c4i::dataHandler::processPacket()
     }
   _event++;
   return true;
+}
+void c4i::dataHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" procesBuffer  "<<std::hex<<id<<std::dec<<" received "<<l<<" stored "<<_idx);
+  if ((_idx+l)>MBSIZE)
+    {
+      _idx=0;
+    }
+
+      
+  uint8_t temp[0x100000];
+  memcpy(&_buf[_idx],bb,l);
+  _idx+=l;
+ processFullBuffer:
+  if (_buf[0]!='(')
+    { _idx=0;return;}
+  uint16_t* _sBuf= (uint16_t*) &_buf[c4i::Message::Fmt::LEN];
+  uint16_t length=ntohs(_sBuf[0]); // Header
+  if (length>MBSIZE)
+    {
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" procesBuffer Size too large "<<std::hex<<id<<std::dec<<" Length "<<length);
+      _idx=0;
+      return;
+    }
+  if (_idx>length  && _buf[length-1]!=')')
+    {
+      //Bad buffer found next a0 00 00 00 00 00 00 29 28
+      for (int i=0;i<_idx-9;i++)
+	{
+	  if (_buf[i]==0xa0 &&
+	      _buf[i+1]==0x00 &&
+	      _buf[i+2]==0x00 &&
+	      _buf[i+3]==0x00 &&
+	      _buf[i+4]==0x00 &&
+	      _buf[i+5]==0x00 &&
+	      _buf[i+6]==0x00 &&
+	      _buf[i+7]==0x29 &&
+	      _buf[i+8]==0x28)
+	    {
+	      memcpy(temp,&_buf[i+8],_idx-(i+8));
+	      memcpy(_buf,temp,_idx-(i+8));
+	      _idx=_idx-(i+8);
+	      goto processFullBuffer;
+	    }
+	}
+	
+    }
+  if (_buf[length-1]==')')
+    {
+      bool ok=processPacket();
+      uint32_t nlen=_idx-length;
+      if (nlen>0)
+	{
+	  memcpy(temp,&_buf[length],nlen);
+	  _idx=nlen;
+	  memcpy(&_buf[0],temp,nlen);
+	  goto processFullBuffer;
+	}
+      else
+	_idx=0;
+    }
+   
+  /*
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"Entering procesBuffer "<<std::hex<<id<<std::dec<<" Length "<<l);
+ fprintf(stderr,"Length %d \n==> ",_idx);
+ for (int i=0;i<l;i++)
+    {
+      fprintf(stderr,"%.2x ",(bb[i]));
+      
+      if (i%16==15)
+        {
+          fprintf(stderr,"\n==> ");
+        }
+    }
+  fprintf(stderr,"\n");
+  
+for (uint16_t ibx = 0; ibx < l; ibx++)
+  {
+    int16_t tag = checkBuffer((uint8_t *)&bb[ibx], l - ibx + 1);
+    LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"Entering procesBuffer "<<std::hex<<id<<std::dec<<ibx<<" Tag "<<tag);
+    if (tag > 0)
+    {
+      bool ok = processPacket();
+      if (ok)
+      {
+        _idx = 0;
+	//ibx=tag-1;
+	//continue;
+      }
+    }
+    else
+    {
+#undef LUT
+#ifdef LUT
+      if (ibx == 0)
+      {
+        printf("LUT content \n==> ");
+        for (int i = 0; i < l; i++)
+        {
+          printf("%.2x ", ((uint8_t)bb[i]));
+
+          if (i % 16 == 15)
+          {
+            printf("\n==> ");
+          }
+        }
+        printf("\n");
+      }
+#endif
+      if (tag < 0)
+      {
+        LOG4CXX_DEBUG(_logFeb, __PRETTY_FUNCTION__ << this->difId() << "StructError Tag=" << tag << " ibx=" << ibx << " _idx=" << _idx);
+      }
+    }
+    _buf[_idx] = bb[ibx];
+    _idx++;
+  }
+ return;
+
+  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 }

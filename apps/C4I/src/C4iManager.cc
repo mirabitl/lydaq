@@ -388,7 +388,7 @@ void lydaq::C4iManager::configureHR2()
   fprintf(stderr,"Loop on socket for Sending slow control \n");
   for (auto x:_mpi->boards())
     {
-      _hca->prepareSlowControl(x.second->ipAddress());
+      _hca->prepareSlowControl(x.second->ipAddress(),true);
       x.second->slc()->sendSlowControl(_hca->slcBuffer());
     }
   
@@ -518,6 +518,14 @@ void lydaq::C4iManager::start(zdaq::fsmmessage* m)
     }
 
   // Turn run type on
+    for (auto x:_mpi->boards())
+    {
+      // clear FIFO
+      x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_RST,2);
+      ::sleep(5);
+      x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_RST,0);
+    }
+
   for (auto x:_mpi->boards())
     {
       // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)

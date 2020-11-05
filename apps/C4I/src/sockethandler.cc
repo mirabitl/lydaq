@@ -87,7 +87,7 @@ int16_t c4i::socketHandler::checkBuffer(uint8_t* b,uint32_t maxidx)
      //fprintf(stderr,"d %d %c\n",__LINE__,b[elen-1]);
      if (elen>maxidx)
        {
-         LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
+         LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header:Not enough data ELEN "<<elen<<" MAXID "<<maxidx);
          return -1;
        }
      if (b[elen-1]==')')
@@ -97,7 +97,16 @@ int16_t c4i::socketHandler::checkBuffer(uint8_t* b,uint32_t maxidx)
        }
      else
        {
-         LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing  end tag ");
+         LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<"CheckBuf header :Missing  end tag , found "<<b[elen-1] );
+	      for (int i=0;i<elen;i++)
+       {
+	 fprintf(stderr,"%.2x ",((uint8_t) b[i]));
+	 
+	 if (i%16==15)
+	   {
+	     fprintf(stderr,"\n");
+	   }
+       }
          return -1;
        }
    }
