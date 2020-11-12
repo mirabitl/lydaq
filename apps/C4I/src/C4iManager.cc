@@ -522,7 +522,7 @@ void lydaq::C4iManager::start(zdaq::fsmmessage* m)
     {
       // clear FIFO
       x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_RST,2);
-      ::sleep(5);
+      ::usleep(1000);
       x.second->reg()->writeRegister(lydaq::c4i::Message::Register::ACQ_RST,0);
     }
 

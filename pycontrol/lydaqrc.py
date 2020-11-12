@@ -137,9 +137,14 @@ class lydaqControl(daqrc.daqControl):
         param["value"] = value
         return self.processCommand("RESETTDC", "MDCCSERVER", param)
 
-    def mdcc_resetTdc(self):
-        self.mdcc_setResetTdcBit(0)
-        return self.mdcc_setResetTdcBit(1)
+    def mdcc_resetTdc(self,bar=True):
+        if (bar):
+            self.mdcc_setResetTdcBit(0)
+            return self.mdcc_setResetTdcBit(1)
+        else:
+            self.mdcc_setResetTdcBit(1)
+            return self.mdcc_setResetTdcBit(0)
+            
 
     def mdcc_setBeamOn(self, value):
         param = {}

@@ -5,6 +5,7 @@ import time
 import MongoJob as mg
 import json
 import os
+import math
 from six.moves import range
 
 
@@ -46,8 +47,8 @@ class combRC(lydaqrc.lydaqControl):
             r["BUILDER_%d" % x.appInstance] = s
         # Reset for FEB V1
         if (self.reset != 0):
-            self.mdcc_resetTdc()
-            time.sleep(self.reset/1000.)
+            self.mdcc_resetTdc((self.reset>0))
+            time.sleep(abs(self.reset)/1000.)
 
         if ("TDCSERVER" in self.appMap.keys()):
             for x in self.appMap["TDCSERVER"]:
