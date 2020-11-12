@@ -75,10 +75,10 @@ bool c4i::dataHandler::processPacket()
   _lastBCID=((uint32_t) cdb[11] <<16)|((uint32_t) cdb[12] <<8)|((uint32_t) cdb[13]);
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<" Command answer="<<command<<" length="<<length<<" trame id="<<trame<<" buffer length "<<_idx<<" GTC" <<_lastGTC<<" ABCID "<<_lastABCID<<" Last BCID "<<_lastBCID);
 
-#define DEBUGEVENT
+#define DEBUGEVENTN
 #ifdef DEBUGEVENT  
   fprintf(stderr,"Length %d \n==> ",length);
-  for (int i=0;i<c4i::Message::Fmt::PAYLOAD+16;i++)
+  for (int i=0;i<c4i::Message::Fmt::PAYLOAD+256;i++)
     {
       fprintf(stderr,"%.2x ",(_buf[i]));
       
@@ -106,18 +106,18 @@ bool c4i::dataHandler::processPacket()
   if (_dsData!=NULL)
     {
       //memcpy((unsigned char*) _dsData->payload(),temp,idx);
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Publishing  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
+      LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Publishing  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
       memcpy((unsigned char*) _dsData->payload(),_buf,length);
       _dsData->publish(_lastABCID,_lastGTC,idx);
       //if (_event%100==0)
-      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Published  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
+      LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<this->sourceid()<<"Published  Event="<<_event<<" GTC="<<_lastGTC<<" ABCID="<<_lastABCID<<" size="<<idx);
     }
   _event++;
   return true;
 }
 void c4i::dataHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" procesBuffer  "<<std::hex<<id<<std::dec<<" received "<<l<<" stored "<<_idx);
+  LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<" procesBuffer  "<<std::hex<<id<<std::dec<<" received "<<l<<" stored "<<_idx);
   if ((_idx+l)>MBSIZE)
     {
       LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<" Resetting the buffer ");
@@ -177,7 +177,7 @@ void c4i::dataHandler::processBuffer(uint64_t id, uint16_t l,char* bb)
     {
       bool ok=processPacket();
       int32_t nlen=_idx-length;
-      LOG4CXX_WARN(_logFeb,__PRETTY_FUNCTION__<<"Packet processed  "<<std::hex<<id<<std::dec<<" remaining Length "<<_idx<<" "<<length);
+      LOG4CXX_DEBUG(_logFeb,__PRETTY_FUNCTION__<<"Packet processed  "<<std::hex<<id<<std::dec<<" remaining Length "<<_idx<<" "<<length);
       if (nlen>0)
 	{
 	  memcpy(temp,&_buf[length],nlen);
