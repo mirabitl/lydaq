@@ -35,14 +35,18 @@ public:
   void configure(zdaq::fsmmessage* m);
   void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif=0);
   void setGain(uint16_t gain);
+  void setAllMasks(uint64_t mask);
+  void setCTEST(uint64_t mask);
   void setMask(uint32_t level,uint64_t mask);
   void setChannelMask(uint16_t level,uint16_t channel,uint16_t val);
   void start(zdaq::fsmmessage* m);
   void stop(zdaq::fsmmessage* m);
   void destroy(zdaq::fsmmessage* m);
-
-
-
+  void ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step);
+  void thrd_scurve() ;
+  void Scurve(int mode,int thmin,int thmax,int step);
+  fsmwebCaller* findMDCC(std::string appname);
+  void c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response);
 private:
   lydaq::HR2ConfigAccess* _hca;
   lydaq::c4i::Interface* _mpi;
@@ -55,6 +59,13 @@ private:
   uint8_t _duration;
 
   zmq::context_t* _context;
+
+  bool _running;
+ // Scurve parameters
+  int _sc_mode,_sc_thmin,_sc_thmax,_sc_step;
+  bool _sc_running;
+
+  
 };
 };
 #endif
