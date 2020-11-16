@@ -417,7 +417,8 @@ class MongoRoc:
         res=self.db.states.find({'name':statename})
         last=0
         for x in res:
-            last=x["version"]
+            if (last<x["version"]):
+                last=x["version"]
         if (last==0):
             print(" No state ",statename,"found")
             return
