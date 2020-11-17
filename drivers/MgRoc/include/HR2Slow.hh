@@ -358,8 +358,8 @@ namespace lydaq {
     {
       for (int i=0;i<64;i++)
 	{
-	  setBitState(618+i*3+level, (mask&(1<<i))!=0);
-	    }
+	  setBitState(618+i*3+level, ((mask>>i)&1)!=0);
+	}
     }
     bool getMASKChannel(uint8_t level,int ch)
     {

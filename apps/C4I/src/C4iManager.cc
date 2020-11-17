@@ -509,11 +509,11 @@ void lydaq::C4iManager::setAllMasks(uint64_t mask)
 }
 void lydaq::C4iManager::setCTEST(uint64_t mask)
 {
-  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<std::hex<<mask<<std::dec);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing CTEST: "<<std::hex<<mask<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       for (int i=0;i<64;i++)
-	it->second.setCTEST(i,(1<<i)&mask);
+	it->second.setCTEST(i,(mask>>i)&1);
 
     }
   // Now loop on slowcontrol socket
@@ -606,7 +606,7 @@ void lydaq::C4iManager::destroy(zdaq::fsmmessage* m)
 void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=20000,ncoff=1000,ntrg=50;
+  int ncon=20000,ncoff=100,ntrg=50;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
@@ -620,12 +620,14 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
     {
       if (!_running) break;
       mdcc->sendCommand("PAUSE");
-      //usleep(100000);
+      usleep(1000);
       this->setThresholds(thmax-vth*step,512,512);
       p.clear();
       Json::Value h;
       h.append(2);h.append(thmax-vth*step);
-      p["header"]=h;builder->sendCommand("SETHEADER",p);
+      p["header"]=h;
+     
+      builder->sendCommand("SETHEADER",p);
       int firstEvent=0;
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
@@ -634,10 +636,10 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
       int nloop=0,lastEvent=firstEvent;
       while (lastEvent < (firstEvent + ntrg - 1))
 	{
-	  ::usleep(100000);
+	  ::usleep(10000);
 	  for (auto x : _mpi->boards())
 	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
-	  nloop++;if (nloop > 60 || !_running)  break;
+	  nloop++;if (nloop > 60000 || !_running)  break;
 	}
       printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
       mdcc->sendCommand("PAUSE");
