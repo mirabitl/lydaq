@@ -48,6 +48,7 @@ lydaq::C4iManager::C4iManager(std::string name) : zdaq::baseApplication(name),_c
   _fsm->addCommand("RESET",boost::bind(&lydaq::C4iManager::c_reset,this,_1,_2));
   
   _fsm->addCommand("SETTHRESHOLDS",boost::bind(&lydaq::C4iManager::c_setthresholds,this,_1,_2));
+  _fsm->addCommand("SCURVE",boost::bind(&lydaq::C4iManager::c_scurve,this,_1,_2));
   _fsm->addCommand("SETPAGAIN",boost::bind(&lydaq::C4iManager::c_setpagain,this,_1,_2));
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::C4iManager::c_setmask,this,_1,_2));
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::C4iManager::c_setchannelmask,this,_1,_2));
@@ -492,10 +493,12 @@ void lydaq::C4iManager::setAllMasks(uint64_t mask)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<std::hex<<mask<<std::dec);
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
-      
+      it->second.dumpBinary();
       it->second.setMASK(0,mask);
       it->second.setMASK(1,mask);
       it->second.setMASK(2,mask);
+      it->second.dumpBinary();
+	    
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
@@ -603,7 +606,7 @@ void lydaq::C4iManager::destroy(zdaq::fsmmessage* m)
 void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=2000,ncoff=100,ntrg=50;
+  int ncon=20000,ncoff=1000,ntrg=50;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
@@ -617,6 +620,7 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
     {
       if (!_running) break;
       mdcc->sendCommand("PAUSE");
+      //usleep(100000);
       this->setThresholds(thmax-vth*step,512,512);
       p.clear();
       Json::Value h;
@@ -628,12 +632,12 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
       mdcc->sendCommand("RELOADCALIB");
       mdcc->sendCommand("RESUME");
       int nloop=0,lastEvent=firstEvent;
-      while (lastEvent < (firstEvent + ntrg - 20))
+      while (lastEvent < (firstEvent + ntrg - 1))
 	{
 	  ::usleep(100000);
 	  for (auto x : _mpi->boards())
 	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
-	  nloop++;if (nloop > 20 || !_running)  break;
+	  nloop++;if (nloop > 60 || !_running)  break;
 	}
       printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
       mdcc->sendCommand("PAUSE");
@@ -656,13 +660,14 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
   fsmwebCaller* builder=findMDCC("BUILDER");
   if (mdcc==NULL) return;
   if (builder==NULL) return;
-  int mask=0;
+  uint64_t mask=0;
 
   // All channel pedestal
   if (mode==255)
     {
 
       for (int i=0;i<64;i++) mask|=(1<<i);
+      mask=0xFFFFFFFFFFFFFFFF;
       this->setAllMasks(mask);
       this->ScurveStep(mdcc,builder,thmin,thmax,step);
       return;

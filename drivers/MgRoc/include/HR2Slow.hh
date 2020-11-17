@@ -347,7 +347,7 @@ namespace lydaq {
     uint64_t getMASK(uint8_t level)
     {
       uint64_t mask=0;
-      for (int i=0;i<63;i++)
+      for (int i=0;i<64;i++)
 	{
 	  if (getBit(618+i*3+level)==1)
 	    mask|=(1<<i);
@@ -356,9 +356,9 @@ namespace lydaq {
     }
     void setMASK(uint8_t level,uint64_t mask)
     {
-      for (int i=0;i<63;i++)
+      for (int i=0;i<64;i++)
 	{
-	  setBitState(618+i*3+level, (mask&(1<<i))==1);
+	  setBitState(618+i*3+level, (mask&(1<<i))!=0);
 	    }
     }
     bool getMASKChannel(uint8_t level,int ch)
