@@ -153,7 +153,7 @@ bool gricv0::registerHandler::processPacket()
   else
     memcpy(rep,_buf,length);
 
-#define DUMPREGREP
+#define DUMPREGREPN
 #ifdef DUMPREGREP
   fprintf(stderr,"\n REGISTER RC ==> ");
   for (int i=0;i<_idx-1;i++)

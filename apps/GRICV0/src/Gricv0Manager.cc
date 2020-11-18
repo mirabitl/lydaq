@@ -614,13 +614,14 @@ void lydaq::Gricv0Manager::destroy(zdaq::fsmmessage* m)
 void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=20000,ncoff=100,ntrg=50;
+  int ncon=2000,ncoff=100,ntrg=20;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
   p.clear();p["nclock"]=ncoff;  mdcc->sendCommand("SPILLOFF",p);
   printf("Clock On %d Off %d \n",ncon, ncoff);
   p.clear();p["value"]=4;  mdcc->sendCommand("SETSPILLREGISTER",p);
+  //::sleep(20);
   mdcc->sendCommand("CALIBON");
   p.clear();p["nclock"]=ntrg;  mdcc->sendCommand("SETCALIBCOUNT",p);
   int thrange=(thmax-thmin+1)/step;
@@ -628,6 +629,12 @@ void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
     {
       if (!_running) break;
       mdcc->sendCommand("PAUSE");
+      for (auto x:_mpi->boards())
+	{
+	  // Automatic FSM (bit 1 a 0) , disabled (Bit 0 a 0)
+	  x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STOPACQ);
+	}
+
       usleep(1000);
       this->setThresholds(thmax-vth*step,512,512);
       p.clear();
@@ -636,20 +643,33 @@ void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
       p["header"]=h;
      
       builder->sendCommand("SETHEADER",p);
+      printf("SETHEADER executed\n");
       int firstEvent=0;
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
       mdcc->sendCommand("RELOADCALIB");
+      for (auto x:_mpi->boards())
+	{
+	  x.second->data()->clear();
+	}
+
+      // Turn run type on
+      for (auto x:_mpi->boards())
+	{
+	  // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)
+	  x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STARTACQ);
+	}
+      
       mdcc->sendCommand("RESUME");
-      int nloop=0,lastEvent=firstEvent;
+      int nloop=0,lastEvent=0;firstEvent=0;
       while (lastEvent < (firstEvent + ntrg - 1))
 	{
 	  ::usleep(10000);
 	  for (auto x : _mpi->boards())
 	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
-	  nloop++;if (nloop > 60000 || !_running)  break;
+	  nloop++;if (nloop > 600 || !_running)  break;
 	}
-      printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
+      printf("Step %d Th %d First %d Last %d loops %d \n",vth,thmax-vth*step,firstEvent,lastEvent,nloop);
       mdcc->sendCommand("PAUSE");
     }
   mdcc->sendCommand("CALIBOFF");
