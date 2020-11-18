@@ -23,7 +23,7 @@ using namespace zdaq;
 using namespace lydaq;
 
 
-lydaq::Gricv0Manager::Gricv0Manager(std::string name) : zdaq::baseApplication(name),_context(NULL),_hca(NULL),_mpi(NULL)
+lydaq::Gricv0Manager::Gricv0Manager(std::string name) : zdaq::baseApplication(name),_context(NULL),_hca(NULL),_mpi(NULL),_running(false)
 {
   _fsm=this->fsm();
   // Register state
@@ -463,9 +463,45 @@ void lydaq::Gricv0Manager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uin
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
-  ::sleep(1);
+  ::usleep(10000);
 
 }
+void lydaq::Gricv0Manager::setAllMasks(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<std::hex<<mask<<std::dec);
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
+    {
+      it->second.dumpBinary();
+      it->second.setMASK(0,mask);
+      it->second.setMASK(1,mask);
+      it->second.setMASK(2,mask);
+      it->second.dumpBinary();
+	    
+    }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+
+
+  ::usleep(1);
+
+}
+void lydaq::Gricv0Manager::setCTEST(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing CTEST: "<<std::hex<<mask<<std::dec);
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
+    {
+      for (int i=0;i<64;i++)
+	it->second.setCTEST(i,(mask>>i)&1);
+
+    }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+
+
+  ::usleep(1);
+
+}
+
 void lydaq::Gricv0Manager::setGain(uint16_t gain)
 {
 
@@ -532,6 +568,8 @@ void lydaq::Gricv0Manager::start(zdaq::fsmmessage* m)
       // Automatic FSM (bit 1 a 0) , enabled (Bit 0 a 1)
       x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STARTACQ);
     }
+   _running=true;
+
 }
 void lydaq::Gricv0Manager::stop(zdaq::fsmmessage* m)
 {
@@ -542,6 +580,7 @@ void lydaq::Gricv0Manager::stop(zdaq::fsmmessage* m)
       x.second->reg()->sendCommand(lydaq::gricv0::Message::command::STOPACQ);
     }
   ::sleep(2);
+ _running=false;
 
 
 }
@@ -568,5 +607,174 @@ void lydaq::Gricv0Manager::destroy(zdaq::fsmmessage* m)
 
 
   // To be done: _gricv0->clear();
+}
+
+
+void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
+{
+
+  int ncon=20000,ncoff=100,ntrg=50;
+  mdcc->sendCommand("PAUSE");
+  Json::Value p;
+  p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
+  p.clear();p["nclock"]=ncoff;  mdcc->sendCommand("SPILLOFF",p);
+  printf("Clock On %d Off %d \n",ncon, ncoff);
+  p.clear();p["value"]=4;  mdcc->sendCommand("SETSPILLREGISTER",p);
+  mdcc->sendCommand("CALIBON");
+  p.clear();p["nclock"]=ntrg;  mdcc->sendCommand("SETCALIBCOUNT",p);
+  int thrange=(thmax-thmin+1)/step;
+  for (int vth=0;vth<=thrange;vth++)
+    {
+      if (!_running) break;
+      mdcc->sendCommand("PAUSE");
+      usleep(1000);
+      this->setThresholds(thmax-vth*step,512,512);
+      p.clear();
+      Json::Value h;
+      h.append(2);h.append(thmax-vth*step);
+      p["header"]=h;
+     
+      builder->sendCommand("SETHEADER",p);
+      int firstEvent=0;
+      for (auto x : _mpi->boards())
+	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
+      mdcc->sendCommand("RELOADCALIB");
+      mdcc->sendCommand("RESUME");
+      int nloop=0,lastEvent=firstEvent;
+      while (lastEvent < (firstEvent + ntrg - 1))
+	{
+	  ::usleep(10000);
+	  for (auto x : _mpi->boards())
+	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
+	  nloop++;if (nloop > 60000 || !_running)  break;
+	}
+      printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
+      mdcc->sendCommand("PAUSE");
+    }
+  mdcc->sendCommand("CALIBOFF");
+}
+
+
+void lydaq::Gricv0Manager::thrd_scurve()
+{
+  _sc_running=true;
+  this->Scurve(_sc_mode,_sc_thmin,_sc_thmax,_sc_step);
+  _sc_running=false;
+}
+
+
+void lydaq::Gricv0Manager::Scurve(int mode,int thmin,int thmax,int step)
+{
+  fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
+  fsmwebCaller* builder=findMDCC("BUILDER");
+  if (mdcc==NULL) return;
+  if (builder==NULL) return;
+  uint64_t mask=0;
+
+  // All channel pedestal
+  if (mode==255)
+    {
+
+      for (int i=0;i<64;i++) mask|=(1<<i);
+      mask=0xFFFFFFFFFFFFFFFF;
+      this->setAllMasks(mask);
+      this->ScurveStep(mdcc,builder,thmin,thmax,step);
+      return;
+      
+    }
+
+  // Chanel per channel pedestal (CTEST is active)
+  if (mode==1023)
+    {
+      int mask=0;
+      for (int i=0;i<64;i++)
+	{
+	  mask=(1<<i);
+	  std::cout<<"Step HR2 "<<i<<" channel "<<i<<std::endl;
+	  this->setAllMasks(mask);
+	  this->setCTEST(mask);
+	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+	}
+      return;
+    }
+
+  // One channel pedestal
+  mask=(1<<mode);
+  this->setAllMasks(mask);
+  this->setCTEST(mask);
+  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+
+  
+}
+
+fsmwebCaller* lydaq::Gricv0Manager::findMDCC(std::string appname)
+{
+  Json::Value cjs=this->configuration()["HOSTS"];
+  //  std::cout<<cjs<<std::endl;
+  std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
+  // Loop on hosts
+  for (auto host:lhosts)
+    {
+      //std::cout<<" Host "<<host<<" found"<<std::endl;
+      // Loop on processes
+      const Json::Value cjsources=this->configuration()["HOSTS"][host];
+      //std::cout<<cjsources<<std::endl;
+      for (Json::ValueConstIterator it = cjsources.begin(); it != cjsources.end(); ++it)
+	{
+	  const Json::Value& process = *it;
+	  std::string p_name=process["NAME"].asString();
+	  Json::Value p_param=Json::Value::null;
+	  if (process.isMember("PARAMETER")) p_param=process["PARAMETER"];
+	  // Loop on environenemntal variable
+	  uint32_t port=0;
+	  const Json::Value& cenv=process["ENV"];
+	  for (Json::ValueConstIterator iev = cenv.begin(); iev != cenv.end(); ++iev)
+	    {
+	      std::string envp=(*iev).asString();
+	      //      std::cout<<"Env found "<<envp.substr(0,7)<<std::endl;
+	      //std::cout<<"Env found "<<envp.substr(8,envp.length()-7)<<std::endl;
+	      if (envp.substr(0,7).compare("WEBPORT")==0)
+		{
+		  port=atol(envp.substr(8,envp.length()-7).c_str());
+		  break;
+		}
+	    }
+	  if (port==0) continue;
+	  if (p_name.compare(appname)==0)
+	    {
+	      
+	      return  new fsmwebCaller(host,port); 
+	    }
+	}
+
+    }
+  
+  return NULL;
+  
+}
+void lydaq::Gricv0Manager::c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  uint32_t first = atol(request.get("first", "80").c_str());
+  uint32_t last = atol(request.get("last", "250").c_str());
+  uint32_t step = atol(request.get("step", "1").c_str());
+  uint32_t mode = atol(request.get("channel", "255").c_str());
+  //  LOG4CXX_INFO(_logFeb, " SetOneVthTime called with vth " << vth << " feb " << feb << " asic " << asic);
+  
+  //this->Scurve(mode,first,last,step);
+
+  _sc_mode=mode;
+  _sc_thmin=first;
+  _sc_thmax=last;
+  _sc_step=step;
+  if (_sc_running)
+    {
+      response["SCURVE"] ="ALREADY_RUNNING";
+      return;
+    }
+  boost::thread_group g;
+  g.create_thread(boost::bind(&lydaq::Gricv0Manager::thrd_scurve, this));
+  response["SCURVE"] ="RUNNING";
 }
 

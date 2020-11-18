@@ -29,7 +29,7 @@ gricv0::socketHandler::socketHandler(std::string ip,uint32_t port) : _idx(0),_tr
   memset(_buf,0,MBSIZE);
   memset(_b,0,MBSIZE);
   // initialise answer storage
-  for (int i=0;i<255;i++)
+  for (int i=0;i<256;i++)
     {
       uint8_t* b=new uint8_t[0x4000];
       std::pair<uint8_t,uint8_t*> p(i,b);
@@ -43,7 +43,7 @@ gricv0::socketHandler::socketHandler(std::string ip,uint32_t port) : _idx(0),_tr
 
 void gricv0::socketHandler::clear()
 {
-  for (int i=0;i<255;i++)
+  for (int i=0;i<256;i++)
     {
       memset(_answ[i],0,0x4000);
     }
@@ -55,15 +55,16 @@ uint32_t gricv0::socketHandler::sendMessage(gricv0::Message* m)
   // Send the Buffer
   try
   {
-    m->ptr()[gricv0::Message::Fmt::TRANS]=(_transaction++)%255;
+    uint8_t tr= ((_transaction++)%255)-1;
+    m->ptr()[gricv0::Message::Fmt::TRANS]=tr;
     // Clear the ack tag for reply
     _answ[_transaction-1][gricv0::Message::Fmt::CMD]=0;
     
     _sock->send((const void*) m->ptr(),m->length()*sizeof(uint8_t));
 
-    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<_transaction);
+    LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Address "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" Length "<<m->length()<<" Transaction "<<tr);
 
-    return (_transaction-1);
+    return (tr);
   }
   catch (NL::Exception e)
   {
