@@ -59,6 +59,7 @@ lydaq::Gricv0Manager::Gricv0Manager(std::string name) : zdaq::baseApplication(na
   _fsm->addCommand("SETMASK",boost::bind(&lydaq::Gricv0Manager::c_setmask,this,_1,_2));
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::Gricv0Manager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::Gricv0Manager::c_downloadDB,this,_1,_2));
+  _fsm->addCommand("SCURVE",boost::bind(&lydaq::Gricv0Manager::c_scurve,this,_1,_2));
   //std::cout<<"Service "<<name<<" started on port "<<port<<std::endl;
  
   char* wp=getenv("WEBPORT");
