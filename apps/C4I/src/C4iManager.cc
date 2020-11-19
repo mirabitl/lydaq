@@ -606,7 +606,7 @@ void lydaq::C4iManager::destroy(zdaq::fsmmessage* m)
 void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=20000,ncoff=100,ntrg=50;
+  int ncon=50000,ncoff=100,ntrg=50;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
@@ -625,12 +625,14 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
       p.clear();
       Json::Value h;
       h.append(2);h.append(thmax-vth*step);
-      p["header"]=h;
-     
-      builder->sendCommand("SETHEADER",p);
+
       int firstEvent=0;
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
+
+      p["header"]=h;
+      p["nextevent"]=firstEvent+1;
+      builder->sendCommand("SETHEADER",p);
       mdcc->sendCommand("RELOADCALIB");
       mdcc->sendCommand("RESUME");
       int nloop=0,lastEvent=firstEvent;
