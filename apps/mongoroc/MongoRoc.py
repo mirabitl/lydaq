@@ -912,7 +912,7 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             for ipad in range(0,64):
-                a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
+                a["slc"]["PAGAIN"][ipad]=int(scale*a["slc"]["PAGAIN"][ipad])
             a["_id"]=None
 
     def HR2_slowShaper(self):
