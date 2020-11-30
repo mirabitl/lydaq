@@ -735,13 +735,16 @@ void lydaq::Febv1Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,in
       if (!_running) break;
       mdcc->sendCommand("PAUSE");
       this->setVthTime(thmax-vth*step);
-      p.clear();
-      Json::Value h;
-      h.append(2);h.append(thmax-vth*step);
-      p["header"]=h;builder->sendCommand("SETHEADER",p);
       int firstEvent=0;
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
+
+      p.clear();
+      Json::Value h;
+      h.append(2);h.append(thmax-vth*step);
+      p["header"]=h;
+      p["nextevent"]=firstEvent+1;
+      builder->sendCommand("SETHEADER",p);
       mdcc->sendCommand("RELOADCALIB");
       mdcc->sendCommand("RESUME");
       int nloop=0,lastEvent=firstEvent;
