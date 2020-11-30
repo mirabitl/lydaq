@@ -19,7 +19,7 @@ void lydaq::PMRInterface::setExternalTrigger(bool t) {_external=t;}
 void lydaq::PMRInterface::setTransport(zdaq::zmSender* p)
 {
   _dsData=p;
-  printf("DSDATA is %x\n",_dsData);
+  printf("DSDATA is %p\n", _dsData);
 }
 lydaq::PMRInterface::~PMRInterface()
 {
@@ -136,7 +136,7 @@ void lydaq::PMRInterface::readout()
       //printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
       _dsData->publish(_status->bcid,_status->gtc,nread);
       if (_status->gtc%50 ==0)
-	printf(" Je publie %llx => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
+	printf(" Je publie %lx => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
       //_rd->resetFSM();
     }
   _readoutCompleted=true;
