@@ -68,7 +68,7 @@ uint32_t c4i::socketHandler::sendMessage(c4i::Message* m)
   }
   catch (NL::Exception e)
   {
-    throw e.msg();
+    LOG4CXX_FATAL(_logFeb,__PRETTY_FUNCTION__<<"Cannot send message "<<std::hex<<((m->address()>>32)&0xFFFFFFFF)<<std::dec<<" Port "<<(m->address()&0XFFFF)<<" error "<<e.msg());
   }
   printf("Buffer sent %d bytes at Address %lx on port %ld \n",m->length(),(m->address()>>32)&0xFFFFFFF,m->address()&0XFFFF);
 
