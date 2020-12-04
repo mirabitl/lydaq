@@ -129,7 +129,12 @@ void lydaq::PMRInterface::readout()
       _status->gtc=PmrGTC(cbuf);
       //unsigned long long Shift=16777216ULL;//to shift the value from the 24 first bits
       //unsigned long long LBC= ( (cbuf[PMR_ABCID_SHIFT]<<16) | (cbuf[PMR_ABCID_SHIFT+1]<<8) | (cbuf[PMR_ABCID_SHIFT+2]))*Shift+( (cbuf[PMR_ABCID_SHIFT+3]<<16) | (cbuf[PMR_ABCID_SHIFT+4]<<8) | (cbuf[PMR_ABCID_SHIFT+5]));
-      uint64_t LBC=( (uint64_t)(cbuf[PMR_ABCID_SHIFT]<<40) | (uint64_t) (cbuf[PMR_ABCID_SHIFT+1]<<32) | (uint64_t) (cbuf[PMR_ABCID_SHIFT+2])<<24)|( (uint64_t) (cbuf[PMR_ABCID_SHIFT+3]<<16) | (uint64_t) (cbuf[PMR_ABCID_SHIFT+4]<<8) | (uint64_t) (cbuf[PMR_ABCID_SHIFT+5]));
+      uint64_t LBC=((uint64_t)cbuf[PMR_ABCID_SHIFT]<<40) |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+1]<<32) |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+2]<<24)|
+        ((uint64_t) cbuf[PMR_ABCID_SHIFT+3]<<16 )|
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+4]<<8)  |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+5]);
 
       _status->bcid=LBC;//PmrABCID(cbuf);
       fprintf(stderr,"ABCID %lx \n",LBC);
