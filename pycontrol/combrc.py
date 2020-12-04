@@ -247,7 +247,7 @@ class combRC(lydaqrc.lydaqControl):
             for s in v:
                 mr = json.loads(s.sendCommand("STATUS", {}))
                 if (mr['status'] != "FAILED"):
-                    rep["%s_%d" % (s.host, s.infos['instance'])
+                    rep["%s_%d_FEB" % (s.host, s.infos['instance'])
                         ] = mr["answer"]["TDCSTATUS"]
                 else:
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
