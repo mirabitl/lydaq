@@ -785,8 +785,8 @@ void lydaq::Febv1Manager::Scurve(int mode,int thmin,int thmax,int step)
   if (mode==255)
     {
 
-      for (int i=0;i<16;i++) mask|=(1<<firmware[i]);
-      this->setMask(mask,0xFF);
+      //for (int i=0;i<16;i++) mask|=(1<<firmware[i]);
+      //this->setMask(mask,0xFF);
       this->ScurveStep(mdcc,builder,thmin,thmax,step);
       return;
       

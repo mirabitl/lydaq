@@ -113,7 +113,7 @@ namespace lydaq
        @param b2 Third threshold
        @param idif The dif ID
      */
-    void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif);
+    void setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32_t idif=0);
     void setGain(uint16_t gain);
     void setMask(uint32_t level,uint64_t mask);
     void setChannelMask(uint16_t level,uint16_t channel,uint16_t val);
@@ -130,6 +130,13 @@ namespace lydaq
 
     void joinThreads(){g_d.join_all();}
 
+    void setAllMasks(uint64_t mask);
+    void setCTEST(uint64_t mask);
+    void ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step);
+    void thrd_scurve() ;
+    void Scurve(int mode,int thmin,int thmax,int step);
+    fsmwebCaller* findMDCC(std::string appname);
+    void c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response);
   private:
     std::map<uint32_t,pmr::FtdiDeviceInfo*> theFtdiDeviceInfoMap_;	
     std::map<uint32_t,lydaq::PMRInterface*> _PMRInterfaceMap;
@@ -138,6 +145,11 @@ namespace lydaq
     zdaq::fsmweb* _fsm;
     boost::thread_group g_d;
     zmq::context_t* _context;
+
+    bool _running;
+    // Scurve parameters
+    int _sc_mode,_sc_thmin,_sc_thmax,_sc_step;
+    bool _sc_running;
 
   };
 };

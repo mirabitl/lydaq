@@ -33,8 +33,8 @@ void lydaq::PMRManager::prepareDevices()
   for ( std::map<uint32_t,PMRInterface*>::iterator it=_PMRInterfaceMap.begin();it!=_PMRInterfaceMap.end();it++)
     if (it->second!=NULL) delete it->second;
   _PMRInterfaceMap.clear();
-  system("/bin/rm /var/log/pi/ftdi_devices");
-  system("/opt/dhcal/bin/ListDevices.py");
+  int ier=system("/bin/rm /var/log/pi/ftdi_devices");
+  ier=system("/opt/dhcal/bin/ListDevices.py");
   std::string line;
   std::ifstream myfile ("/var/log/pi/ftdi_devices");
   std::stringstream diflist;
@@ -231,7 +231,7 @@ void lydaq::PMRManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32
       if (idif!=0)
 	{
 	  uint32_t ip=(((it->first)>>32&0XFFFFFFFF)>>16)&0xFFFF;
-	  printf("%x %x %x \n",(it->first>>32),ip,idif);
+	  printf("%lx %x %x \n",(it->first>>32),ip,idif);
 	  if (idif!=ip) continue;
 	}
       it->second.setB0(b0);
@@ -241,7 +241,7 @@ void lydaq::PMRManager::setThresholds(uint16_t b0,uint16_t b1,uint16_t b2,uint32
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
-  ::sleep(1);
+  ::usleep(10);
 
 }
 void lydaq::PMRManager::setGain(uint16_t gain)
@@ -255,7 +255,7 @@ void lydaq::PMRManager::setGain(uint16_t gain)
     }
   // Now loop on slowcontrol socket
   this->configureHR2();
-  ::sleep(1);
+  ::usleep(10);
 
 }
 
@@ -271,7 +271,7 @@ void lydaq::PMRManager::setMask(uint32_t level,uint64_t mask)
   this->configureHR2();
 
 
-  ::sleep(1);
+  ::usleep(10);
 
 }
 void lydaq::PMRManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t val)
@@ -286,7 +286,47 @@ void lydaq::PMRManager::setChannelMask(uint16_t level,uint16_t channel,uint16_t 
   this->configureHR2();
 
 
-  ::sleep(1);
+  ::usleep(10);
+
+}
+
+void lydaq::PMRManager::setAllMasks(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing Mask: "<<std::hex<<mask<<std::dec);
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
+    {
+      it->second.dumpBinary();
+      it->second.setMASK(0,mask);
+      it->second.setMASK(1,mask);
+      it->second.setMASK(2,mask);
+      it->second.dumpBinary();
+	    
+    }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+
+
+  ::usleep(10);
+
+}
+void lydaq::PMRManager::setCTEST(uint64_t mask)
+{
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Changing CTEST: "<<std::hex<<mask<<std::dec);
+  for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
+    {
+      for (int i=0;i<64;i++)
+	{
+	  bool on=((mask>>i)&1)==1;
+	it->second.setCTEST(i,on);
+	LOG4CXX_INFO(_logFeb,"CTEST: "<<std::hex<<mask<<std::dec<<" channel "<<i<<" "<<on);
+	}
+
+    }
+  // Now loop on slowcontrol socket
+  this->configureHR2();
+
+
+  ::usleep(10);
 
 }
 
@@ -434,7 +474,7 @@ Json::Value lydaq::PMRManager::configureHR2()
 {
   /// A reecrire
   uint32_t external=this->parameters()["external"].asUInt();
-  printf("TRigger EXT %lx \n",external);
+  printf("TRigger EXT %x \n",external);
   int32_t rc=1;
   std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
   Json::Value array_slc=Json::Value::null;
@@ -482,7 +522,7 @@ void lydaq::PMRManager::start(zdaq::fsmmessage* m)
       this->startReadoutThread(it->second);
       it->second->start();
     }
-
+  _running=true;
   return;
   
 }
@@ -498,7 +538,7 @@ void lydaq::PMRManager::stop(zdaq::fsmmessage* m)
       LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" Stopping thread of PMR"<<it->first);
       it->second->stop();
     }
-  
+  _running=false;
   return;
   
 }
@@ -538,7 +578,7 @@ void lydaq::PMRManager::destroy(zdaq::fsmmessage* m)
 
 
 
-lydaq::PMRManager::PMRManager(std::string name)  : zdaq::baseApplication(name)
+lydaq::PMRManager::PMRManager(std::string name)  : zdaq::baseApplication(name),_running(false)
 {
 
   //_fsm=new zdaq::fsm(name);
@@ -570,6 +610,7 @@ lydaq::PMRManager::PMRManager(std::string name)  : zdaq::baseApplication(name)
   _fsm->addCommand("SETCHANNELMASK",boost::bind(&lydaq::PMRManager::c_setchannelmask,this,_1,_2));
   _fsm->addCommand("DOWNLOADDB",boost::bind(&lydaq::PMRManager::c_downloadDB,this,_1,_2));
   _fsm->addCommand("TRIGEXT",boost::bind(&lydaq::PMRManager::c_external,this,_1,_2));
+  _fsm->addCommand("SCURVE",boost::bind(&lydaq::PMRManager::c_scurve,this,_1,_2));
 
   char* wp=getenv("WEBPORT");
   if (wp!=NULL)
@@ -591,6 +632,181 @@ void lydaq::PMRManager::startReadoutThread(PMRInterface* d)
 
   g_d.create_thread(boost::bind(&PMRInterface::readout,d));
   
+}
+
+void lydaq::PMRManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
+{
+  std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
+  int ncon=50000,ncoff=100,ntrg=50;
+  mdcc->sendCommand("PAUSE");
+  Json::Value p;
+  p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
+  p.clear();p["nclock"]=ncoff;  mdcc->sendCommand("SPILLOFF",p);
+  printf("Clock On %d Off %d \n",ncon, ncoff);
+  p.clear();p["value"]=4;  mdcc->sendCommand("SETSPILLREGISTER",p);
+  mdcc->sendCommand("CALIBON");
+  p.clear();p["nclock"]=ntrg;  mdcc->sendCommand("SETCALIBCOUNT",p);
+  int thrange=(thmax-thmin+1)/step;
+  for (int vth=0;vth<=thrange;vth++)
+    {
+      if (!_running) break;
+      mdcc->sendCommand("PAUSE");
+      usleep(1000);
+      this->setThresholds(thmax-vth*step,512,512);
+      p.clear();
+      Json::Value h;
+      h.append(2);h.append(thmax-vth*step);
+
+      int firstEvent=0;
+      for ( std::map<uint32_t,PMRInterface*>::iterator it=dm.begin();it!=dm.end();it++)
+	
+	if (it->second->status()->gtc>firstEvent) firstEvent=it->second->status()->gtc;
+
+      p["header"]=h;
+      p["nextevent"]=firstEvent+1;
+      builder->sendCommand("SETHEADER",p);
+      mdcc->sendCommand("RELOADCALIB");
+      mdcc->sendCommand("RESUME");
+      int nloop=0,lastEvent=firstEvent;
+      while (lastEvent < (firstEvent + ntrg - 1))
+	{
+	  ::usleep(10000);
+	  for ( std::map<uint32_t,PMRInterface*>::iterator it=dm.begin();it!=dm.end();it++)
+	
+	if (it->second->status()->gtc>firstEvent) firstEvent=it->second->status()->gtc;
+
+	  nloop++;if (nloop > 60000 || !_running)  break;
+	}
+      printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
+      mdcc->sendCommand("PAUSE");
+    }
+  mdcc->sendCommand("CALIBOFF");
+}
+
+
+void lydaq::PMRManager::thrd_scurve()
+{
+  _sc_running=true;
+  this->Scurve(_sc_mode,_sc_thmin,_sc_thmax,_sc_step);
+  _sc_running=false;
+}
+
+
+void lydaq::PMRManager::Scurve(int mode,int thmin,int thmax,int step)
+{
+  fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
+  fsmwebCaller* builder=findMDCC("BUILDER");
+  if (mdcc==NULL) return;
+  if (builder==NULL) return;
+  uint64_t mask=0;
+
+  // All channel pedestal
+  if (mode==255)
+    {
+
+      //for (int i=0;i<64;i++) mask|=(1<<i);
+      mask=0xFFFFFFFFFFFFFFFF;
+      this->setAllMasks(mask);
+      this->ScurveStep(mdcc,builder,thmin,thmax,step);
+      return;
+      
+    }
+
+  // Chanel per channel pedestal (CTEST is active)
+  if (mode==1023)
+    {
+      mask=0;
+      for (int i=0;i<64;i++)
+	{
+	  mask=(1ULL<<i);
+	  std::cout<<"Step HR2 "<<i<<" channel "<<i<<std::endl;
+	  this->setAllMasks(mask);
+	  this->setCTEST(mask);
+	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+	}
+      return;
+    }
+
+  // One channel pedestal
+
+  mask=(1ULL<<mode);
+  LOG4CXX_INFO(_logFeb,"CTEST One "<<mode<<" "<<std::hex<<mask<<std::dec);
+  this->setAllMasks(mask);
+  this->setCTEST(mask);
+  this->ScurveStep(mdcc,builder,thmin,thmax,step);
+
+  
+}
+
+fsmwebCaller* lydaq::PMRManager::findMDCC(std::string appname)
+{
+  Json::Value cjs=this->configuration()["HOSTS"];
+  //  std::cout<<cjs<<std::endl;
+  std::vector<std::string> lhosts=this->configuration()["HOSTS"].getMemberNames();
+  // Loop on hosts
+  for (auto host:lhosts)
+    {
+      //std::cout<<" Host "<<host<<" found"<<std::endl;
+      // Loop on processes
+      const Json::Value cjsources=this->configuration()["HOSTS"][host];
+      //std::cout<<cjsources<<std::endl;
+      for (Json::ValueConstIterator it = cjsources.begin(); it != cjsources.end(); ++it)
+	{
+	  const Json::Value& process = *it;
+	  std::string p_name=process["NAME"].asString();
+	  Json::Value p_param=Json::Value::null;
+	  if (process.isMember("PARAMETER")) p_param=process["PARAMETER"];
+	  // Loop on environenemntal variable
+	  uint32_t port=0;
+	  const Json::Value& cenv=process["ENV"];
+	  for (Json::ValueConstIterator iev = cenv.begin(); iev != cenv.end(); ++iev)
+	    {
+	      std::string envp=(*iev).asString();
+	      //      std::cout<<"Env found "<<envp.substr(0,7)<<std::endl;
+	      //std::cout<<"Env found "<<envp.substr(8,envp.length()-7)<<std::endl;
+	      if (envp.substr(0,7).compare("WEBPORT")==0)
+		{
+		  port=atol(envp.substr(8,envp.length()-7).c_str());
+		  break;
+		}
+	    }
+	  if (port==0) continue;
+	  if (p_name.compare(appname)==0)
+	    {
+	      
+	      return  new fsmwebCaller(host,port); 
+	    }
+	}
+
+    }
+  
+  return NULL;
+  
+}
+void lydaq::PMRManager::c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response)
+{
+  response["STATUS"] = "DONE";
+
+  uint32_t first = atol(request.get("first", "80").c_str());
+  uint32_t last = atol(request.get("last", "250").c_str());
+  uint32_t step = atol(request.get("step", "1").c_str());
+  uint32_t mode = atol(request.get("channel", "255").c_str());
+  LOG4CXX_INFO(_logFeb, " SCURVE/CTEST "<<mode<<" "<<step<<" "<<first<<" "<<last);
+  
+  //this->Scurve(mode,first,last,step);
+
+  _sc_mode=mode;
+  _sc_thmin=first;
+  _sc_thmax=last;
+  _sc_step=step;
+  if (_sc_running)
+    {
+      response["SCURVE"] ="ALREADY_RUNNING";
+      return;
+    }
+  boost::thread_group g;
+  g.create_thread(boost::bind(&lydaq::PMRManager::thrd_scurve, this));
+  response["SCURVE"] ="RUNNING";
 }
 
 
