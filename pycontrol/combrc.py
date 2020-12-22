@@ -45,7 +45,7 @@ class combRC(lydaqrc.lydaqControl):
         if ("MBMDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MBMDCCSERVER'][0].sendTransition("INITIALISE", m))
             r["MBMDCCSERVER"] = s
-            s.md_name="MBMDCCSERVER"
+            self.md_name="MBMDCCSERVER"
         # Builder
         for x in self.appMap["BUILDER"]:
             s = json.loads(x.sendTransition("CONFIGURE", m))

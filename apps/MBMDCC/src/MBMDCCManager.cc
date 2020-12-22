@@ -133,7 +133,20 @@ void lydaq::MbmdccManager::initialise(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" New MBMDCC found in db "<<std::hex<<ipboard<<std::dec<<" IP address "<<idif->second);
   _mpi->addDevice(idif->second);
   LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Registration done for "<<std::hex<<ipboard<<std::dec);
-  
+
+
+  if (this->parameters().isMember("spillon"))
+    {
+      this->setSpillOn(this->parameters()["spillon"].asUInt());
+    }
+  if (this->parameters().isMember("spilloff"))
+    {
+      this->setSpillOff(this->parameters()["spilloff"].asUInt());
+    }
+  if (this->parameters().isMember("spillregister"))
+    {
+      this->setSpillRegister(this->parameters()["spillregister"].asUInt());
+    }
   // Listen All Mbmdcc sockets
   _mpi->listen();
 
@@ -175,7 +188,7 @@ void lydaq::MbmdccManager::destroy(zdaq::fsmmessage* m)
 uint32_t lydaq::MbmdccManager::version(){return this->readRegister(lydaq::mbmdcc::Message::Register::VERSION);}
 uint32_t lydaq::MbmdccManager::id(){return this->readRegister(lydaq::mbmdcc::Message::Register::ID);}
 uint32_t lydaq::MbmdccManager::mask(){return this->readRegister(lydaq::mbmdcc::Message::Register::MASK);}
-void lydaq::MbmdccManager::maskTrigger(){this->writeRegister(lydaq::mbmdcc::Message::Register::MASK,0x1);}
+void lydaq::MbmdccManager::maskTrigger(){this->writeRegister(lydaq::mbmdcc::Message::Register::MASK,0xFFFFFFFF);}
 void lydaq::MbmdccManager::unmaskTrigger(){this->writeRegister(lydaq::mbmdcc::Message::Register::MASK,0x0);}
 uint32_t lydaq::MbmdccManager::spillCount(){return this->readRegister(lydaq::mbmdcc::Message::Register::SPILL_CNT);}
 void lydaq::MbmdccManager::resetCounter(){this->writeRegister(lydaq::mbmdcc::Message::Register::ACQ_CTRL,0x1);this->writeRegister(lydaq::mbmdcc::Message::Register::ACQ_CTRL,0x0);}

@@ -54,21 +54,23 @@ class lydaqControl(daqrc.daqControl):
                                 print("\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received']))
 
     def TriggerStatus(self,verbose=False):
-        ptrgname="MDCCSERVER"  
+        pn="MDCCSERVER"  
         for k, v in self.appMap.items():
             if (k == "MBMDCCSERVER"):
-                ptrgname="MBMDCCSERVER"
+                pn="MBMDCCSERVER"
                 break
-        mr = json.loads(self.mdcc_Status())
+        mr = json.loads(self.mdcc_Status(ptrgname=pn))
+        #print("ON DEBUG ",mr)
+        #print("ON DEBUG ",mr)
         if (not verbose):
-            return json.dumps(mr["%s_0" % ptrgname]["answer"])
+            return json.dumps(mr["%s_0" % pn]["answer"])
         else:
             print("""
             \t \t *************************    
             \t \t ** Trigger information **
             \t \t *************************
             """)
-            for k,v in mr["%s_0" % ptrgname]["answer"]["COUNTERS"].items():
+            for k,v in mr["%s_0" % pn]["answer"]["COUNTERS"].items():
                 print("\t \t ",k,v)
     # Builder
 
