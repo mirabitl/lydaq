@@ -52,6 +52,9 @@ class combRC(lydaqrc.lydaqControl):
             r["BUILDER_%d" % x.appInstance] = s
         # Reset for FEB V1
         if (self.reset != 0):
+            if ("MBMDCCSERVER" in self.appMap.keys()):
+                self.md_name="MBMDCCSERVER"
+
             self.mdcc_resetTdc((self.reset>0),ptrgname=self.md_name)
             time.sleep(abs(self.reset)/1000.)
 
@@ -128,6 +131,10 @@ class combRC(lydaqrc.lydaqControl):
         if ("MDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
             r["MDCCSERVER"] = s
+            
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            self.md_name="MBMDCCSERVER"
+    
         self.mdcc_Pause(ptrgname=self.md_name);
         
         if ("TDCSERVER" in self.appMap.keys()):
@@ -234,6 +241,10 @@ class combRC(lydaqrc.lydaqControl):
             s = json.loads(self.appMap['MDCCSERVER']
                            [0].sendTransition("ECALRESUME", m))
             r["MDCCSERVER"] = s
+            
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MBMDCCSERVER'][0].sendTransition("RESET", m))
+            r["MBMDCCSERVER"] = s
 
 
         #old firmware
@@ -404,6 +415,8 @@ class combRC(lydaqrc.lydaqControl):
 
     def febScurve(self, ntrg, ncon, ncoff, thmin, thmax, step):
         r = {}
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            self.md_name="MBMDCCSERVER"
         self.mdcc_Pause(ptrgname=self.md_name)
         self.mdcc_setSpillOn(ncon,ptrgname=self.md_name)
         print(" Clock On %d Off %d" % (ncon, ncoff))
