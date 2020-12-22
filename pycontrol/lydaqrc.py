@@ -54,16 +54,21 @@ class lydaqControl(daqrc.daqControl):
                                 print("\t \t ID %x => %d " % (int(y['id'].split('-')[2]), y['received']))
 
     def TriggerStatus(self,verbose=False):
+        ptrgname="MDCCSERVER"  
+        for k, v in self.appMap.items():
+            if (k == "MBMDCCSERVER"):
+                ptrgname="MBMDCCSERVER"
+                break
         mr = json.loads(self.mdcc_Status())
         if (not verbose):
-            return json.dumps(mr["MDCCSERVER_0"]["answer"])
+            return json.dumps(mr["%s_0" % ptrgname]["answer"])
         else:
             print("""
             \t \t *************************    
             \t \t ** Trigger information **
             \t \t *************************
             """)
-            for k,v in mr["MDCCSERVER_0"]["answer"]["COUNTERS"].items():
+            for k,v in mr["%s_0" % ptrgname]["answer"]["COUNTERS"].items():
                 print("\t \t ",k,v)
     # Builder
 
@@ -77,67 +82,67 @@ class lydaqControl(daqrc.daqControl):
         return self.processCommand("SETHEADER", "BUILDER", param)
     # MDCC
 
-    def mdcc_Status(self):
-        return self.processCommand("STATUS", "MDCCSERVER", {})
+    def mdcc_Status(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("STATUS", ptrgname, {})
 
-    def mdcc_Pause(self):
-        return self.processCommand("PAUSE", "MDCCSERVER", {})
+    def mdcc_Pause(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("PAUSE", ptrgname, {})
 
-    def mdcc_Resume(self):
-        return self.processCommand("RESUME", "MDCCSERVER", {})
+    def mdcc_Resume(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("RESUME", ptrgname, {})
 
-    def mdcc_EcalPause(self):
-        return self.processCommand("ECALPAUSE", "MDCCSERVER", {})
+    def mdcc_EcalPause(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("ECALPAUSE", ptrgname, {})
 
-    def mdcc_EcalResume(self):
-        return self.processCommand("ECALRESUME", "MDCCSERVER", {})
+    def mdcc_EcalResume(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("ECALRESUME", ptrgname, {})
 
-    def mdcc_CalibOn(self, value):
+    def mdcc_CalibOn(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("CALIBON", "MDCCSERVER", param)
+        return self.processCommand("CALIBON", ptrgname, param)
 
-    def mdcc_CalibOff(self):
-        return self.processCommand("CALIBOFF", "MDCCSERVER", {})
+    def mdcc_CalibOff(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("CALIBOFF", ptrgname, {})
 
-    def mdcc_ReloadCalibCount(self):
-        return self.processCommand("RELOADCALIB", "MDCCSERVER", {})
+    def mdcc_ReloadCalibCount(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("RELOADCALIB", ptrgname, {})
 
-    def mdcc_setCalibCount(self, value):
+    def mdcc_setCalibCount(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["nclock"] = value
-        return self.processCommand("SETCALIBCOUNT", "MDCCSERVER", param)
+        return self.processCommand("SETCALIBCOUNT", ptrgname, param)
 
-    def mdcc_Reset(self):
-        return self.processCommand("RESET", "MDCCSERVER", {})
+    def mdcc_Reset(self,ptrgname="MDCCSERVER"):
+        return self.processCommand("RESET", ptrgname, {})
 
-    def mdcc_ReadRegister(self, address):
+    def mdcc_ReadRegister(self, address,ptrgname="MDCCSERVER"):
         param = {}
         param["address"] = address
-        return self.processCommand("READREG", "MDCCSERVER", param)
+        return self.processCommand("READREG", ptrgname, param)
 
-    def mdcc_WriteRegister(self, address, value):
+    def mdcc_WriteRegister(self, address, value,ptrgname="MDCCSERVER"):
         param = {}
         param["address"] = address
         param["value"] = value
-        return self.processCommand("READREG", "MDCCSERVER", param)
+        return self.processCommand("READREG", ptrgname, param)
 
-    def mdcc_setSpillOn(self, value):
+    def mdcc_setSpillOn(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["nclock"] = value
-        return self.processCommand("SPILLON", "MDCCSERVER", param)
+        return self.processCommand("SPILLON", ptrgname, param)
 
-    def mdcc_setSpillOff(self, value):
+    def mdcc_setSpillOff(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["nclock"] = value
-        return self.processCommand("SPILLOFF", "MDCCSERVER", param)
+        return self.processCommand("SPILLOFF", ptrgname, param)
 
-    def mdcc_setResetTdcBit(self, value):
+    def mdcc_setResetTdcBit(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("RESETTDC", "MDCCSERVER", param)
+        return self.processCommand("RESETTDC", ptrgname, param)
 
-    def mdcc_resetTdc(self,bar=True):
+    def mdcc_resetTdc(self,bar=True,ptrgname="MDCCSERVER"):
         if (bar):
             self.mdcc_setResetTdcBit(0)
             return self.mdcc_setResetTdcBit(1)
@@ -146,33 +151,38 @@ class lydaqControl(daqrc.daqControl):
             return self.mdcc_setResetTdcBit(0)
             
 
-    def mdcc_setBeamOn(self, value):
+    def mdcc_setBeamOn(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["nclock"] = value
-        return self.processCommand("BEAMON", "MDCCSERVER", param)
-
-    def mdcc_setHardReset(self, value):
+        return self.processCommand("BEAMON", ptrgname, param)
+    
+    def mdcc_setChannelOn(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("SETHARDRESET", "MDCCSERVER", param)
+        return self.processCommand("CHANNELON", ptrgname, param)
 
-    def mdcc_setSpillRegister(self, value):
+    def mdcc_setHardReset(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("SETSPILLREGISTER", "MDCCSERVER", param)
+        return self.processCommand("SETHARDRESET", ptrgname, param)
 
-    def mdcc_setExternal(self, value):
+    def mdcc_setSpillRegister(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("SETEXTERNAL", "MDCCSERVER", param)
+        return self.processCommand("SETSPILLREGISTER", ptrgname, param)
 
-    def mdcc_setCalibRegister(self, value):
+    def mdcc_setExternal(self, value,ptrgname="MDCCSERVER"):
         param = {}
         param["value"] = value
-        return self.processCommand("SETCALIBREGISTER", "MDCCSERVER", param)
+        return self.processCommand("SETEXTERNAL", ptrgname, param)
 
-    def mdcc_setTriggerDelays(self, delay, busy):
+    def mdcc_setCalibRegister(self, value,ptrgname="MDCCSERVER"):
+        param = {}
+        param["value"] = value
+        return self.processCommand("SETCALIBREGISTER", ptrgname, param)
+
+    def mdcc_setTriggerDelays(self, delay, busy,ptrgname="MDCCSERVER"):
         param = {}
         param["delay"] = delay
         param["busy"] = busy
-        return self.processCommand("SETTRIGEXT", "MDCCSERVER", param)
+        return self.processCommand("SETTRIGEXT", ptrgname, param)
