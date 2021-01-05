@@ -664,7 +664,7 @@ void lydaq::C4iManager::thrd_scurve()
 
 void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
 {
-  fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
+  fsmwebCaller* mdcc=findMDCC("MBMDCCSERVER");
   fsmwebCaller* builder=findMDCC("BUILDER");
   if (mdcc==NULL) return;
   if (builder==NULL) return;
