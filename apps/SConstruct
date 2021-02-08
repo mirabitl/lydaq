@@ -1,5 +1,5 @@
 import os
-Arm=os.uname()[4]=='armv7l'
+Arm=os.uname()[4]=='armv7l' or os.uname()[4]=='armv6l'
 Use_ROOT=os.path.isdir("/opt/dhcal/root")
 Use_Oracle=os.path.isdir("/opt/ILCConfDB")
 Use_LCIO=os.path.isdir("/opt/dhcal/lcio")
