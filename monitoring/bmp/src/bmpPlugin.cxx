@@ -51,7 +51,6 @@ Json::Value lydaq::bmpPlugin::status()
       LOG4CXX_ERROR(_logLdaq,"No BMPInterface opened");
        return r;
     }
-   lock();
 #ifdef BMP183
    r["pressure"]=_bmp->BMP183PressionRead();
    r["temperature"]=_bmp->BMP183TemperatureRead();
@@ -61,7 +60,6 @@ Json::Value lydaq::bmpPlugin::status()
    r["pressure"]=p;
    r["temperature"]=t;
 #endif
-   unlock();
    r["status"]="READ";
    return r;
 }
@@ -84,6 +82,22 @@ void lydaq::bmpPlugin::c_status(Mongoose::Request &request, Mongoose::JsonRespon
 
 lydaq::bmpPlugin::bmpPlugin(): _bmp(NULL)
 {}
+
+extern "C" 
+{
+    // loadDHCALAnalyzer function creates new LowPassDHCALAnalyzer object and returns it.  
+  zdaq::zmonPlugin* loadPlugin(void)
+    {
+      return (new lydaq::bmpPlugin);
+    }
+    // The deleteDHCALAnalyzer function deletes the LowPassDHCALAnalyzer that is passed 
+    // to it.  This isn't a very safe function, since there's no 
+    // way to ensure that the object provided is indeed a LowPassDHCALAnalyzer.
+  void deletePlugin(zdaq::zmonPlugin* obj)
+    {
+      delete obj;
+    }
+}
 
 
 
