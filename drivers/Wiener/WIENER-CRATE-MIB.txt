@@ -97,6 +97,7 @@ wiener MODULE-IDENTITY
 --   This definition was written by David Perkins.
 --
 Float ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "d-12"
     STATUS      current
     DESCRIPTION
         "A single precision floating-point number.  The semantics

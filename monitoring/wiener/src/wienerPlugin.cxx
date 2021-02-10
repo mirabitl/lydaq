@@ -2,7 +2,7 @@
 #include "wienerPlugin.hh"
 using namespace zdaq;
 using namespace lydaq;
-
+lydaq::wienerPlugin::wienerPlugin(): _hv(NULL){} 
 void lydaq::wienerPlugin::loadParameters(Json::Value params)
 {
   if (params.isMember("wiener"))

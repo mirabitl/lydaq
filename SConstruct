@@ -1,5 +1,5 @@
 import os
-dlist=['drivers/SConstruct','apps/SConstruct']
+dlist=['drivers/SConstruct','apps/SConstruct','monitoring/SConstruct']
 
 Use_ROOT=os.path.isdir("/opt/dhcal/root")
 Use_Oracle=os.path.isdir("/opt/ILCConfDB")
