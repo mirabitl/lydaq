@@ -1,4 +1,4 @@
 import os
 
-plist=['wiener/SConscript']
+plist=['wiener/SConscript','mgstore/SConscript']
 SConscript(plist)

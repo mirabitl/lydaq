@@ -116,7 +116,7 @@ void lydaq::mgStore::connect()
 void lydaq::mgStore::store(std::string loc,std::string hw,uint32_t ti,Json::Value status)
 {
   bson_error_t error;
-    
+  fprintf(stderr,"Entry time %d \n",time(0));  
   Json::Value mondoc;
   std::stringstream spath("");
   spath<<","<<loc<<","<<hw<<",";
@@ -140,7 +140,7 @@ void lydaq::mgStore::store(std::string loc,std::string hw,uint32_t ti,Json::Valu
     fprintf (stderr, "%s\n", error.message);
   }
   bson_destroy (doc);
-  
+  fprintf(stderr,"End time %d \n",time(0));  
 }
 extern "C" 
 {
