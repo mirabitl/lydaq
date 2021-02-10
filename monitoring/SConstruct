@@ -1,0 +1,4 @@
+import os
+
+plist=['wiener/SConscript']
+SConscript(plist)
