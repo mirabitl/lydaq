@@ -67,12 +67,14 @@ class MongoSlow:
             sti=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(x["ctime"]))
             if (device=="BMP" and x["status"]["name"]==device):
                 print("%s P=%.2f mbar T=%.2f K " % (sti,x["status"]["pressure"],x["status"]["temperature"]+273.15))
+            if (device=="HIH" and x["status"]["name"]==device):
+                print("%s H0=%.2f mbar T0=%.2f K H1=%.2f mbar T1=%.2f K " % (sti,x["status"]["humidity0"],x["status"]["temperature0"],x["status"]["humidity1"],x["status"]["temperature1"]))
             if (device=="ISEG" and x["status"]["name"]==device):
                 print(sti)
                 for y in x["status"]["channels"]:
                     sstat=y["status"].split("=")[1]
                     
-                    print("%3d %12.2f %12.2f %12.2f %s" %(y["id"],y["vset"],y["vout"],y["iout"],sstat[:len(sstat)-1]))
+                    print("%3d %12.2f %12.2f %12.2f %s" %(y["id"],y["vset"],y["vout"],y["iout"]*1E6,sstat[:len(sstat)-1]))
 
 def instance():
     """
