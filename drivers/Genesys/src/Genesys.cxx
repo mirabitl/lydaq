@@ -188,7 +188,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
   FD_SET(fd1, &set); /* add our file descriptor to the set */
 
   timeout.tv_sec = 0;
-  timeout.tv_usec = 10000;
+  timeout.tv_usec = 2000;
 
   rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
   if(rv == -1)
@@ -207,7 +207,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
   //std::cout<<"sleep "<<wr<<std::endl;
 
   //sleep((int) 1);
-  for (int i=0;i<80;i++) usleep(1000);
+  for (int i=0;i<100;i++) usleep(1000);
   memset(buff,0,1024);
   int32_t nchar=0,rd=0,ntry=0;
   while (1)
@@ -216,7 +216,7 @@ void lydaq::Genesys::readCommand(std::string cmd)
       FD_SET(fd1, &set); /* add our file descriptor to the set */
 	
       timeout.tv_sec = 0;
-      timeout.tv_usec = 480000;
+      timeout.tv_usec = 4800;
 
       //  fprintf(stderr,"waiting for select \n");
       rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
