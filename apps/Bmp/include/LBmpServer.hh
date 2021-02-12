@@ -6,9 +6,12 @@
 #include <string.h>
 #include<stdio.h>
 #include "monitorApplication.hh"
-
+#undef BMP183
+#ifdef BMP183
 #include "BMP183.hh"
-
+#else
+#include "BMP280.hh"
+#endif
 using namespace std;
 #include <sstream>
 #include "ReadoutLogger.hh"
@@ -24,8 +27,11 @@ namespace lydaq
     virtual void open(zdaq::fsmmessage* m);
     virtual void close(zdaq::fsmmessage* m);
     // Access to the interface
-    lydaq::BMP183* getBmpInterface(){  //std::cout<<" get Ptr "<<_bmp<<std::endl;
-      return _bmp;}
+#ifdef BMP183
+    lydaq::BMP183* getBmpInterface(){return _bmp;}
+#else
+    lydaq::BMP280* getBmpInterface(){return _bmp;}
+#endif
     // Status
     virtual Json::Value status();
     virtual std::string hardware(){return "BMP";}
@@ -34,8 +40,11 @@ namespace lydaq
   private:
     //zdaq::fsm* _fsm;
     zdaq::fsmweb* _fsm;
- 
+#ifdef BMP183 
     lydaq::BMP183* _bmp;
+#else
+    lydaq::BMP280* _bmp;
+#endif
   };
 };
 #endif

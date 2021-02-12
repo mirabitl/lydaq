@@ -1,0 +1,7 @@
+import os
+Arm=os.uname()[4]=='armv7l' or os.uname()[4]=='armv6l'
+plist=['wiener/SConscript','mgstore/SConscript']
+if (Arm):
+   plist.append('bmp/SConscript')
+   plist.append('hih/SConscript')
+SConscript(plist)

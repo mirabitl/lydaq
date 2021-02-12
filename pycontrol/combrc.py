@@ -15,6 +15,7 @@ class combRC(lydaqrc.lydaqControl):
         self.reset=0
         self.comment="Not yet set"
         self.location="UNKNOWN"
+        self.md_name="MDCCSERVER"
     # daq
     # Initialising implementation
     def daq_initialising(self):
@@ -41,13 +42,20 @@ class combRC(lydaqrc.lydaqControl):
         if ("MDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("OPEN", m))
             r["MDCCSERVER"] = s
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MBMDCCSERVER'][0].sendTransition("INITIALISE", m))
+            r["MBMDCCSERVER"] = s
+            self.md_name="MBMDCCSERVER"
         # Builder
         for x in self.appMap["BUILDER"]:
             s = json.loads(x.sendTransition("CONFIGURE", m))
             r["BUILDER_%d" % x.appInstance] = s
         # Reset for FEB V1
         if (self.reset != 0):
-            self.mdcc_resetTdc((self.reset>0))
+            if ("MBMDCCSERVER" in self.appMap.keys()):
+                self.md_name="MBMDCCSERVER"
+
+            self.mdcc_resetTdc((self.reset>0),ptrgname=self.md_name)
             time.sleep(abs(self.reset)/1000.)
 
         if ("TDCSERVER" in self.appMap.keys()):
@@ -123,7 +131,12 @@ class combRC(lydaqrc.lydaqControl):
         if ("MDCCSERVER" in self.appMap.keys()):
             s = json.loads(self.appMap['MDCCSERVER'][0].sendTransition("PAUSE", m))
             r["MDCCSERVER"] = s
-
+            
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            self.md_name="MBMDCCSERVER"
+    
+        self.mdcc_Pause(ptrgname=self.md_name);
+        
         if ("TDCSERVER" in self.appMap.keys()):
             for x in self.appMap["TDCSERVER"]:
                 s = json.loads(x.sendTransition("STOP", m))
@@ -183,6 +196,10 @@ class combRC(lydaqrc.lydaqControl):
                 s = json.loads(x.sendTransition("DESTROY", m))
                 r["DIFMANAGER_%d" % x.appInstance] = s
 
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            for x in self.appMap["MBMDCCSERVER"]:
+                s = json.loads(x.sendTransition("DESTROY", m))
+                r["MBMDCCSERVER_%d" % x.appInstance] = s
 
         self.daq_answer=json.dumps(r)
         self.storeState()
@@ -224,6 +241,10 @@ class combRC(lydaqrc.lydaqControl):
             s = json.loads(self.appMap['MDCCSERVER']
                            [0].sendTransition("ECALRESUME", m))
             r["MDCCSERVER"] = s
+            
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            s = json.loads(self.appMap['MBMDCCSERVER'][0].sendTransition("RESET", m))
+            r["MBMDCCSERVER"] = s
 
 
         #old firmware
@@ -247,7 +268,7 @@ class combRC(lydaqrc.lydaqControl):
             for s in v:
                 mr = json.loads(s.sendCommand("STATUS", {}))
                 if (mr['status'] != "FAILED"):
-                    rep["%s_%d" % (s.host, s.infos['instance'])
+                    rep["%s_%d_FEB" % (s.host, s.infos['instance'])
                         ] = mr["answer"]["TDCSTATUS"]
                 else:
                     rep["%s_%d" % (s.host, s.infos['instance'])] = mr
@@ -394,17 +415,19 @@ class combRC(lydaqrc.lydaqControl):
 
     def febScurve(self, ntrg, ncon, ncoff, thmin, thmax, step):
         r = {}
-        self.mdcc_Pause()
-        self.mdcc_setSpillOn(ncon)
+        if ("MBMDCCSERVER" in self.appMap.keys()):
+            self.md_name="MBMDCCSERVER"
+        self.mdcc_Pause(ptrgname=self.md_name)
+        self.mdcc_setSpillOn(ncon,ptrgname=self.md_name)
         print(" Clock On %d Off %d" % (ncon, ncoff))
-        self.mdcc_setSpillOff(ncoff)
-        self.mdcc_setSpillRegister(4)
-        self.mdcc_CalibOn(1)
-        self.mdcc_setCalibCount(ntrg)
-        self.mdcc_Status()
+        self.mdcc_setSpillOff(ncoff,ptrgname=self.md_name)
+        self.mdcc_setSpillRegister(4,ptrgname=self.md_name)
+        self.mdcc_CalibOn(1,ptrgname=self.md_name)
+        self.mdcc_setCalibCount(ntrg,ptrgname=self.md_name)
+        self.mdcc_Status(ptrgname=self.md_name)
         thrange = (thmax - thmin + 1) // step
         for vth in range(0, thrange+1):
-            self.mdcc_Pause()
+            self.mdcc_Pause(ptrgname=self.md_name)
             self.setVthTime(thmax - vth * step)
             time.sleep(0.2)
             self.builder_setHeader(2, thmax - vth * step, 0xFF)
@@ -418,9 +441,9 @@ class combRC(lydaqrc.lydaqControl):
                     firstEvent = v["event"]
             # print sr,firstEvent
             # Resume Calibration
-            self.mdcc_ReloadCalibCount()
-            self.mdcc_Resume()
-            self.mdcc_Status()
+            self.mdcc_ReloadCalibCount(ptrgname=self.md_name)
+            self.mdcc_Resume(ptrgname=self.md_name)
+            self.mdcc_Status(ptrgname=self.md_name)
 
             # Wait for ntrg events capture
             lastEvent = firstEvent
@@ -441,9 +464,9 @@ class combRC(lydaqrc.lydaqControl):
             r["TH_%d" % (thmax-vth*step)] = lastEvent - firstEvent + 1
 
             # End Point
-            self.mdcc_CalibOn(0)
-            self.mdcc_CalibOff()
-            self.mdcc_Pause()
+            self.mdcc_CalibOn(0,ptrgname=self.md_name)
+            self.mdcc_CalibOff(ptrgname=self.md_name)
+            self.mdcc_Pause(ptrgname=self.md_name)
         return json.dumps(r)
 
     def runScurve(self, run, ch, spillon, spilloff, beg, las, step=2, asic=255, Comment="PR2 Calibration", Location="UNKNOWN", nevmax=50):

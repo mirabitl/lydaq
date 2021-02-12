@@ -513,7 +513,11 @@ void lydaq::C4iManager::setCTEST(uint64_t mask)
   for (auto it=_hca->asicMap().begin();it!=_hca->asicMap().end();it++)
     {
       for (int i=0;i<64;i++)
-	it->second.setCTEST(i,(mask>>i)&1);
+	{
+	  bool on=((mask>>i)&1)==1;
+	it->second.setCTEST(i,on);
+	LOG4CXX_INFO(_logFeb,"CTEST: "<<std::hex<<mask<<std::dec<<" channel "<<i<<" "<<on);
+	}
 
     }
   // Now loop on slowcontrol socket
@@ -660,7 +664,7 @@ void lydaq::C4iManager::thrd_scurve()
 
 void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
 {
-  fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
+  fsmwebCaller* mdcc=findMDCC("MBMDCCSERVER");
   fsmwebCaller* builder=findMDCC("BUILDER");
   if (mdcc==NULL) return;
   if (builder==NULL) return;
@@ -670,7 +674,7 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
   if (mode==255)
     {
 
-      for (int i=0;i<64;i++) mask|=(1<<i);
+      //for (int i=0;i<64;i++) mask|=(1<<i);
       mask=0xFFFFFFFFFFFFFFFF;
       this->setAllMasks(mask);
       this->ScurveStep(mdcc,builder,thmin,thmax,step);
@@ -681,10 +685,10 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
   // Chanel per channel pedestal (CTEST is active)
   if (mode==1023)
     {
-      int mask=0;
+      mask=0;
       for (int i=0;i<64;i++)
 	{
-	  mask=(1<<i);
+	  mask=(1ULL<<i);
 	  std::cout<<"Step HR2 "<<i<<" channel "<<i<<std::endl;
 	  this->setAllMasks(mask);
 	  this->setCTEST(mask);
@@ -694,7 +698,9 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
     }
 
   // One channel pedestal
-  mask=(1<<mode);
+
+  mask=(1ULL<<mode);
+  LOG4CXX_INFO(_logFeb,"CTEST One "<<mode<<" "<<std::hex<<mask<<std::dec);
   this->setAllMasks(mask);
   this->setCTEST(mask);
   this->ScurveStep(mdcc,builder,thmin,thmax,step);
@@ -755,7 +761,7 @@ void lydaq::C4iManager::c_scurve(Mongoose::Request &request, Mongoose::JsonRespo
   uint32_t last = atol(request.get("last", "250").c_str());
   uint32_t step = atol(request.get("step", "1").c_str());
   uint32_t mode = atol(request.get("channel", "255").c_str());
-  //  LOG4CXX_INFO(_logFeb, " SetOneVthTime called with vth " << vth << " feb " << feb << " asic " << asic);
+  LOG4CXX_INFO(_logFeb, " SCURVE/CTEST "<<mode<<" "<<step<<" "<<first<<" "<<last);
   
   //this->Scurve(mode,first,last,step);
 

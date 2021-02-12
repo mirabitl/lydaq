@@ -1,5 +1,6 @@
 import os
-Arm=os.uname()[4]=='armv7l'
+Arm=os.uname()[4]=='armv7l' or os.uname()[4]=='armv6l'
+
 
 
 if (Arm):

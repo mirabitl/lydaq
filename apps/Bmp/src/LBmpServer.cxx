@@ -13,10 +13,11 @@ void lydaq::LBmpServer::open(zdaq::fsmmessage* m)
     delete _bmp;
   
   
-  
+#ifdef BMP183  
   _bmp= new lydaq::BMP183();
- 
-
+#else
+  _bmp= new lydaq::BMP280();
+#endif
   
 }
 void lydaq::LBmpServer::close(zdaq::fsmmessage* m)
@@ -42,8 +43,15 @@ Json::Value lydaq::LBmpServer::status()
        return r;
     }
    lock();
+#ifdef BMP183
    r["pressure"]=_bmp->BMP183PressionRead();
    r["temperature"]=_bmp->BMP183TemperatureRead();
+#else
+   float t,p;
+   _bmp->TemperaturePressionRead(&t,&p);
+   r["pressure"]=p;
+   r["temperature"]=t;
+#endif
    unlock();
    r["status"]="READ";
    return r;

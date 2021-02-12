@@ -46,7 +46,7 @@
 #define PMR_GTC_SHIFT 4
 #define PMR_ABCID_SHIFT 7
 #define PMR_BCID_SHIFT 13
-#define PMR_LTRG_SHIFT 16
+#define PMR_LTRG_SHIFT 17
 #define PMR_HEADER_SHIFT 20
 
 #define PmrID(a) (a[PMR_ID_SHIFT])

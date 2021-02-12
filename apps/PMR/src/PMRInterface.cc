@@ -19,7 +19,7 @@ void lydaq::PMRInterface::setExternalTrigger(bool t) {_external=t;}
 void lydaq::PMRInterface::setTransport(zdaq::zmSender* p)
 {
   _dsData=p;
-  printf("DSDATA is %x\n",_dsData);
+  printf("DSDATA is %p\n", _dsData);
 }
 lydaq::PMRInterface::~PMRInterface()
 {
@@ -75,6 +75,7 @@ void lydaq::PMRInterface::start()
       return;
     }
   _rd->setAcquisitionMode(true,false,_external);
+  // _rd->setAcquisitionMode(true,true,_external);
   this->publishState("STARTED");
   LOG4CXX_INFO(_logLdaq,"PMR "<<_status->id<<" is started");
   _status->bytes=0;
@@ -126,17 +127,27 @@ void lydaq::PMRInterface::readout()
       //this->publishData(nread);
       
       _status->gtc=PmrGTC(cbuf);
-      unsigned long long Shift=16777216ULL;//to shift the value from the 24 first bits
-      unsigned long long LBC= ( (cbuf[PMR_ABCID_SHIFT]<<16) | (cbuf[PMR_ABCID_SHIFT+1]<<8) | (cbuf[PMR_ABCID_SHIFT+2]))*Shift+( (cbuf[PMR_ABCID_SHIFT+3]<<16) | (cbuf[PMR_ABCID_SHIFT+4]<<8) | (cbuf[PMR_ABCID_SHIFT+5]));
+      //unsigned long long Shift=16777216ULL;//to shift the value from the 24 first bits
+      //unsigned long long LBC= ( (cbuf[PMR_ABCID_SHIFT]<<16) | (cbuf[PMR_ABCID_SHIFT+1]<<8) | (cbuf[PMR_ABCID_SHIFT+2]))*Shift+( (cbuf[PMR_ABCID_SHIFT+3]<<16) | (cbuf[PMR_ABCID_SHIFT+4]<<8) | (cbuf[PMR_ABCID_SHIFT+5]));
+      uint64_t LBC=((uint64_t)cbuf[PMR_ABCID_SHIFT]<<40) |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+1]<<32) |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+2]<<24)|
+        ((uint64_t) cbuf[PMR_ABCID_SHIFT+3]<<16 )|
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+4]<<8)  |
+	((uint64_t) cbuf[PMR_ABCID_SHIFT+5]);
 
       _status->bcid=LBC;//PmrABCID(cbuf);
+      fprintf(stderr,"ABCID %lx \n",LBC);
       _status->bytes+=nread;
       if (_dsData==NULL) continue;;
       memcpy((unsigned char*) _dsData->payload(),cbuf,nread);
       //printf(" Je envoie %d => %d  avec %x \n",_status->id,nread,_dsData);fflush(stdout);
       _dsData->publish(_status->bcid,_status->gtc,nread);
-      if (_status->gtc%50 ==0)
-	printf(" Je publie %llx => %d  %d \n",_status->bcid,_status->gtc,nread);fflush(stdout);
+      //if (_status->gtc%50 ==0)
+      fprintf(stderr,"ICI Je publie ABCID  %lx \n",_status->bcid);
+      fprintf(stderr,"ICI Je publie  GTC %d \n",_status->gtc);
+      fprintf(stderr,"ICI Je publie  NREAD %d \n",nread);
+
       //_rd->resetFSM();
     }
   _readoutCompleted=true;

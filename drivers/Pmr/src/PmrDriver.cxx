@@ -324,6 +324,7 @@ int32_t lydaq::PmrDriver::resetFSM()
 {
   int32_t ret;
   ret=registerWrite(PMR_RO_RESET_REG, 0x1);
+  ::usleep(100000);
   ret=registerWrite(PMR_RO_RESET_REG, 0x0);
   
   //	printf ("reset_FSM write (0x%08x at 0x%x), ret=%d\n",tdata, taddr, ret);

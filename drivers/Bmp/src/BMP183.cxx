@@ -1,6 +1,5 @@
 #include "BMP183.hh"
 using namespace lydaq;
-
 lydaq::BMP183::BMP183(void)
 {
   BMP183Setup () ;
@@ -19,8 +18,8 @@ int lydaq::BMP183::BMP183Setup (void)
   if (wiringPiSPISetup (0, 10000) < 0)	// 10MHz Max
     return -1 ;
 
-  node = wiringPiNewNode (64, 2) ;
-
+  node = wiringPiNewNode (64, 2); 
+  printf ("%p\n",node);
   node->fd          = 0 ;
   node->analogWrite = myAnalogWrite ;
   node->analogRead = myAnalogRead ;
@@ -37,7 +36,7 @@ void lydaq::BMP183::myAnalogWrite (struct wiringPiNodeStruct *node, int addr, in
   spiData [1] = value&0xff ;
 
   wiringPiSPIDataRW (node->fd, spiData, 2) ;
-}
+}  
 
 int lydaq::BMP183::myAnalogRead (struct wiringPiNodeStruct *node, int addr)
 {
@@ -167,3 +166,5 @@ float lydaq::BMP183::BMP183PressionRead(void)
   printf ("pression = %f hPa \n",pression);
   return pression;
 }
+
+

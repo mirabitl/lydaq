@@ -1,0 +1,128 @@
+import sys,os,commands
+import  os
+import re
+import sys
+
+
+#print "----------------------------------------------"
+Decider('MD5-timestamp')
+ZDAQROOT=os.getenv("ZDAQROOT")
+LYDAQROOT=os.getenv("LYDAQROOT")
+
+fres=os.popen('uname -r')
+kl=fres.readline().split(".")
+
+platform="UBUNTU"
+if (kl[len(kl)-1][0:3] == 'el5'):
+    platform="SLC5"
+
+if (kl[len(kl)-2][0:3] == 'el6'):
+    platform="SLC6"
+print kl[len(kl)-2][0:3]
+fres=os.popen('uname -p')
+kp=fres.readline()
+osv=kp[0:len(kp)-1]
+
+print platform,osv
+
+Bit64=False
+Bit64=os.uname()[4]=='x86_64'
+
+kl=os.uname()[2].split(".")
+platform="UBUNTU"
+if (kl[len(kl)-1][0:3] == 'el5'):
+    platform="SLC5"
+
+if (kl[len(kl)-2][0:3] == 'el6'):
+    platform="SLC6"
+
+Arm=os.uname()[4]=='armv7l'
+
+if Arm or platform=="UBUNTU":
+  boostsystem='boost_system'
+  boostthread='boost_thread'
+else:
+  boostsystem='boost_system-mt'
+  boostthread='boost_thread-mt'
+
+
+package=os.path.basename(os.getcwd())
+  
+
+Use_Mongoose=os.path.exists("/usr/local/include/mongoose")
+
+# includes
+INCLUDES=['include',LYDAQROOT+"/drivers/include","/usr/include/boost141/","/usr/include/jsoncpp",ZDAQROOT+"/include","/usr/include/libbson-1.0","/usr/include/libmongoc-1.0"]
+  
+CPPFLAGS=["-pthread","-O2","-DLINUX", "-DREENTRANT" ,"-Dlinux", "-DLITTLE_ENDIAN__ ", "-Dx86","-std=c++11"]
+LIBRARIES=['pthread', 'm','stdc++',boostsystem,boostthread,'jsoncpp','mongoc-1.0','bson-1.0','zdaq','z','log4cxx']
+
+
+#Library path XDAQ,DHCAL and ROOT + Python
+if (Bit64):
+  LIBRARY_PATHS=["/usr/lib64","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
+else:
+  LIBRARY_PATHS=["/usr/lib","/usr/local/lib",LYDAQROOT+"/drivers/lib",ZDAQROOT+"/lib"]
+
+if (Use_Mongoose):
+  LIBRARY_PATHS.append('/usr/local/lib')
+  LIBRARIES.append('mongoose')
+  INCLUDES.append('/usr/local/include/')
+  INCLUDES.append('/usr/local/include/mongoose')
+
+Use_Oracle=os.path.exists("/usr/include/ILCConfDB")
+Use_Oracle=False
+if (Use_Oracle):
+  INCLUDES.append("/usr/include/ILCConfDB")
+
+
+if (Use_Oracle):
+  LIBRARIES=LIBRARIES+['dl','uuid', 'ilcconfdb', 'dbi','xerces-c']
+  if (not Arm):
+      LIBRARIES=LIBRARIES+[ 'occi', 'clntsh', 'nnz11', 'ilcconfdb',]
+#link flags
+LDFLAGS=["-fPIC","-dynamiclib"]
+
+
+# Create the Environment
+env = Environment(CPPPATH=INCLUDES,CPPFLAGS=CPPFLAGS,LINKFLAGS=LDFLAGS, LIBS=LIBRARIES,LIBPATH=LIBRARY_PATHS)
+
+#print "CC is:",env.subst('$CPPPATH')
+
+
+
+
+#print "CC is:",env.subst('$CPPPATH')
+
+
+
+# Library source
+#LIBRARY_SOURCES=Glob("src/*.cc")
+
+#print LIBRARY_SOURCES
+LIBRARY_SOURCES=['src/mgStore.cxx']
+
+print LIBRARY_SOURCES
+
+
+#Shared library
+lyname="lib/lydaq_mon_"+package
+print "building ",lyname
+lypack=env.SharedLibrary(lyname,LIBRARY_SOURCES)
+
+
+
+
+myinc=[]
+for x in Glob("include/*.hh"):
+  myinc.append("include/"+x.name)
+#print plist
+env.Install("../lib",lypack)
+env.Install("../include",myinc)
+###env.Install("/opt/dhcal/lib",levbdimdaq)
+
+
+env.Alias('install', ["../lib","../include"])
+
+
+

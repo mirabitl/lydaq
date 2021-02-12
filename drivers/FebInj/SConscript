@@ -63,7 +63,7 @@ if (kl[len(kl)-1][0:3] == 'el5'):
 if (kl[len(kl)-2][0:3] == 'el6'):
     platform="SLC6"
 
-Arm=os.uname()[4]=='armv7l'
+Arm=os.uname()[4]=='armv7l' or os.uname()[4]=='armv6l'
 
 if Arm or platform=="UBUNTU":
   boostsystem='boost_system'

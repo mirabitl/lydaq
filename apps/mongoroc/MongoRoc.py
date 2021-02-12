@@ -615,7 +615,12 @@ class MongoRoc:
                 print(a["slc"]["6bDac"])
                 for ich in range(32):
                     print(" Dac changed", idif, iasic, ich, cor[ich])
-                    a["slc"]["6bDac"][ich] = a["slc"]["6bDac"][ich]+cor[ich]
+                    ng= a["slc"]["6bDac"][ich]+cor[ich]
+                    if (ng<0):
+                        ng=1
+                    if (ng>63):
+                        ng=63
+                    a["slc"]["6bDac"][ich] =ng
                 print(a["slc"]["6bDac"])
                 a["_id"]=None
             except Exception as e:
@@ -643,6 +648,34 @@ class MongoRoc:
                 a["_id"]=None
             except Exception as e:
                 print(e)
+                
+    def PR2_SetCCOMP(self, v0,v1,v2,v3, idif=0, iasic=0):
+        """
+        Change the CCOMP value of specified  asics, modified asics are tagged for upload
+        
+        :param v0: CCOMP 0 value
+        :param v1: CCOMP 1 value
+        :param v2: CCOMP 2 value
+        :param v3: CCOMP 3 value
+        :param idif: DIF_ID (IP>>16), if 0 all FEBs are changed
+        :param iasic: asic number, if 0 all Asics are changed
+        """        
+       
+        for a in self.asiclist:
+            if (idif != 0 and a["dif"] != idif):
+                continue
+            if (iasic != 0 and a["num"] != iasic):
+                continue
+            try:
+                a["slc"]["PA_ccomp_0"]=v0
+                a["slc"]["PA_ccomp_1"]=v1
+                a["slc"]["PA_ccomp_2"]=v2
+                a["slc"]["PA_ccomp_3"]=v3
+                a["_id"]=None
+            except Exception as e:
+                print(e.getMessage())
+
+
                 
 # HR2 access
     def initHR2(self,num,gain=128):
@@ -912,7 +945,7 @@ class MongoRoc:
             if (iasic != 0 and a["num"] != iasic):
                 continue
             for ipad in range(0,64):
-                a["slc"]["PAGAIN"][ipad]=scale*a["slc"]["PAGAIN"][ipad]
+                a["slc"]["PAGAIN"][ipad]=int(scale*a["slc"]["PAGAIN"][ipad])
             a["_id"]=None
 
     def HR2_slowShaper(self):
