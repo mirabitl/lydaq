@@ -641,7 +641,7 @@ void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
       Json::Value h;
       h.append(2);h.append(thmax-vth*step);
       p["header"]=h;
-     
+      p["nextevent"]=1;
       builder->sendCommand("SETHEADER",p);
       printf("SETHEADER executed\n");
       int firstEvent=0;
