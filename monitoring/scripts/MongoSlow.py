@@ -64,30 +64,34 @@ class MongoSlow:
             
         res=self.db.MONITORED_ITEMS.find({"path":{'$regex':path},"ctime":{'$gt':mintime}},{"_id":0}).limit(depth).sort("ctime",pymongo.DESCENDING)
         for x in res:
+            #print(x)
             sti=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(x["ctime"]))
             if (device=="BMP" and x["status"]["name"]==device):
                 print("%s P=%.2f mbar T=%.2f K " % (sti,x["status"]["pressure"],x["status"]["temperature"]+273.15))
             if (device=="HIH" and x["status"]["name"]==device):
-                print("%s H0=%.2f mbar T0=%.2f K H1=%.2f mbar T1=%.2f K " % (sti,x["status"]["humidity0"],x["status"]["temperature0"],x["status"]["humidity1"],x["status"]["temperature1"]))
+                print("%s H0=%.2f %% T0=%.2f K H1=%.2f %% T1=%.2f K " % (sti,x["status"]["humidity0"],x["status"]["temperature0"],x["status"]["humidity1"],x["status"]["temperature1"]))
             if (device=="ISEG" and x["status"]["name"]==device):
                 print(sti)
                 for y in x["status"]["channels"]:
                     sstat=y["status"].split("=")[1]
                     
-                    print("%3d %12.2f %12.2f %12.2f %s" %(y["id"],y["vset"],y["vout"],y["iout"]*1E6,sstat[:len(sstat)-1]))
-
+                    #print("ch%.3d %12.2f %12.2f %12.2f %s" %(y["id"],y["vset"],y["vout"],y["iout"]*1E6,sstat[:len(sstat)-1]))
+                    print("ch%.3d %8.2f %8.2f %8.2f %8.2f %8.2f %s" %(y["id"],y["vset"],y["iset"]*1E6,y["rampup"],y["vout"],y["iout"]*1E6,sstat[:len(sstat)-1]))
+            if (device=="GENESYS" and x["status"]["name"]==device):
+                print("%s VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (sti,x["status"]["vset"],x["status"]["vout"],x["status"]["iout"],x["status"]["status"]))
+                
 def instance():
     """
     Create a MongoJob Object
     
-    The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set
+    The ENV varaible MGDBMON=user/pwd@host:port@dbname mut be set
 
     :return: The MongoJob Object
     """
     # create the default access
-    login=os.getenv("MGDBLOGIN","NONE")
+    login=os.getenv("MGDBMON","NONE")
     if (login == "NONE"):
-        print("The ENV varaible MGDBLOGIN=user/pwd@host:port@dbname mut be set")
+        print("The ENV varaible MGDBMON=user/pwd@host:port@dbname mut be set")
         exit(0)
     userinfo=login.split("@")[0]
     hostinfo=login.split("@")[1]

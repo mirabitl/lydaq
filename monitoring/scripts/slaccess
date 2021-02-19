@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+import fsmctrl as fct
+import argparse
+#import requests //tres long
+import sys
+
+parser = argparse.ArgumentParser()
+
+# configure all the actions
+grp_action = parser.add_mutually_exclusive_group()
+
+grp_action.add_argument('--view', action='store_true',help='List all the available slow control daemon and their status')
+grp_action.add_argument('--configure', action='store_true',help='Send a CONFIGURE transition on all VOID daemon')
+grp_action.add_argument('--start', action='store_true',help='Send a START transition on all CONFIGURED daemon')
+grp_action.add_argument('--stop', action='store_true',help='Send a STOP transition on all RUNNING daemon')
+grp_action.add_argument('--status', action='store_true',help='Send a STATUS command on all non-VOID daemons')
+
+grp_action.add_argument('--bmp-status', action='store_true',help='Return BMP280 status if any')
+grp_action.add_argument('--hih-status', action='store_true',help='Return HIH8000 status is any')
+grp_action.add_argument('--wiener-status', action='store_true',help='Return status of Wiener channels from --first=num0 to --last=num1')
+grp_action.add_argument('--wiener-on', action='store_true',help='Turn ON Wiener channels from --first=num0 to --last=num1')
+grp_action.add_argument('--wiener-off', action='store_true',help='Turn OFF Wiener channels from --first=num0 to --last=num1')
+grp_action.add_argument('--wiener-vset', action='store_true',help='Set the Voltage on Wiener channels from --first=num0 to --last=num1 to voltage --value=num3')
+grp_action.add_argument('--wiener-iset', action='store_true',help='Set the Current limit on Wiener channels from --first=num0 to --last=num1 to max current (microA) --value=num3')
+grp_action.add_argument('--wiener-clear', action='store_true',help='Clear alarm on  Wiener channels from --first=num0 to --last=num1')
+grp_action.add_argument('--wiener-ramp', action='store_true',help='Set the Ramp up on Wiener channels from --first=num0 to --last=num1 to  --value=num3 V/s (limited to 80 V/s)')
+
+
+
+grp_action.add_argument('--genesys-status', action='store_true',help='Return Genesys LV status if any')
+grp_action.add_argument('--genesys-on', action='store_true',help='Turn Genesys LV On if any')
+grp_action.add_argument('--genesys-off', action='store_true',help='Turn Genesys LV off if any')
+
+
+
+
+
+
+# Arguments
+parser.add_argument('--hosts', action='store',type=str,default=None,dest='host_list',help='List of hosts where daemon are running separted by a coma' )
+parser.add_argument('--first', action='store',type=int,default=None,dest='first',help='First channel (WIENER/CAEN/..)' )
+parser.add_argument('--last', action='store',type=int,default=None,dest='last',help='Last channel (WIENER/CAEN)' )
+parser.add_argument('--value', action='store',type=float,default=None,dest='value',help='Value to be set (voltage,current,ramp,...)' )
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+results = parser.parse_args()
+
+hosts=['lyorpipul01','lyoilcrpi23','lyosdhcal9','lyocmsmu03','lyocmsmu04']
+if (results.host_list):
+    hosts=results.host_list.split(",")
+    #print(hosts)
+# check daemon and get info
+#hosts=['lyorpipul01','lyoilcrpi23','lyosdhcal9','lyocmsmu03','lyocmsmu04']
+hell=[]
+for h in hosts:
+    s=fct.FSMCtrl(h,888)
+    s.getInfo()
+    hell.append(s)
+    
+if (results.view):
+    for s in hell:
+        if (s.state!="DEAD"):
+            s.printInfos(True)
+        else:
+            print(s.fUrl,s.state,s.procInfos)  
+    exit(0)
+
+if (results.configure):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state == "VOID"):
+                s.configure()
+                s.getInfo()
+                s.printInfos(True)
+    exit(0)
+
+if (results.start):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state == "CONFIGURED"):
+                s.start()
+                s.getInfo()
+                s.printInfos(True)
+    exit(0)
+if (results.stop):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state == "RUNNING"):
+                s.stop()
+                s.getInfo()
+                s.printInfos(True)
+    exit(0)
+if (results.status):
+    for s in hell:
+        if (s.state!="DEAD"):
+        #s.printInfos(True)
+            if (s.state == "VOID"):
+                continue
+            if (s.isWiener()):
+                print("\t \t Wiener found %s" % s.state)
+                s.wiener_status()
+            if (s.isGenesys()):
+                print("\t \t Genesys found %s" % s.state)
+                s.genesys_status()
+            if (s.isHih()):
+                print("\t \t HIH8000 found %s" % s.state)
+                s.hih_status() 
+            if (s.isBmp()):
+                print("\t \t BMP280 found %s" % s.state)
+                s.bmp_status()
+    exit(0)
+
+#BMP280
+if (results.bmp_status):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isBmp()):
+                    s.bmp_status() 
+    exit(0)
+#HIH8000
+if (results.hih_status):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isHih()):
+                    s.hih_status() 
+    exit(0)
+#GENESYS
+if (results.genesys_status):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isGenesys()):
+                    s.genesys_status() 
+    exit(0)
+if (results.genesys_on):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isGenesys()):
+                    s.genesys_on()
+                    s.genesys_status() 
+    exit(0)
+
+if (results.genesys_off):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isGenesys()):
+                    s.genesys_off()
+                    s.genesys_status() 
+    exit(0)
+
+# WIENER
+if (results.wiener_off):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_hvoff(results.first,results.last)
+                    s.wiener_status(results.first,results.last) 
+    exit(0)
+
+if (results.wiener_on):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_hvon(results.first,results.last)
+                    s.wiener_status(results.first,results.last) 
+    exit(0)
+if (results.wiener_status):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_status(results.first,results.last) 
+    exit(0)
+if (results.wiener_clear):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_clear(results.first,results.last) 
+    exit(0)
+if (results.wiener_vset):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the voltage --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_vset(results.first,results.last,results.value) 
+    exit(0)
+if (results.wiener_iset):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the current (microA) --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_iset(results.first,results.last,results.value) 
+    exit(0)
+if (results.wiener_ramp):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the ramp (V, < 80 V) --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isWiener()):
+                    s.wiener_rampup(results.first,results.last,results.value) 
+    exit(0)
+
+exit(0)
+for s in hell:
+    if (s.state!="DEAD"):
+        #s.printInfos(True)
+        if (s.state == "VOID"):
+            s.configure()
+            s.getInfo()
+            s.printInfos(True)
+        if (s.isWiener()):
+            print("\t \t Wiener found %s" % s.state)
+            #s.wiener_vset(10,10,7605)
+            #s.wiener_iset(10,10,25.0)
+            #s.wiener_rampup(10,10,80)
+            s.wiener_status()
+        if (s.isGenesys()):
+            print("\t \t Genesys found %s" % s.state)
+            s.genesys_status()
+        if (s.isHih()):
+            print("\t \t HIH8000 found %s" % s.state)
+            s.hih_status() 
+        if (s.isBmp()):
+            print("\t \t BMP280 found %s" % s.state)
+            s.bmp_status()
+       #s.start()
+        #print(s.status())
+    else:
+        print(s.fUrl,s.state,s.procInfos)
