@@ -4,4 +4,7 @@ plist=['wiener/SConscript','genesys/SConscript','mgstore/SConscript']
 if (Arm):
    plist.append('bmp/SConscript')
    plist.append('hih/SConscript')
+else:
+   plist.append('syx27/SConscript')
+
 SConscript(plist)
