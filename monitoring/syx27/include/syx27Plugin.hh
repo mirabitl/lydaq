@@ -31,7 +31,7 @@ namespace lydaq
     // Status
     virtual Json::Value status();
     Json::Value status(int32_t f,int32_t l);
-    virtual std::string hardware(){return "ISEG";}
+    virtual std::string hardware(){return "SYX27";}
     Json::Value channelStatus(uint32_t channel);
     
     // Commande
