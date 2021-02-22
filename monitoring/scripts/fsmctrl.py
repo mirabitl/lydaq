@@ -266,6 +266,45 @@ class FSMCtrl:
                 print("%12s %8.2f %8.2f %8.2f %8.2f %8.2f %d" %(y["name"],y["vset"],y["iset"],y["rampup"],y["vout"],y["iout"],y["status"]))                
            
             return x
+    def syx27_vset(self,first,last,vset):
+        if (self.isSyx27()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+            p["value"]=vset
+            sr=self.sendCommand('SY_VSET',p)
+            self.syx27_status(first,last)
+    def syx27_iset(self,first,last,iset):
+        if (self.isSyx27()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+            p["value"]=iset
+            sr=self.sendCommand('SY_ISET',p)
+            self.syx27_status(first,last)
+    def syx27_rampup(self,first,last,ramp):
+        if (self.isSyx27()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+            p["value"]=ramp
+            sr=self.sendCommand('SY_RAMPUP',p)
+            self.syx27_status(first,last)
+            
+    def syx27_hvon(self,first,last):
+        if (self.isSyx27()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+            sr=self.sendCommand('SY_ON',p)
+            self.syx27_status(first,last)
+    def syx27_hvoff(self,first,last):
+        if (self.isSyx27()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+            sr=self.sendCommand('SY_OFF',p)
+            self.syx27_status(first,last)
 
     def isWiener(self):
         for k, v in self.procInfos.items():

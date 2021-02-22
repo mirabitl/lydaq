@@ -25,6 +25,13 @@ grp_action.add_argument('--wiener-iset', action='store_true',help='Set the Curre
 grp_action.add_argument('--wiener-clear', action='store_true',help='Clear alarm on  Wiener channels from --first=num0 to --last=num1')
 grp_action.add_argument('--wiener-ramp', action='store_true',help='Set the Ramp up on Wiener channels from --first=num0 to --last=num1 to  --value=num3 V/s (limited to 80 V/s)')
 
+grp_action.add_argument('--syx27-status', action='store_true',help='Return status of Syx27 channels from --first=num0 to --last=num1')
+grp_action.add_argument('--syx27-on', action='store_true',help='Turn ON Syx27 channels from --first=num0 to --last=num1')
+grp_action.add_argument('--syx27-off', action='store_true',help='Turn OFF Syx27 channels from --first=num0 to --last=num1')
+grp_action.add_argument('--syx27-vset', action='store_true',help='Set the Voltage on Syx27 channels from --first=num0 to --last=num1 to voltage --value=num3')
+grp_action.add_argument('--syx27-iset', action='store_true',help='Set the Current limit on Syx27 channels from --first=num0 to --last=num1 to max current (microA) --value=num3')
+grp_action.add_argument('--syx27-ramp', action='store_true',help='Set the Ramp up on Syx27 channels from --first=num0 to --last=num1 to  --value=num3 V/s ')
+
 
 
 grp_action.add_argument('--genesys-status', action='store_true',help='Return Genesys LV status if any')
@@ -267,6 +274,105 @@ if (results.wiener_ramp):
             if (s.state != "VOID"):
                 if (s.isWiener()):
                     s.wiener_rampup(results.first,results.last,results.value) 
+    exit(0)
+
+# SYX27
+if (results.syx27_off):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_hvoff(results.first,results.last)
+                    s.syx27_status(results.first,results.last) 
+    exit(0)
+
+if (results.syx27_on):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_hvon(results.first,results.last)
+                    s.syx27_status(results.first,results.last) 
+    exit(0)
+if (results.syx27_status):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_status(results.first,results.last) 
+    exit(0)
+
+if (results.syx27_vset):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the voltage --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_vset(results.first,results.last,results.value) 
+    exit(0)
+if (results.syx27_iset):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the current (microA) --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_iset(results.first,results.last,results.value) 
+    exit(0)
+if (results.syx27_ramp):
+    if (results.first == None):
+        print('Please specify the first channel --first=num')
+        exit(0)
+    if (results.last == None):
+        print('Please specify the last channel --last=num')
+        exit(0)
+    if (results.value == None):
+        print('Please specify the ramp (V, < 80 V) --value=num')
+        exit(0)
+
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isSyx27()):
+                    s.syx27_rampup(results.first,results.last,results.value) 
     exit(0)
 
 exit(0)
