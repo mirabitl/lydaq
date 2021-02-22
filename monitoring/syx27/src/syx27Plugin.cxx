@@ -86,6 +86,7 @@ Json::Value lydaq::syx27Plugin::channelStatus(uint32_t channel)
    r["iout"]=_hv->GetCurrentRead(channel);
    r["vout"]=_hv->GetVoltageRead(channel);
    r["status"]=_hv->GetStatus(channel);
+   _hv->Disconnect();
    return r;
 }
 Json::Value lydaq::syx27Plugin::status()
@@ -184,7 +185,7 @@ void lydaq::syx27Plugin::c_on(Mongoose::Request &request, Mongoose::JsonResponse
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOn(i);
-
+  _hv->Disconnect();
   response["SY_STATUS"]=this->status(first,last);
 }
 void lydaq::syx27Plugin::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -208,7 +209,7 @@ void lydaq::syx27Plugin::c_off(Mongoose::Request &request, Mongoose::JsonRespons
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetOff(i);
-
+  _hv->Disconnect();
 
   response["SY_STATUS"]=this->status(first,last);
 }
@@ -256,7 +257,7 @@ void lydaq::syx27Plugin::c_vset(Mongoose::Request &request, Mongoose::JsonRespon
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltage(i,vset);
-
+  _hv->Disconnect();
   response["SY_STATUS"]=this->status(first,last);
 }
 void lydaq::syx27Plugin::c_iset(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -281,6 +282,7 @@ void lydaq::syx27Plugin::c_iset(Mongoose::Request &request, Mongoose::JsonRespon
   _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetCurrent(i,iset);
+  _hv->Disconnect();
   response["SY_STATUS"]=this->status(first,last);
 }
 void lydaq::syx27Plugin::c_rampup(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -306,7 +308,7 @@ void lydaq::syx27Plugin::c_rampup(Mongoose::Request &request, Mongoose::JsonResp
     _hv->Connect();
   for (uint32_t i=first;i<=last;i++)
     _hv->SetVoltageRampUp(i,rup);
-
+  _hv->Disconnect();
   response["SY_STATUS"]=this->status(first,last);
 }
 
