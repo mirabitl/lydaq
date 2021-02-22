@@ -2,6 +2,10 @@
 using namespace  std;
 using namespace lydaq;
 
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
+#include <fstream>
 
 std::string lydaq::WienerSnmp::exec(const char* cmd) {
   FILE* pipe = popen(cmd, "r");
@@ -96,8 +100,12 @@ float lydaq::WienerSnmp::getOutputMeasurementSenseVoltage(uint32_t module,uint32
 float lydaq::WienerSnmp::getOutputMeasurementCurrent(uint32_t module,uint32_t voie)
 {
   std::stringstream sc;
-  // last version  sc<<"snmpget -v 2c -O p12.9 -m +WIENER-CRATE-MIB -c public ";
-  sc<<"snmpget -v 2c  -m +WIENER-CRATE-MIB -c public ";
+  struct stat buffer;   
+  bool newvers=(stat ("/usr/local/bin/snmpget", &buffer) == 0);
+  if (newvers)
+    sc<<"/usr/local/bin/snmpget -v 2c -O p12.9 -m +WIENER-CRATE-MIB -c public ";
+  else
+    sc<<"snmpget -v 2c  -m +WIENER-CRATE-MIB -c public ";
   sc<<_ip<<" outputMeasurementCurrent.u"<<100*module+voie;
   std::string res=exec(sc.str().c_str());
   //std::cout<<__PRETTY_FUNCTION__<<res<<std::endl;

@@ -35,9 +35,9 @@ void lydaq::syx27Plugin::open(zdaq::fsmmessage* m)
   Pwd=account.substr(ipass+1,ipath-ipass-1); 
   Host.clear();
   Host=account.substr(ipath+1,account.size()-ipath); 
-  std::cout<<Name<<std::endl;
-  std::cout<<Pwd<<std::endl;
-  std::cout<<Host<<std::endl;
+  std::cout<<Name<<"|"<<std::endl;
+  std::cout<<Pwd<<"|"<<std::endl;
+  std::cout<<Host<<"|"<<std::endl;
   
   
   _hv= new lydaq::HVCaenInterface(Host,Name,Pwd);
@@ -52,6 +52,7 @@ void lydaq::syx27Plugin::open(zdaq::fsmmessage* m)
     { 
       _params["last"]=m->content()["last"];
     }
+  _hv->Connect();
 }
 void lydaq::syx27Plugin::close(zdaq::fsmmessage* m)
 {

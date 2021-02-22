@@ -210,6 +210,7 @@ class FSMCtrl:
         #rep = self.executeRequest(luri)
         #return rep
         rep=self.executeCMD(self.host,self.port,self.prefix,name,content)
+        print(rep)
         if (type(rep) is bytes):
             rep=rep.decode("utf-8")
         return rep
@@ -242,6 +243,29 @@ class FSMCtrl:
         self.sendTransition('START',{})
     def status(self):
         return self.sendCommand('STATUS',{})
+    
+    def isSyx27(self):
+        for k, v in self.procInfos.items():
+            if (k == 'CMD'):
+                for x in v:
+                    if (x['name']=='SY_STATUS'):
+                        return True
+        return False
+    def syx27_status(self,first=-1,last=-1):
+        if (self.isWiener()):
+            p={}
+            p["first"]=first
+            p["last"]=last
+
+            sr=self.sendCommand('SY_STATUS',p)
+            sjr = json.loads(sr)
+            x=sjr["answer"]["SY_STATUS"]
+            for y in x["channels"]:
+                sstat=y["status"].split("=")[1]
+                    
+                print("ch%.3d %8.2f %8.2f %8.2f %8.2f %8.2f %s" %(y["id"],y["vset"],y["iset"]*1E6,y["rampup"],y["vout"],y["iout"]*1E6,sstat[:len(sstat)-1]))                
+           
+            return x
 
     def isWiener(self):
         for k, v in self.procInfos.items():

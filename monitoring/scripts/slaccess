@@ -110,6 +110,9 @@ if (results.status):
             if (s.isBmp()):
                 print("\t \t BMP280 found %s" % s.state)
                 s.bmp_status()
+            if (s.isSyx27()):
+                print("\t \t SYx27 found %s" % s.state)
+                s.syx27_status()
     exit(0)
 
 #BMP280

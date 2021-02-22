@@ -7,11 +7,11 @@
 
 int main()
 {
- lydaq::HVCaenInterface h("128.141.143.237","admin","admin");
+ lydaq::HVCaenInterface h("lyoac28","admin","admin");
 
  while (true)
    {
-     int slot=4;
+     int slot=0;
      for (int ch=0;ch<6;ch++)
        {
 	 h.Connect();
@@ -23,13 +23,13 @@ int main()
 	   printf("%d %f %f %d \n",ch,vmon,imon,status);
 	 */
        }
-     for (int ch=24;ch<30;ch++)
-       {
-	  float vmon=h.GetVoltageRead(ch);
-	 float imon=h.GetCurrentRead(ch);
-	 int status =h.GetStatus(ch);
-	   printf("%d %f %f %d \n",ch,vmon,imon,status);
-       }
-     ::sleep(20);
+     // for (int ch=24;ch<30;ch++)
+     //   {
+     // 	  float vmon=h.GetVoltageRead(ch);
+     // 	 float imon=h.GetCurrentRead(ch);
+     // 	 int status =h.GetStatus(ch);
+     // 	   printf("%d %f %f %d \n",ch,vmon,imon,status);
+     //   }
+     ::sleep(5);
    }
 }
