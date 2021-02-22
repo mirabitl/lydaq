@@ -99,6 +99,7 @@ void lydaq::HVCaenInterface::Connect()
 
 void lydaq::HVCaenInterface::SetOff(uint32_t channel)
 {
+  if (!isConnected()) return;
   this->SetIntValue("Pw",BoardSlot(channel),BoardChannel(channel),0);return;
   char ParName[16];
   sprintf(ParName,"%s","Pw");
@@ -122,6 +123,7 @@ void lydaq::HVCaenInterface::SetOff(uint32_t channel)
 }
 void lydaq::HVCaenInterface::SetOn(uint32_t channel)
 {
+  if (!isConnected()) return;
   this->SetIntValue("Pw",BoardSlot(channel),BoardChannel(channel),1);return;
   char ParName[16];
   sprintf(ParName,"%s","Pw");
@@ -145,6 +147,7 @@ void lydaq::HVCaenInterface::SetOn(uint32_t channel)
 }
 void lydaq::HVCaenInterface::SetCurrent(uint32_t channel,float imax)
 {
+  if (!isConnected()) return;
   this->SetFloatValue("I0Set",BoardSlot(channel),BoardChannel(channel),imax);return;
   char ParName[16];
   sprintf(ParName,"%s","I0Set");
@@ -168,6 +171,7 @@ void lydaq::HVCaenInterface::SetCurrent(uint32_t channel,float imax)
 }
 void lydaq::HVCaenInterface::SetVoltage(uint32_t channel,float v0)
 {
+  if (!isConnected()) return;
   this->SetFloatValue("V0Set",BoardSlot(channel),BoardChannel(channel),v0);return;
   char ParName[16];
   sprintf(ParName,"%s","V0Set");
@@ -193,6 +197,7 @@ void lydaq::HVCaenInterface::SetVoltage(uint32_t channel,float v0)
 }
 void lydaq::HVCaenInterface::SetVoltageRampUp(uint32_t channel,float v0)
 {
+  if (!isConnected()) return;
   this->SetFloatValue("RUp",BoardSlot(channel),BoardChannel(channel),v0);return;
   char ParName[16];
   sprintf(ParName,"%s","RUp");
@@ -218,6 +223,7 @@ void lydaq::HVCaenInterface::SetVoltageRampUp(uint32_t channel,float v0)
 }
 float lydaq::HVCaenInterface::GetCurrentSet(uint32_t channel)
 {
+  if (!isConnected()) return -1;
   return this->GetFloatValue("I0Set",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","I0Set");
@@ -242,6 +248,7 @@ float lydaq::HVCaenInterface::GetCurrentSet(uint32_t channel)
 }
 std::string lydaq::HVCaenInterface::GetName(uint32_t channel)
 {
+  if (!isConnected()) return "SY_DISC";
   return this->GetStringValue("Name",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","Name");
@@ -266,6 +273,7 @@ std::string lydaq::HVCaenInterface::GetName(uint32_t channel)
 }
 float lydaq::HVCaenInterface::GetVoltageSet(uint32_t channel)
 {
+  if (!isConnected()) return -1;
   return this->GetFloatValue("V0Set",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","V0Set");
@@ -290,6 +298,7 @@ float lydaq::HVCaenInterface::GetVoltageSet(uint32_t channel)
 }
 float lydaq::HVCaenInterface::GetCurrentRead(uint32_t channel)
 {
+  if (!isConnected()) return -1;
   return this->GetFloatValue("IMon",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","IMon");
@@ -315,6 +324,7 @@ float lydaq::HVCaenInterface::GetCurrentRead(uint32_t channel)
 }
 float lydaq::HVCaenInterface::GetVoltageRead(uint32_t channel)
 {
+  if (!isConnected()) return -1;
   return this->GetFloatValue("VMon",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","VMon");
@@ -340,6 +350,7 @@ float lydaq::HVCaenInterface::GetVoltageRead(uint32_t channel)
 }
 float lydaq::HVCaenInterface::GetVoltageRampUp(uint32_t channel)
 {
+  if (!isConnected()) return -1;
   return this->GetFloatValue("RUp",BoardSlot(channel),BoardChannel(channel));
   char ParName[16];
   sprintf(ParName,"%s","RUp");
@@ -364,7 +375,7 @@ float lydaq::HVCaenInterface::GetVoltageRampUp(uint32_t channel)
 }
 uint32_t lydaq::HVCaenInterface::GetStatus(uint32_t channel)
 {
-
+  if (!isConnected()) return 9999;
   return this->GetIntValue("Status",BoardSlot(channel),BoardChannel(channel));
 }
 
@@ -466,13 +477,29 @@ std::string lydaq::HVCaenInterface::GetStringValue(std::string name,uint32_t slo
 
 Json::Value  lydaq::HVCaenInterface::ChannelInfo(uint32_t slot,uint32_t channel)
 {
-  Json::Value rep;
-  rep["name"]=GetStringValue("Name",slot,channel);
-  rep["vset"]=GetFloatValue("V0Set",slot,channel);
-  rep["iset"]=GetFloatValue("I0Set",slot,channel);
-  rep["vmon"]=GetFloatValue("VMon",slot,channel);
-  rep["imon"]=GetFloatValue("IMon",slot,channel);
-  rep["rup"]=GetFloatValue("RUp",slot,channel);
-  rep["status"]=GetIntValue("Status",slot,channel);
-  return rep;
+  if (isConnected())
+    {
+      Json::Value rep;
+      rep["name"]=GetStringValue("Name",slot,channel);
+      rep["vset"]=GetFloatValue("V0Set",slot,channel);
+      rep["iset"]=GetFloatValue("I0Set",slot,channel);
+      rep["vmon"]=GetFloatValue("VMon",slot,channel);
+      rep["imon"]=GetFloatValue("IMon",slot,channel);
+      rep["rup"]=GetFloatValue("RUp",slot,channel);
+      rep["status"]=GetIntValue("Status",slot,channel);
+      return rep;
+    }
+  else
+    {
+      Json::Value rep;
+      rep["name"]="SY_DISC";
+      rep["vset"]=-1.;
+      rep["iset"]=-1;
+      rep["vmon"]=-1;
+      rep["imon"]=-1;
+      rep["rup"]=-1.;
+      rep["status"]=9999.;
+      return rep;
+
+    }
 }

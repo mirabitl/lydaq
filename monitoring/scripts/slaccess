@@ -3,6 +3,13 @@ import fsmctrl as fct
 import argparse
 #import requests //tres long
 import sys
+hosts=[]
+try:
+    import lyon_slow_alive
+    hosts=lyon_slow_alive.living
+except  ImportError:
+    #print("no hosts")
+    hosts=['localhost']
 
 parser = argparse.ArgumentParser()
 
@@ -54,7 +61,7 @@ if len(sys.argv)==1:
 
 results = parser.parse_args()
 
-hosts=['lyorpipul01','lyoilcrpi23','lyosdhcal9','lyocmsmu03','lyocmsmu04']
+
 if (results.host_list):
     hosts=results.host_list.split(",")
     #print(hosts)
