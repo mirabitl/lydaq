@@ -67,7 +67,7 @@ Json::Value lydaq::zupPlugin::status()
    Json::Value sr=_lv->Status();
 
    r["vset"]=sr["vset"];
-   r["iset"]=sr["vset"];
+   r["iset"]=sr["iset"];
    r["vout"]=sr["vout"];
    r["iout"]=sr["iout"];
    r["pwrstatus"]=sr["status"];
