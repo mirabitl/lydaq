@@ -94,13 +94,13 @@ void lydaq::genesysPlugin::c_on(Mongoose::Request &request, Mongoose::JsonRespon
   if (_lv==NULL)
   {
     LOG4CXX_ERROR(_logLdaq,"No Genesys opened");
-    response["WP_STATUS"]=Json::Value::null;
+    response["GS_STATUS"]=Json::Value::null;
     return;
   }
  _lv->ON();
   ::sleep(1);
 
-  response["WP_STATUS"]=this->status();
+  response["GS_STATUS"]=this->status();
 }
 
 void lydaq::genesysPlugin::c_off(Mongoose::Request &request, Mongoose::JsonResponse &response)
@@ -108,13 +108,13 @@ void lydaq::genesysPlugin::c_off(Mongoose::Request &request, Mongoose::JsonRespo
  if (_lv==NULL)
   {
     LOG4CXX_ERROR(_logLdaq,"No Genesys opened");
-    response["WP_STATUS"]=Json::Value::null;
+    response["GS_STATUS"]=Json::Value::null;
     return;
   }
  _lv->OFF();
   ::sleep(1);
 
-  response["WP_STATUS"]=this->status();
+  response["GS_STATUS"]=this->status();
 }
 
 void lydaq::genesysPlugin::c_setdevice(Mongoose::Request &request, Mongoose::JsonResponse &response)

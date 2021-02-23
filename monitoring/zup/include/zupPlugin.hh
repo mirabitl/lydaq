@@ -1,13 +1,13 @@
-#ifndef _genesysPlugin_h
+#ifndef _zupPlugin_h
 
-#define _genesysPlugin_h
+#define _zupPlugin_h
 #include <iostream>
 
 #include <string.h>
 #include<stdio.h>
 #include "zmonPlugin.hh"
 
-#include "Genesys.hh"
+#include "Zup.hh"
 
 using namespace std;
 #include <sstream>
@@ -16,21 +16,21 @@ using namespace std;
 
 namespace lydaq
 {
-  class genesysPlugin : public zdaq::zmonPlugin
+  class zupPlugin : public zdaq::zmonPlugin
   {
   public:
-    genesysPlugin();
+    zupPlugin();
     // Transition
     virtual void open(zdaq::fsmmessage* m);
     virtual void close(zdaq::fsmmessage* m);
     virtual void registerCommands(zdaq::fsmweb* f);
     virtual  void loadParameters(Json::Value params);
     // Access to the interface
-    lydaq::Genesys* getGenesysInterface(){  //std::cout<<" get Ptr "<<_hv<<std::endl;
+    lydaq::Zup* getZupInterface(){  //std::cout<<" get Ptr "<<_hv<<std::endl;
       return _lv;}
     // Status
     virtual Json::Value status();
-    virtual std::string hardware(){return "GENESYS";}
+    virtual std::string hardware(){return "ZUP";}
 
     
     // Commande
@@ -43,7 +43,7 @@ namespace lydaq
   private:
     //zdaq::fsm* _fsm;
     Json::Value _params;
-    lydaq::Genesys* _lv;
+    lydaq::Zup* _lv;
   };
 };
 #endif
