@@ -1,6 +1,16 @@
 #include "Zup.hh"
 
-
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <bitset>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/select.h>
+#include <boost/format.hpp>
+#include "ReadoutLogger.hh"
 using namespace lydaq;
 lydaq::Zup::Zup(std::string device,uint32_t address)
 {
@@ -24,7 +34,7 @@ lydaq::Zup::Zup(std::string device,uint32_t address)
     }
 
 
-  int portstatus = 0;
+  portstatus = 0;
 
   struct termios options;
   // Get the current options for the port...
@@ -67,68 +77,213 @@ lydaq::Zup::Zup(std::string device,uint32_t address)
   char hadr[20];
   memset(hadr,0,20);
   sprintf(hadr,":ADR%.2d;\n",address);
-
+  stringstream s;
+  s<<":ADR"<<address<<";\r";
+  //this->readCommand(s.str());
+  
   wr=write(fd1,hadr,7);usleep(50000);
-  printf("%d Bytes sent are %d \n",portstatus,wr);
+  wr=write(fd1,hadr,7);usleep(50000);
 
+  printf("%d Bytes sent are %d \n",portstatus,wr);
+  //this->readCommand(s.str());
+  LOG4CXX_INFO(_logLdaq,__PRETTY_FUNCTION__<<" Value read "<<_value);
 }
 lydaq::Zup::~Zup()
 {
   if (fd1>0)
     close(fd1);
 }
+void lydaq::Zup::readCommand(std::string cmd)
+{
+  if (fd1<0 || portstatus!=1)
+    {
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" Device not open ");
+      return;
+    }
+  //fprintf(stderr,"%s %s \n",__PRETTY_FUNCTION__,cmd.c_str());
+  LOG4CXX_DEBUG(_logLdaq,__PRETTY_FUNCTION__<<" command "<<cmd);
+  memset(buff,0,1024);
+  fd_set set;
+  struct timeval timeout;
+  int rv;
+
+  FD_ZERO(&set); /* clear the set */
+  FD_SET(fd1, &set); /* add our file descriptor to the set */
+
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 2000;
+
+  rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
+  if(rv == -1)
+    {
+      //perror("select"); /* an error accured */
+      LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" select failed");
+    }
+  else if(rv != 0)
+    {
+      read( fd1, buff, 100 ); /* there was data to read */
+    
+      std::cout<<"Y avait "<<buff<<std::endl;
+    }
+  wr=write(fd1,cmd.c_str(),cmd.length());
+  //fflush(fd1);
+  //std::cout<<"sleep "<<wr<<std::endl;
+
+  //sleep((int) 1);
+  for (int i=0;i<100;i++) usleep(1000);
+  memset(buff,0,1024);
+  int32_t nchar=0,rd=0,ntry=0;
+  while (1)
+    {
+      FD_ZERO(&set); /* clear the set */
+      FD_SET(fd1, &set); /* add our file descriptor to the set */
+	
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 4800;
+
+      //  fprintf(stderr,"waiting for select \n");
+      rv = select(fd1 + 1, &set, NULL, NULL, &timeout);
+      ntry++;
+      if (ntry>10) break;
+      if(rv == -1)
+	{
+	  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" select failed");
+	  //perror("select"); /* an error accured */
+	  //fprintf(stderr,"Bad select %d \n",rv); /* a timeout occured */
+	}
+      else if(rv == 0)
+	{
+	  LOG4CXX_ERROR(_logLdaq,__PRETTY_FUNCTION__<<" select empty "<<ntry);
+	  //fprintf(stderr,"Nothing in select \n"); /* a timeout occured */
+	  break;
+	}
+      else
+	{
+	  //fprintf(stderr,"y a des donnees \n");
+	  rd=read(fd1,&buff[nchar],100);
+	  //printf(" rd = %d nchar %d %s\n",rd,nchar,buff);
+	  if (rd>0)
+	    nchar+=rd;
+	}
+      usleep(1);
+     
+    }
+
+  //printf(" try %d rd = %d nchar %d %s\n",ntry,rd,nchar,buff);
+  memset(&buff[nchar-1],0,1024-(nchar-1));
+  buff[nchar-1]=0;
+  std::string ret(buff);
+  //std::cout<<ret<<std::endl;
+  
+//   //printf("%s\n",buff);
+
+  //fprintf(stderr,"nchar %d OOOLLAA %s\n",nchar,buff);
+  int istart=0;
+  char bufr[100];
+  memset(bufr,0,100);
+
+  for (int i=0;i<nchar;i++)
+    if (buff[i]<0x5f) {bufr[istart]=buff[i];istart++;}
+  //memcpy(bufr,&buff[istart],nchar-istart);
+  std::string toto;if (istart>1) toto.assign(bufr,istart-1);
+  //fprintf(stderr," %d %d Corrected %s\n",istart,nchar,toto.c_str());
+
+
+
+
+  
+  _value=ret;
+}
 void lydaq::Zup::ON()
 {
     
-  wr=write(fd1,":OUT1;",6);usleep(50000);
+  //wr=write(fd1,":OUT1;",6);usleep(50000);
+  readCommand(":OUT1;");
+  // ::usleep(50000);
+  // this->INFO();
   //printf("Bytes sent are %d \n",wr);
 }
 void lydaq::Zup::OFF()
 {
-
-  wr=write(fd1,":OUT0;",6);usleep(50000);
+  readCommand(":OUT0;");
+  // ::usleep(50000);
+  // this->INFO();
+  //wr=write(fd1,":OUT0;",6);usleep(50000);
   //printf("Bytes sent are %d \n",wr);
 
 }
-
-void lydaq::Zup::readCommand(std::string cmd)
+Json::Value lydaq::Zup::Status()
 {
-  //std::cout<<cmd<<std::endl;
-  wr=write(fd1,cmd.substr(0,6).c_str(),6);
-  //std::cout<<"sleep "<<std::endl;
-  for (int i=0;i<500;i++) usleep(100);
-  memset(buff,0,100);
-  int32_t nchar=0,rd=0;
-  while (nchar==0)
-    {
-      rd=read(fd1,&buff[nchar],100);
-      //std::cout<<"rd "<<rd<<" nch"<<nchar<<std::endl;
-      if (rd>0)
-	nchar=rd;
-      else
-	usleep(50);
-    }
-  // Repete la lecture tant qu'il ya des char
-  while (rd>1)
-    {
-      rd=read(fd1,&buff[nchar],100);
-      //std::cout<<"rd "<<rd<<" nch"<<nchar<<std::endl;
-      if (rd>1) nchar+=rd;
-
-    }
-  //
-  memset(&buff[nchar-1],0,100-(nchar-1));
-  //buff[nchar-1]=0;
-  std::string ret(buff);
-  std::cout<<ret<<std::endl;
-  //printf("%s\n",buff);
+  ::usleep(50000);
+  this->INFO();
+  Json::Value r;
+  r["vset"]=_vSet;
+  r["vout"]=_vRead;
+  r["iset"]=_iSet;
+  r["iout"]=_iRead;
+  r["status"]=_status;
+  return r;
 }
 void lydaq::Zup::INFO()
 {
-  this->readCommand(":MDL?;");
+  std::size_t found;
+  ::usleep(50000);
+  this->readCommand(":STT?;\r");
+  std::cout<<"Status ----> "<<_value<<std::endl;
+  found=_value.find("OS");
+  if (found != std::string::npos) {
+    std::bitset<8> bsta (_value.substr(found+2,8));
+    //std::cout<<"Status="<<bsta<<std::endl;
+    _status=bsta.to_ulong();
+  }
+  found=_value.find("SV");
+  if (found != std::string::npos) {
+    sscanf(_value.substr(found+2,5).c_str(),"%f",&_vSet);
+    //std::cout<<"Vset="<<_vSet<<std::endl;
+
+  }
+  found=_value.find("SA");
+  if (found != std::string::npos) {
+    sscanf(_value.substr(found+2,5).c_str(),"%f",&_iSet);
+    //std::cout<<"iset="<<_iSet<<std::endl;
+
+  }
+  found=_value.find("AV");
+  if (found != std::string::npos) {
+    sscanf(_value.substr(found+2,5).c_str(),"%f",&_vRead);
+    //std::cout<<"VRead="<<_vRead<<std::endl;
+
+  }
+  found=_value.find("AA");
+  if (found != std::string::npos) {
+     sscanf(_value.substr(found+2,5).c_str(),"%f",&_iRead);
+     //std::cout<<"iRead="<<_iRead<<std::endl;
+  }
+
+  return;
+
+  
+  this->readCommand(":MDL?;\r");
+  std::cout<<_value<<std::endl;
+  ::usleep(50000);
+  this->readCommand(":STT?;\r");
+  std::cout<<_value<<std::endl;
+  found=_value.find("OS");
+  if (found != std::string::npos) {
+    std::cout<<_value.substr(found+2,8)<<std::endl;
+    std::bitset<8> bsta (_value.substr(found+2,8));
+    std::cout<<bsta<<std::endl;
+    std::cout<<bsta.to_ulong()<<std::endl;
+  }
+  ::usleep(50000);
   this->readCommand(":VOL!;");
+  std::cout<<_value<<std::endl;
+  ::usleep(50000);
   this->readCommand(":VOL?;");
+  ::usleep(50000);
+  std::cout<<_value<<std::endl;
   this->readCommand(":CUR?;");
+  std::cout<<_value<<std::endl;
   /*
     wr=write(fd1,":MDL?;",6);usleep(50000);
     memset(buff,0,100);rd=read(fd1,buff,100); printf("%s \n",buff);
@@ -142,34 +297,16 @@ void lydaq::Zup::INFO()
 }
 float lydaq::Zup::ReadVoltageSet()
 {
-  this->readCommand(":VOL!;");
-  /*
-    wr=write(fd1,":VOL!;",6);usleep(50000);
-    memset(buff,0,100);rd=read(fd1,buff,100); printf("%s \n",buff);
-  */
-  float v;
-  sscanf(buff,"SV%f",&v);
-  return v;
+  this->INFO();
+  return _vSet;
 }
 float lydaq::Zup::ReadVoltageUsed()
 {
-  this->readCommand(":VOL?;");
-  /*
-    wr=write(fd1,":VOL?;",6);usleep(50000);
-    memset(buff,0,100);rd=read(fd1,buff,100); printf("%s \n",buff);
-  */
-  float v;
-  sscanf(buff,"AV%f",&v);
-  return v;
+  this->INFO();
+  return _vRead;
 }
 float lydaq::Zup::ReadCurrentUsed()
 {
-  this->readCommand(":CUR?;");
-  /*
-    wr=write(fd1,":CUR?;",6);usleep(50000);
-    memset(buff,0,100);rd=read(fd1,buff,100); printf("%s \n",buff);
-  */
-  float v;
-  sscanf(buff,"AA%f",&v);
-  return v;
+  this->INFO();
+  return _iRead;
 }

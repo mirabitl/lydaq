@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
-
+#include <json/json.h>
 namespace lydaq
 {
   class Zup
@@ -33,13 +33,16 @@ namespace lydaq
     float ReadVoltageSet();
     float ReadVoltageUsed();
     float ReadCurrentUsed();
+    Json::Value Status();
   private:
 
 
-    int fd1;
+    int fd1,portstatus;
+    std::string _value;
 
-    char buff[100];
-
+    char buff[1024];
+    float _vSet,_vRead,_iSet,_iRead;
+    int _status;
     int wr,rd,nbytes,tries;
   };
 };
