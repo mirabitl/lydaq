@@ -72,7 +72,7 @@ Json::Value lydaq::zupPlugin::status()
    r["iout"]=sr["iout"];
    r["pwrstatus"]=sr["status"];
    int pws=sr["status"].asUInt();
-   if ((pws>>5)&1)
+   if ((pws>>4)&1)
      r["status"]="ON";
    else
      r["status"]="OFF";
