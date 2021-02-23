@@ -45,6 +45,10 @@ grp_action.add_argument('--genesys-status', action='store_true',help='Return Gen
 grp_action.add_argument('--genesys-on', action='store_true',help='Turn Genesys LV On if any')
 grp_action.add_argument('--genesys-off', action='store_true',help='Turn Genesys LV off if any')
 
+grp_action.add_argument('--zup-status', action='store_true',help='Return Zup LV status if any')
+grp_action.add_argument('--zup-on', action='store_true',help='Turn Zup LV On if any')
+grp_action.add_argument('--zup-off', action='store_true',help='Turn Zup LV off if any')
+
 
 
 
@@ -118,6 +122,9 @@ if (results.status):
             if (s.isGenesys()):
                 print("\t \t Genesys found %s" % s.state)
                 s.genesys_status()
+            if (s.isZup()):
+                print("\t \t Zup found %s" % s.state)
+                s.zup_status()
             if (s.isHih()):
                 print("\t \t HIH8000 found %s" % s.state)
                 s.hih_status() 
@@ -169,6 +176,32 @@ if (results.genesys_off):
                 if (s.isGenesys()):
                     s.genesys_off()
                     s.genesys_status() 
+    exit(0)
+
+#ZUP
+if (results.zup_status):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isZup()):
+                    s.zup_status() 
+    exit(0)
+if (results.zup_on):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isZup()):
+                    s.zup_on()
+                    s.zup_status() 
+    exit(0)
+
+if (results.zup_off):
+    for s in hell:
+        if (s.state!="DEAD"):
+            if (s.state != "VOID"):
+                if (s.isZup()):
+                    s.zup_off()
+                    s.zup_status() 
     exit(0)
 
 # WIENER

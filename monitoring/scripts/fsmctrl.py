@@ -472,6 +472,28 @@ class FSMCtrl:
             print(" VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (x["vset"],x["vout"],x["iout"],x["status"]))
             return x
         
+    def isZup(self):
+        for k, v in self.procInfos.items():
+            if (k == 'CMD'):
+                for x in v:
+                    if (x['name']=='ZUP_STATUS'):
+                        return True
+        return False
+    
+    def zup_on(self):
+        if (self.isZup()):
+            self.sendCommand('ZUP_ON',{})
+    def zup_off(self):
+        if (self.isZup()):
+            self.sendCommand('ZUP_OFF',{})
+    def zup_status(self):
+        if (self.isZup()):
+            sr=self.sendCommand('ZUP_STATUS',{})
+            sjr = json.loads(sr)
+            x=sjr["answer"]["ZUP_STATUS"]
+            print(" VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (x["vset"],x["vout"],x["iout"],x["status"]))
+            return x
+        
     def printInfos(self, vverb):
         if (vverb):
             #print "PROCINFO ",self.procInfos
