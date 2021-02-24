@@ -151,7 +151,6 @@ class MongoSlow:
                     writer.writerow(fieldnames)
                 measure=[]
                 for y in x["status"]["channels"]:
-                    sstat=y["status"].split("=")[1]
                     if (len(measure)==0):
                         measure.append(sti)
                     measure.append(y["vout"])
