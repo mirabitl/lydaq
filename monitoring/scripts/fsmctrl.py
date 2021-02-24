@@ -491,7 +491,7 @@ class FSMCtrl:
             sr=self.sendCommand('ZUP_STATUS',{})
             sjr = json.loads(sr)
             x=sjr["answer"]["ZUP_STATUS"]
-            print(" VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (x["vset"],x["vout"],x["iout"],x["status"]))
+            print(" VSET=%.2f V VOut=%.2f V IOut=%.2f A Imax=%.2f A  Status %s  Bit Status %s " % (x["vset"],x["vout"],x["iout"],x["iset"],x["status"],bin(x["pwrstatus"])))
             return x
         
     def printInfos(self, vverb):

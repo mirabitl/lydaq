@@ -84,7 +84,9 @@ class MongoSlow:
                 for y in x["status"]["channels"]:
                     print("%12s %8.2f %8.2f %8.2f %8.2f %8.2f %d" %(y["name"],y["vset"],y["iset"],y["rampup"],y["vout"],y["iout"],y["status"]))                
             if (device=="ZUP" and x["status"]["name"]==device):
-                print("%s VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (sti,x["status"]["vset"],x["status"]["vout"],x["status"]["iout"],x["status"]["status"]))
+                #print("%s VSET=%.2f V VOut=%.2f V IOut=%.2f V Status %s " % (sti,x["status"]["vset"],x["status"]["vout"],x["status"]["iout"],x["status"]["status"]))
+                print(" VSET=%.2f V VOut=%.2f V IOut=%.2f A Imax=%.2f A  Status %s  Bit Status %s " % (x["status"]["vset"],x["status"]["vout"],x["status"]["iout"],x["status"]["iset"],x["status"]["status"],bin(x["status"]["pwrstatus"])))
+
 
                 
 def instance():
