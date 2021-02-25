@@ -147,6 +147,8 @@ class MongoSlow:
                     for y in x["status"]["channels"]:
                         fieldnames.append("%s_vout" % y["name"])
                         fieldnames.append("%s_iout" % y["name"])
+                        fieldnames.append("%s_vset" % y["name"])
+                        fieldnames.append("%s_iset" % y["name"])
                     writer = csv.writer(fout, delimiter="|")
                     writer.writerow(fieldnames)
                 measure=[]
@@ -155,6 +157,8 @@ class MongoSlow:
                         measure.append(sti)
                     measure.append(y["vout"])
                     measure.append(y["iout"])
+                    measure.append(y["vset"])
+                    measure.append(y["iset"])
                 writer.writerow(measure)
 
             if (device=="ZUP" and x["status"]["name"]==device):
