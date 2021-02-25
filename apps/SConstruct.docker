@@ -1,0 +1,38 @@
+import os
+Arm=os.uname()[4]=='armv7l' or os.uname()[4]=='armv6l'
+Use_ROOT=os.path.isdir("/opt/dhcal/root")
+Use_Oracle=os.path.isdir("/opt/ILCConfDB")
+Use_LCIO=os.path.isdir("/opt/dhcal/lcio")
+
+if (Arm):
+    plist=[
+        'Bmp/SConscript',
+        'FebInj/SConscript',
+        'GPIO/SConscript',
+        'DIF/SConscript',
+        'PMR/SConscript',
+	'Gric/SConscript',
+        'C4I/SConscript',
+        'GRICV0/SConscript',
+        'FEBV1/SConscript',
+        'Mdcc/SConscript',
+        'MBMDCC/SConscript',
+        'MdccEcal/SConscript',
+        'Sdcc/SConscript'
+    ]
+    plist.append('hih8000/SConscript')
+    SConscript(plist)
+else:
+    plist=[
+        'PMR/SConscript',
+        'DIF/SConscript',
+        'Gric/SConscript',
+        'C4I/SConscript',
+        'GRICV0/SConscript',
+        'FEBV1/SConscript',
+        'Mdcc/SConscript',
+        'MBMDCC/SConscript',
+        'MdccEcal/SConscript',
+        'Sdcc/SConscript']
+
+    SConscript(plist)
