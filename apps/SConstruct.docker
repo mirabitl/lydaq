@@ -6,7 +6,6 @@ Use_LCIO=os.path.isdir("/opt/dhcal/lcio")
 
 if (Arm):
     plist=[
-        'Bmp/SConscript',
         'FebInj/SConscript',
         'GPIO/SConscript',
         'DIF/SConscript',
@@ -20,7 +19,6 @@ if (Arm):
         'MdccEcal/SConscript',
         'Sdcc/SConscript'
     ]
-    plist.append('hih8000/SConscript')
     SConscript(plist)
 else:
     plist=[
