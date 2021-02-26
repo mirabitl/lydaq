@@ -7,7 +7,6 @@ export ZDAQROOT=/opt/zdaq
 export LYDAQROOT=/opt/lydaq
 
 # CAEN driver
-cd /tmp; tar zxv /opt/lydaq/drivers/utils/packages/CAENHVWrapper-6.0-build20190117.tgz 
 cd /tmp; tar zxvf /opt/lydaq/drivers/utils/packages/CAENHVWrapper-6.0-build20190117.tgz 
 cd CAENHVWrapper-6.0/
 ./install.sh
