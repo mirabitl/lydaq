@@ -6,8 +6,8 @@ using namespace lydaq;
 lydaq::grStore::grStore() {} 
 void lydaq::grStore::loadParameters(Json::Value params)
 {
-  if (params.isMember("mgstore"))
-    _params=params["mgstore"];
+  if (params.isMember("grstore"))
+    _params=params["grstore"];
 }
 
 void lydaq::grStore::connect()

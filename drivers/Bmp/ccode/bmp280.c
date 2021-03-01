@@ -70,7 +70,7 @@ int BMP280Setup (void)
 	
 	
 	if (myAnalogRead(0xD0) != 0x58)
-	printf ("not a BMP280... \n");
+	printf ("not a BMP280 ... \n");
 // reset	
 //	myAnalogWrite(0xE0, 0xB6);
 //	myAnalogWrite(0xE0, 0x00);
