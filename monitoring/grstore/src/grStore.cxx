@@ -150,7 +150,7 @@ void lydaq::grStore::store(std::string loc,std::string hw,uint32_t ti,Json::Valu
 	  spath.str(std::string());
 	  spath.clear();
 	  spath<<loc<<"."<<hw<<"."<<jsch["id"].asUInt()<<".IOUT";
-	  graphite_send_plain(spath.str().c_str(),jsch["vout"].asDouble(),ti);
+	  graphite_send_plain(spath.str().c_str(),jsch["iout"].asDouble(),ti);
 
 	  spath.str(std::string());
 	  spath.clear();
@@ -187,7 +187,7 @@ void lydaq::grStore::store(std::string loc,std::string hw,uint32_t ti,Json::Valu
 	  spath.str(std::string());
 	  spath.clear();
 	  spath<<loc<<"."<<hw<<"."<<jsch["slot"].asUInt()<<"."<<jsch["channel"].asUInt()<<".IOUT";
-	  graphite_send_plain(spath.str().c_str(),jsch["vout"].asDouble(),ti);
+	  graphite_send_plain(spath.str().c_str(),jsch["iout"].asDouble(),ti);
 
 	  spath.str(std::string());
 	  spath.clear();
