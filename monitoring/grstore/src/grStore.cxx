@@ -150,6 +150,7 @@ void lydaq::grStore::store(std::string loc,std::string hw,uint32_t ti,Json::Valu
 	  spath.str(std::string());
 	  spath.clear();
 	  spath<<loc<<"."<<hw<<"."<<jsch["id"].asUInt()<<".IOUT";
+	  std::cout<<"IOUT"<<jsch["iout"].asDouble()<<std::endl;
 	  graphite_send_plain(spath.str().c_str(),jsch["iout"].asDouble(),ti);
 
 	  spath.str(std::string());
