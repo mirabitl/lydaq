@@ -1,5 +1,5 @@
 #include "hih8000.hh"
-
+#include "ReadoutLogger.hh"
 
 /*
 hih8000::hih8000(void)

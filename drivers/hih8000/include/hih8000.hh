@@ -36,7 +36,7 @@ extern "C" {
 
 using namespace std;
 
-#include "ReadoutLogger.hh"
+
 
 namespace lydaq {
 
