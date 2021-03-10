@@ -1,5 +1,5 @@
 #include  "Genesys.hh"
-
+#include "ReadoutLogger.hh"
 using namespace std;
 using namespace lydaq;
 void lydaq::Genesys::setIos()

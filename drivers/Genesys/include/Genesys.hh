@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include <sys/select.h>
 #include <boost/format.hpp>
-#include "ReadoutLogger.hh"
+
 
 using namespace std;
 namespace lydaq
