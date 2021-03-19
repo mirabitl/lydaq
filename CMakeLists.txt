@@ -33,6 +33,7 @@ include(CMake.defs)
 
 message(${CMAKE_SYSTEM_PROCESSOR})
 add_subdirectory(drivers)
+add_subdirectory(apps)
 #add_subdirectory(evb)
 #add_subdirectory(plugins/demo)
 #if (NOT APPLE)
