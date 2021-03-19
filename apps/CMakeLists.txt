@@ -44,6 +44,7 @@ endforeach()
 
 #set(header_C3I C3I/include/C3iManager.hh C3I/include/C3iMpi.hh C3I/include/MpiInterface.hh )
 #set(files_C3I  C3I/src/C3iDaemon.cxx C3I/src/C3iManager.cc C3I/src/C3iMpi.cc C3I/src/MpiInterface.cc  )
+
 set(files_Builder Builder/include/Builder.hh Builder/src/Builder.cxx Builder/src/BuilderDaemon.cxx  )
 
 set(files_C3I C3I/include/C3iManager.hh C3I/include/C3iMpi.hh C3I/include/MpiInterface.hh C3I/src/C3iDaemon.cxx C3I/src/C3iManager.cc C3I/src/C3iMpi.cc C3I/src/MpiInterface.cc  )
@@ -95,14 +96,16 @@ set(files_FebInj FebInj/include/FebInjServer.hh FebInj/src/FebInjDaemon.cxx FebI
 set(files_GPIO GPIO/include/LGpioServer.hh GPIO/src/LGpioDaemon.cxx GPIO/src/LGpioServer.cxx  )
 
 
-message(${files_Caen})
-message(${files_C3I})
+#message(${files_Caen})
+#message(${files_Builder})
 link_directories( /usr/local/zdaq/lib)
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
   foreach ( sd IN LISTS dirapp)
-    target_link_libraries(ex_${sd} PRIVATE wiringpi netLink lydaq_drivers ${ZDAQ_LIBS})
+    add_executable(ex_${sd}  ${files_${sd}} )
+    target_link_libraries(ex_${sd} PRIVATE  zdaq sqlite3 ftdi pthread netLink lydaq_drivers ${ZDAQ_LIBS})
     target_include_directories(ex_${sd} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${sd}/include /usr/local/zdaq/include  ${PC_INCLUDEDIRS} )
+    set(EX_BINS ${EX_BINS} ex_${sd})
   endforeach()
 endif()
 
