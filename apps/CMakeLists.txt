@@ -119,7 +119,7 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 
 endif()
 
-include(CPack)
+#include(CPack)
 
 install(FILES ${PC_HEADERS}  DESTINATION include )
 install(TARGETS ${EX_BINS}  DESTINATION bin ARCHIVE DESTINATION bin)
