@@ -50,11 +50,11 @@ endforeach()
 add_library(lydaq_drivers SHARED ${PC_SRCS} ${PC_HEADERS})
 target_include_directories(lydaq_drivers PRIVATE /usr/local/zdaq/include  ${PC_INCLUDEDIRS} )
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
-  target_link_libraries(lydaq_drivers PRIVATE wiringPi netLink ${ZDAQ_LIBS})
+  target_link_libraries(lydaq_drivers PRIVATE ftdi wiringPi netLink ${ZDAQ_LIBS})
 endif()
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-  target_link_libraries(lydaq_drivers PRIVATE caenhvwrapper netLink ${ZDAQ_LIBS})
+  target_link_libraries(lydaq_drivers PRIVATE ftdi caenhvwrapper netLink ${ZDAQ_LIBS})
 
 
 endif()
