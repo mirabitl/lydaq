@@ -18,6 +18,22 @@ set(CPACK_PACKAGE_VERSION_MINOR 0)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 set(CPACK_SET_DESTDIR true)
 set(CPACK_INSTALL_PREFIX /usr/local/lydaq)
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+  set(CPACK_SYSTEM_NAME "Linux-arm")
+  set(CPACK_TOPLEVEL_TAG "Linux-arm")
+endif()
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  set(CPACK_SYSTEM_NAME "Linux-x86_64")
+  set(CPACK_TOPLEVEL_TAG "Linux-x86_64")
+endif()
+
+
+
+
+
+
 #set(FAKE_TARGET fakeTarget)
 #if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/netlink/config.h )
 #  add_custom_target(fakeTarget  echo "netLink already installed")
