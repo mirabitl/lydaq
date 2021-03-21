@@ -85,3 +85,34 @@ add_subdirectory(monitoring)
 
 include(CPack)
 
+set(MGROC_EXE
+  ${CMAKE_CURRENT_SOURCE_DIR}/apps/mongoroc/mgroc
+  )
+set(MGROC_PYTHON
+  ${CMAKE_CURRENT_SOURCE_DIR}/apps/mongoroc/MongoRoc.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/apps/mongoroc/prettyjson.py
+  )
+
+file(GLOB RUNCTRL_PYTHON
+     "${CMAKE_CURRENT_SOURCE_DIR}/pycontrol/*.py"
+     )
+set(RUNCTRL_EXE
+  ${CMAKE_CURRENT_SOURCE_DIR}/pycontrol/combdaq
+  ${CMAKE_CURRENT_SOURCE_DIR}/pycontrol/febdaq
+  ${CMAKE_CURRENT_SOURCE_DIR}/pycontrol/difdaq
+  )
+
+file(GLOB MONITOR_PYTHON
+     "${CMAKE_CURRENT_SOURCE_DIR}/monitoring/scripts/*.py"
+     )
+set(MONITOR_EXE
+  ${CMAKE_CURRENT_SOURCE_DIR}/monitoring/scripts/mgslow
+  ${CMAKE_CURRENT_SOURCE_DIR}/monitoring/scripts/slaccess
+  )
+
+
+
+install(FILES ${MGROC_PYTHON} ${RUNCTRL_PYTHON} ${MONITOR_PYTHON}  DESTINATION share )
+install(FILES ${MGROC_EXE} ${RUNCTRL_EXE} ${MONITOR_EXE} DESTINATION bin )
+
+install(CODE "execute_process(COMMAND chmod -R +x ${CMAKE_INSTALL_PREFIX}/bin/)")
