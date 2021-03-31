@@ -30,9 +30,9 @@ foreach ( sd IN LISTS dirpc)
 endforeach()
 
 
-foreach(x IN LISTS PC_INCLUDEDIRS )
-    message("Header= "${x})
-endforeach()
+#foreach(x IN LISTS PC_INCLUDEDIRS )
+#    message("Header= "${x})
+#endforeach()
 
 
 
