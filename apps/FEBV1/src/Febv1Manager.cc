@@ -23,7 +23,7 @@ using namespace zdaq;
 using namespace lydaq;
 
 
-lydaq::Febv1Manager::Febv1Manager(std::string name) : zdaq::baseApplication(name),_context(NULL),_tca(NULL),_mpi(NULL)
+lydaq::Febv1Manager::Febv1Manager(std::string name) : zdaq::baseApplication(name),_context(NULL),_tca(NULL),_mpi(NULL),_running(false),_sc_running(false)
 {
   _fsm=this->fsm();
   // Register state
@@ -294,10 +294,13 @@ void lydaq::Febv1Manager::c_scurve(Mongoose::Request &request, Mongoose::JsonRes
   _sc_step=step;
   if (_sc_running)
     {
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" SCURVE already running");
       response["SCURVE"] ="ALREADY_RUNNING";
       return;
     }
   boost::thread_group g;
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Starting SCurve thread");
+
   g.create_thread(boost::bind(&lydaq::Febv1Manager::thrd_scurve, this));
   response["SCURVE"] ="RUNNING";
 }
@@ -680,6 +683,7 @@ void lydaq::Febv1Manager::start(zdaq::fsmmessage* m)
       x.second->reg()->writeAddress(0x219,_type);
       x.second->reg()->writeAddress(0x220,1);
     }
+  _running=true;
 }
 void lydaq::Febv1Manager::stop(zdaq::fsmmessage* m)
 {
@@ -690,7 +694,7 @@ void lydaq::Febv1Manager::stop(zdaq::fsmmessage* m)
       x.second->reg()->writeAddress(0x220,0);
     }
   ::sleep(2);
-
+  _running=false;
 
 }
 void lydaq::Febv1Manager::destroy(zdaq::fsmmessage* m)
@@ -721,9 +725,13 @@ void lydaq::Febv1Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,in
 {
 
   int ncon=2000,ncoff=100,ntrg=50;
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" Entering "<<thmin<<" "<<thmax<<step<<"  running ?"<<_running);	
+
   mdcc->sendCommand("PAUSE");
   Json::Value p;
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" SPILLON");	
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
+  LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" SPILLOFF");	
   p.clear();p["nclock"]=ncoff;  mdcc->sendCommand("SPILLOFF",p);
   printf("Clock On %d Off %d \n",ncon, ncoff);
   p.clear();p["value"]=4;  mdcc->sendCommand("SETSPILLREGISTER",p);
@@ -733,6 +741,7 @@ void lydaq::Febv1Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,in
   for (int vth=0;vth<=thrange;vth++)
     {
       if (!_running) break;
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" PAUSE");	
       mdcc->sendCommand("PAUSE");
       this->setVthTime(thmax-vth*step);
       int firstEvent=0;
@@ -744,6 +753,7 @@ void lydaq::Febv1Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,in
       h.append(2);h.append(thmax-vth*step);
       p["header"]=h;
       p["nextevent"]=firstEvent+1;
+      LOG4CXX_INFO(_logFeb,__PRETTY_FUNCTION__<<" HEADER");	
       builder->sendCommand("SETHEADER",p);
       mdcc->sendCommand("RELOADCALIB");
       mdcc->sendCommand("RESUME");
@@ -774,8 +784,16 @@ void lydaq::Febv1Manager::Scurve(int mode,int thmin,int thmax,int step)
 {
   fsmwebCaller* mdcc=findMDCC("MDCCSERVER");
   fsmwebCaller* builder=findMDCC("BUILDER");
-  if (mdcc==NULL) return;
-  if (builder==NULL) return;
+  if (mdcc==NULL)
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No MDCCSERVER found");	
+      return;
+    }
+  if (builder==NULL)
+    {
+      LOG4CXX_ERROR(_logFeb,__PRETTY_FUNCTION__<<" No BUILDER found");	
+      return;
+    }
   int firmware[]={0,2,4,6,
 		  8,10,12,14,
 		  16,18,20,22,
