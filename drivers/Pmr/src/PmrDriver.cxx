@@ -1,6 +1,7 @@
 
 
 #include <stdio.h>
+#include <unistd.h>
 #include <ftdi.h>
 #include <string.h>
 

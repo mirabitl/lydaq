@@ -8,6 +8,7 @@
 #include "FtdiUsbDriver.hh"
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 #include <sys/timeb.h>
 
 using namespace lydaq;
