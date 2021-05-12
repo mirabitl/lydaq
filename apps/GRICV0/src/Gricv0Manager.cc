@@ -614,7 +614,7 @@ void lydaq::Gricv0Manager::destroy(zdaq::fsmmessage* m)
 void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=2000,ncoff=100,ntrg=20;
+  int ncon=200,ncoff=100,ntrg=200;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
@@ -645,8 +645,14 @@ void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
       builder->sendCommand("SETHEADER",p);
       printf("SETHEADER executed\n");
       int firstEvent=0;
+#ifdef USEBOARDS
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
+      firstEvent=0;
+#else
+      builder->sendCommand("STATUS");
+      firstEvent=builder->answer()["answer"]["answer"]["build"].asUInt();
+#endif
       mdcc->sendCommand("RELOADCALIB");
       for (auto x:_mpi->boards())
 	{
@@ -661,12 +667,18 @@ void lydaq::Gricv0Manager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,i
 	}
       
       mdcc->sendCommand("RESUME");
-      int nloop=0,lastEvent=0;firstEvent=0;
-      while (lastEvent < (firstEvent + ntrg - 1))
+      int nloop=0,lastEvent=0;
+      
+      while (lastEvent < (firstEvent + ntrg - 10))
 	{
 	  ::usleep(10000);
+#ifdef USEBOARDS 
 	  for (auto x : _mpi->boards())
 	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
+#else
+	  builder->sendCommand("STATUS");
+	  lastEvent=builder->answer()["answer"]["answer"]["build"].asUInt(); 
+#endif
 	  nloop++;if (nloop > 600 || !_running)  break;
 	}
       printf("Step %d Th %d First %d Last %d loops %d \n",vth,thmax-vth*step,firstEvent,lastEvent,nloop);
