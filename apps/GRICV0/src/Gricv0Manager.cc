@@ -725,7 +725,7 @@ void lydaq::Gricv0Manager::Scurve(int mode,int thmin,int thmax,int step)
 	  mask=(1ULL<<i);
 	  std::cout<<"Step HR2 "<<i<<" channel "<<i<<std::endl;
 	  this->setAllMasks(mask);
-	  this->setCTEST(mask);
+	  //this->setCTEST(mask);
 	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
 	}
       return;
@@ -734,7 +734,7 @@ void lydaq::Gricv0Manager::Scurve(int mode,int thmin,int thmax,int step)
   // One channel pedestal
   mask=(1ULL<<mode);
   this->setAllMasks(mask);
-  this->setCTEST(mask);
+  //this->setCTEST(mask);
   this->ScurveStep(mdcc,builder,thmin,thmax,step);
 
   

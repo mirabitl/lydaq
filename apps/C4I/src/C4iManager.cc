@@ -610,7 +610,7 @@ void lydaq::C4iManager::destroy(zdaq::fsmmessage* m)
 void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int thmin,int thmax,int step)
 {
 
-  int ncon=50000,ncoff=100,ntrg=50;
+  int ncon=200,ncoff=100,ntrg=100;
   mdcc->sendCommand("PAUSE");
   Json::Value p;
   p.clear();p["nclock"]=ncon;  mdcc->sendCommand("SPILLON",p);
@@ -631,21 +631,30 @@ void lydaq::C4iManager::ScurveStep(fsmwebCaller* mdcc,fsmwebCaller* builder,int 
       h.append(2);h.append(thmax-vth*step);
 
       int firstEvent=0;
+#ifdef USEBOARDS
       for (auto x : _mpi->boards())
 	if (x.second->data()->event()>firstEvent) firstEvent=x.second->data()->event();
-
+#else
+      builder->sendCommand("STATUS");
+      firstEvent=builder->answer()["answer"]["answer"]["build"].asUInt();
+#endif   
       p["header"]=h;
       p["nextevent"]=firstEvent+1;
       builder->sendCommand("SETHEADER",p);
       mdcc->sendCommand("RELOADCALIB");
       mdcc->sendCommand("RESUME");
       int nloop=0,lastEvent=firstEvent;
-      while (lastEvent < (firstEvent + ntrg - 1))
+      while (lastEvent < (firstEvent + ntrg - 10))
 	{
 	  ::usleep(10000);
+#ifdef USEBOARDS 
 	  for (auto x : _mpi->boards())
 	    if (x.second->data()->event()>lastEvent) lastEvent=x.second->data()->event();
-	  nloop++;if (nloop > 60000 || !_running)  break;
+#else
+	  builder->sendCommand("STATUS");
+	  lastEvent=builder->answer()["answer"]["answer"]["build"].asUInt(); 
+#endif
+	  nloop++;if (nloop > 600 || !_running)  break;
 	}
       printf("Step %d Th %d First %d Last %d \n",vth,thmax-vth*step,firstEvent,lastEvent);
       mdcc->sendCommand("PAUSE");
@@ -691,7 +700,7 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
 	  mask=(1ULL<<i);
 	  std::cout<<"Step HR2 "<<i<<" channel "<<i<<std::endl;
 	  this->setAllMasks(mask);
-	  this->setCTEST(mask);
+	  //this->setCTEST(mask);
 	  this->ScurveStep(mdcc,builder,thmin,thmax,step);
 	}
       return;
@@ -702,7 +711,7 @@ void lydaq::C4iManager::Scurve(int mode,int thmin,int thmax,int step)
   mask=(1ULL<<mode);
   LOG4CXX_INFO(_logFeb,"CTEST One "<<mode<<" "<<std::hex<<mask<<std::dec);
   this->setAllMasks(mask);
-  this->setCTEST(mask);
+  //this->setCTEST(mask);
   this->ScurveStep(mdcc,builder,thmin,thmax,step);
 
   
