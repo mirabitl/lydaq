@@ -20,7 +20,7 @@ using namespace std;
 #include "PmrDriver.hh"
 
 ///< Local definition of struct
-namespace pmr {
+namespace Pmr {
   
 typedef struct 
 {
@@ -48,7 +48,7 @@ namespace lydaq {
 class PMRInterface
 {
 public:
-  PMRInterface(pmr::FtdiDeviceInfo *ftd);
+  PMRInterface(Pmr::FtdiDeviceInfo *ftd);
   ~PMRInterface();
   void setTransport(zdaq::zmSender* p);
   // initialise
@@ -63,7 +63,7 @@ public:
   // destroy
   void destroy();
   // Getter and setters
-  inline pmr::DIFStatus* status() const {return _status;}
+  inline Pmr::DIFStatus* status() const {return _status;}
   inline lydaq::PmrDriver* rd() const {return _rd;}
   void setState(std::string s){_state.assign(s);}
   inline std::string state() const {return _state;}
@@ -79,8 +79,8 @@ public:
   // Exteranl trigger used
   void setExternalTrigger(bool t);
 private:
-  pmr::FtdiDeviceInfo _ftd;
-  pmr::DIFStatus* _status;
+  Pmr::FtdiDeviceInfo _ftd;
+  Pmr::DIFStatus* _status;
   std::string _state;
   uint32_t _data[32768];
   PmrDriver* _rd;

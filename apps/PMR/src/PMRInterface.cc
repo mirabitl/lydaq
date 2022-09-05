@@ -1,14 +1,14 @@
 #include "PMRInterface.hh"
 #include <unistd.h>
 #include <stdint.h>
-lydaq::PMRInterface::PMRInterface(pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(150),_external(true)
+using namespace Pmr;lydaq::PMRInterface::PMRInterface(Pmr::FtdiDeviceInfo* ftd) : _rd(NULL),_state("CREATED"),_dsData(NULL),_detid(150),_external(true)
 {
   // Creation of data structure
 
-  memcpy(&_ftd,ftd,sizeof(pmr::FtdiDeviceInfo));
+  memcpy(&_ftd,ftd,sizeof(Pmr::FtdiDeviceInfo));
 
-  _status = new pmr::DIFStatus();
-  memset(_status,0,sizeof(pmr::DIFStatus));
+  _status = new Pmr::DIFStatus();
+  memset(_status,0,sizeof(Pmr::DIFStatus));
 
   sscanf(ftd->name,"FT101%d",&(_status->id));
   _readoutStarted=false;

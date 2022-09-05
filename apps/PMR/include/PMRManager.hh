@@ -123,10 +123,10 @@ namespace lydaq
     void prepareDevices();
     void startReadoutThread(PMRInterface* d);
     // DimRpc interface
-    std::map<uint32_t,pmr::FtdiDeviceInfo*>& getFtdiMap(){ return theFtdiDeviceInfoMap_;}
+    std::map<uint32_t,Pmr::FtdiDeviceInfo*>& getFtdiMap(){ return theFtdiDeviceInfoMap_;}
     std::map<uint32_t,PMRInterface*>& getPMRMap(){ return _PMRInterfaceMap;}
       
-    pmr::FtdiDeviceInfo* getFtdiDeviceInfo(uint32_t i) { if ( theFtdiDeviceInfoMap_.find(i)!=theFtdiDeviceInfoMap_.end()) return theFtdiDeviceInfoMap_[i]; else return NULL;}
+    Pmr::FtdiDeviceInfo* getFtdiDeviceInfo(uint32_t i) { if ( theFtdiDeviceInfoMap_.find(i)!=theFtdiDeviceInfoMap_.end()) return theFtdiDeviceInfoMap_[i]; else return NULL;}
 
     void joinThreads(){g_d.join_all();}
 
@@ -138,7 +138,7 @@ namespace lydaq
     fsmwebCaller* findMDCC(std::string appname);
     void c_scurve(Mongoose::Request &request, Mongoose::JsonResponse &response);
   private:
-    std::map<uint32_t,pmr::FtdiDeviceInfo*> theFtdiDeviceInfoMap_;	
+    std::map<uint32_t,Pmr::FtdiDeviceInfo*> theFtdiDeviceInfoMap_;	
     std::map<uint32_t,lydaq::PMRInterface*> _PMRInterfaceMap;
     std::vector<lydaq::PMRInterface*> _vDif;
     lydaq::HR2ConfigAccess* _hca;

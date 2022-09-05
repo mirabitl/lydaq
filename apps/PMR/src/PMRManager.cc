@@ -27,7 +27,7 @@ using namespace zdaq;
 
 void lydaq::PMRManager::prepareDevices()
 {
-  for ( std::map<uint32_t,pmr::FtdiDeviceInfo*>::iterator it=theFtdiDeviceInfoMap_.begin();it!=theFtdiDeviceInfoMap_.end();it++)
+  for ( std::map<uint32_t,Pmr::FtdiDeviceInfo*>::iterator it=theFtdiDeviceInfoMap_.begin();it!=theFtdiDeviceInfoMap_.end();it++)
     if (it->second!=NULL) delete it->second;
   theFtdiDeviceInfoMap_.clear();
   for ( std::map<uint32_t,PMRInterface*>::iterator it=_PMRInterfaceMap.begin();it!=_PMRInterfaceMap.end();it++)
@@ -46,14 +46,14 @@ void lydaq::PMRManager::prepareDevices()
       while ( myfile.good() )
 	{
 	  getline (myfile,line);
-	  pmr::FtdiDeviceInfo* difi=new pmr::FtdiDeviceInfo();
-	  memset(difi,0,sizeof(pmr::FtdiDeviceInfo));
+	  Pmr::FtdiDeviceInfo* difi=new Pmr::FtdiDeviceInfo();
+	  memset(difi,0,sizeof(Pmr::FtdiDeviceInfo));
 	  sscanf(line.c_str(),"%x %x %s",&difi->vendorid,&difi->productid,difi->name);
 	  if (strncmp(difi->name,"FT101",5)==0)
 	    {
 	      sscanf(difi->name,"FT101%d",&difi->id); 
 	      difi->type=0;
-	      std::pair<uint32_t,pmr::FtdiDeviceInfo*> p(difi->id,difi);
+	      std::pair<uint32_t,Pmr::FtdiDeviceInfo*> p(difi->id,difi);
 	      theFtdiDeviceInfoMap_.insert(p);
 	    }
 	  if (strncmp(difi->name,"DCCCCC",6)==0)
@@ -79,7 +79,7 @@ void lydaq::PMRManager::scan(zdaq::fsmmessage* m)
   LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: "<<m->command());
   // Fill Ftdi Map
   this->prepareDevices();
-  std::map<uint32_t,pmr::FtdiDeviceInfo*>& fm=this->getFtdiMap();
+  std::map<uint32_t,Pmr::FtdiDeviceInfo*>& fm=this->getFtdiMap();
   std::map<uint32_t,PMRInterface*> dm=this->getPMRMap();
  LOG4CXX_INFO(_logDIF,__PRETTY_FUNCTION__<<" CMD: SCANDEVICE clear Maps");
   for (  auto it=dm.begin();it!=dm.end();it++)

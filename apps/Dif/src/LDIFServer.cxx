@@ -193,7 +193,7 @@ void lydaq::LDIFServer::setGain(Mongoose::Request &request, Mongoose::JsonRespon
 
   if (gain==0|| ctrlreg1==0)
     {
-      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" Gain "<<gain)
+      LOG4CXX_ERROR(_logDIF,__PRETTY_FUNCTION__<<" Invalid parameters dif "<<difid<<" ctr "<<ctrlreg1<<" Gain "<<gain);
       response["STATUS"]="Invalid params ";
       return;
     }

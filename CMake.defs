@@ -8,7 +8,7 @@ else()
   include_directories( /usr/local/include /usr/include/jsoncpp /usr/include/libftdi1 )
 endif()
 
-ADD_DEFINITIONS(-std=c++11)
+#ADD_DEFINITIONS(-std=c++11)
 ADD_DEFINITIONS(-DNOORACLE -DNO_DB)
 
 if (NOT WINDOWS)
@@ -26,7 +26,7 @@ endif()
 
 #find_package(cpprestsdk CONFIG REQUIRED)
 #find_package(boost CONFIG REQUIRED)
-find_package(jsoncpp CONFIG REQUIRED)
+#find_package(jsoncpp CONFIG REQUIRED)
 #find_package(zmq CONFIG REQUIRED)
 
 set(ZDAQ_LIBS zmq mongoose jsoncpp log4cxx curl boost_thread boost_system crypto ssl z)
